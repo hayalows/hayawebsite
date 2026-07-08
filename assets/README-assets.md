@@ -8,9 +8,10 @@ This folder contains the first official asset pack for the Hayalows Ventures web
 - `hayalows-logo.svg` - Horizontal logo / wordmark.
 - `hayalows-og-image.svg` - Social sharing image source artwork at 1200 x 630 ratio.
 
-## Recommended generated files
+## Generated files
 
-Codex or a local design tool should export these from the SVG sources:
+These compatibility files are generated from the SVG sources and committed with
+the website:
 
 - `/favicon.ico`
 - `/assets/favicon-48x48.png`
@@ -18,7 +19,9 @@ Codex or a local design tool should export these from the SVG sources:
 - `/assets/apple-touch-icon.png` at 180 x 180
 - `/assets/hayalows-og-image.png` at 1200 x 630
 
-The SVG files are already usable in the website, but PNG/ICO exports improve compatibility across browsers, Apple devices and search previews.
+Regenerate them whenever the matching SVG source artwork changes. The PNG and
+ICO exports improve compatibility across browsers, Apple devices and social
+previews.
 
 ## Brand direction
 

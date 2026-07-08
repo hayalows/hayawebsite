@@ -8,7 +8,9 @@ dependency-free static site intended for Cloudflare Pages.
 - `index.html` - all page content and links
 - `styles.css` - layout, colours, typography and responsive styles
 - `script.js` - the mobile navigation menu
-- `assets/favicon.svg` - browser tab icon
+- `favicon.svg` and `favicon.ico` - browser tab icons
+- `site.webmanifest` - installable-site name, colours and icons
+- `assets/` - brand artwork, social-sharing image and generated icon files
 - `_headers` - basic browser security headers for Cloudflare Pages
 - `robots.txt` and `sitemap.xml` - search engine files
 
@@ -40,7 +42,7 @@ portrait and compress it before uploading.
 From this folder, run:
 
 ```powershell
-npx serve .
+npx.cmd serve .
 ```
 
 Then open the local address printed in the terminal.
@@ -61,6 +63,14 @@ Push this folder to its own GitHub repository, then in Cloudflare:
 5. Save and deploy.
 
 Every future push to `main` will publish automatically.
+
+## Search and sharing checks
+
+- Open `/favicon.svg`, `/favicon.ico` and `/site.webmanifest` directly in a browser.
+- Open `/assets/hayalows-og-image.png` and confirm it is 1200 x 630.
+- Open `/robots.txt` and confirm it links to `/sitemap.xml`.
+- Submit `https://hayalows.com/sitemap.xml` in Google Search Console.
+- Inspect `https://hayalows.com/` in Search Console after each important content update.
 
 ## Connect hayalows.com and www.hayalows.com
 
