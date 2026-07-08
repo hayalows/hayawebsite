@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Hayalows mark</title>
+  <desc id="desc">A minimal black square mark with a white lowercase h for Hayalows Ventures.</desc>
+  <rect width="512" height="512" rx="112" fill="#050505"/>
+  <text x="256" y="327" text-anchor="middle" font-family="Inter, Arial, Helvetica, sans-serif" font-size="310" font-weight="700" fill="#ffffff" letter-spacing="-18">h</text>
+  <rect x="132" y="372" width="248" height="14" rx="7" fill="#ffffff" opacity="0.82"/>
+</svg>
