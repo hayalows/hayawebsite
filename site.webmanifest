@@ -1,0 +1,17 @@
+{
+  "name": "Hayalows Ventures",
+  "short_name": "Hayalows",
+  "description": "Clarity, structure and systems for growing businesses.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#050505",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
