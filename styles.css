@@ -302,10 +302,26 @@ h3 {
 }
 
 .development-note span {
-  width: 7px;
-  height: 7px;
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background: var(--color-accent);
+  background: #2f7d32;
+  animation: status-dot-pulse 2s ease-out infinite;
+}
+
+@keyframes status-dot-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(47, 125, 50, 0.5);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px rgba(47, 125, 50, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(47, 125, 50, 0);
+  }
 }
 
 .hero-statement {
@@ -774,6 +790,10 @@ img.founder-photo {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .development-note span {
+    animation: none;
   }
 
   *,
