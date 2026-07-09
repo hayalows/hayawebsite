@@ -48,6 +48,7 @@ if (prefersReducedMotion) {
 }
 
 const revealTargets = document.querySelectorAll("[data-reveal]");
+const usesCompactViewport = window.matchMedia("(max-width: 850px)").matches;
 
 if (!prefersReducedMotion && "IntersectionObserver" in window) {
   const revealObserver = new IntersectionObserver(
@@ -60,8 +61,8 @@ if (!prefersReducedMotion && "IntersectionObserver" in window) {
       });
     },
     {
-      threshold: 0.15,
-      rootMargin: "0px 0px -60px 0px",
+      threshold: usesCompactViewport ? 0.08 : 0.15,
+      rootMargin: usesCompactViewport ? "0px 0px -24px 0px" : "0px 0px -60px 0px",
     }
   );
 

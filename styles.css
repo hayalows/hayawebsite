@@ -404,12 +404,7 @@ h3 {
   border-right: 1px solid var(--color-line);
 }
 
-.service-card:first-child {
-  padding-left: 0;
-}
-
 .service-card:last-child {
-  padding-right: 0;
   border-right: 0;
 }
 
@@ -560,11 +555,9 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .service-card,
-  .service-card:first-child,
-  .service-card:last-child {
+  .service-card {
     min-height: auto;
-    padding: var(--space-4) 0;
+    padding: var(--space-4);
     border-right: 0;
     border-bottom: 1px solid var(--color-line);
   }
@@ -726,6 +719,37 @@ html.motion-ready .hero [data-reveal-load] {
 html.motion-ready.is-loaded .hero [data-reveal-load] {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (max-width: 850px) {
+  .service-grid {
+    overflow-x: hidden;
+  }
+
+  html.motion-ready [data-reveal] {
+    transform: translateY(30px) scale(0.985);
+    transition-duration: 620ms;
+  }
+
+  html.motion-ready [data-reveal].is-visible {
+    transform: translateY(0) scale(1);
+  }
+
+  html.motion-ready .service-card[data-reveal] {
+    transform: translateX(24px);
+  }
+
+  html.motion-ready .service-card:nth-child(even)[data-reveal] {
+    transform: translateX(-24px);
+  }
+
+  html.motion-ready .service-card[data-reveal].is-visible {
+    transform: translateX(0);
+  }
+
+  .button:active {
+    transform: scale(0.985);
+  }
 }
 
 .service-card,
