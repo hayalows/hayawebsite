@@ -251,13 +251,17 @@ h3 {
   font-size: clamp(1.1rem, 1.8vw, 1.35rem);
 }
 
-.hero-title-line,
-.hero-cycle-word {
+.hero-title-line {
   display: block;
 }
 
+.hero-title-promise {
+  white-space: nowrap;
+}
+
 .hero-cycle-word {
-  min-height: 1.05em;
+  display: inline-block;
+  min-width: 7ch;
   color: var(--color-accent-dark);
   transition:
     opacity 180ms var(--ease-out-soft),
