@@ -82,8 +82,8 @@
         document.documentElement.classList.add("motion-ready");
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=20260709-4">
-    <script src="script.js?v=20260709-4" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260709-5">
+    <script src="script.js?v=20260709-5" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -115,7 +115,14 @@
         <div class="container hero-grid">
           <div class="hero-copy">
             <p class="eyebrow" data-reveal-load style="--reveal-delay: 0ms">Ghana · Business support and advisory</p>
-            <h1 data-reveal-load style="--reveal-delay: 90ms">Make your business easier to choose, trust and grow.</h1>
+            <h1
+              aria-label="Make your business easier to choose, trust and grow."
+              data-reveal-load
+              style="--reveal-delay: 90ms"
+            >
+              <span class="hero-title-line" aria-hidden="true">Make your business easier to</span>
+              <span class="hero-cycle-word" data-rotating-word aria-hidden="true">choose.</span>
+            </h1>
             <p class="hero-intro" data-reveal-load style="--reveal-delay: 220ms">
               Hayalows helps Ghanaian SMEs find and fix the quiet gaps that slow growth: unclear
               offers, weak first impressions, poor follow-up, scattered records and customers who
@@ -131,13 +138,24 @@
             </p>
           </div>
 
-          <div class="hero-statement" aria-label="Hayalows principles" data-reveal-load style="--reveal-delay: 480ms">
-            <span class="statement-number">01</span>
-            <p>Easier to choose.</p>
-            <p>Easier to trust.</p>
-            <p>Easier to return to.</p>
+          <aside class="hero-outcomes" aria-label="Business outcomes Hayalows helps create" data-reveal-load style="--reveal-delay: 480ms">
+            <p class="outcomes-label">A clearer customer path</p>
+            <ol class="outcomes-list">
+              <li class="hero-outcome is-active" data-hero-outcome="choose">
+                <span class="outcome-number">01</span>
+                <span>Be easier to choose.</span>
+              </li>
+              <li class="hero-outcome" data-hero-outcome="trust">
+                <span class="outcome-number">02</span>
+                <span>Be easier to trust.</span>
+              </li>
+              <li class="hero-outcome" data-hero-outcome="grow">
+                <span class="outcome-number">03</span>
+                <span>Give customers a reason to return.</span>
+              </li>
+            </ol>
             <span class="statement-location">Based in Ghana</span>
-          </div>
+          </aside>
         </div>
       </section>
 
