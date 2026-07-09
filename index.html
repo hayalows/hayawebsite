@@ -77,8 +77,13 @@
       }
     </script>
 
-    <link rel="stylesheet" href="styles.css?v=20260709-1">
-    <script src="script.js" defer></script>
+    <script>
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("motion-ready");
+      }
+    </script>
+    <link rel="stylesheet" href="styles.css?v=20260709-2">
+    <script src="script.js?v=20260709-2" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -109,23 +114,23 @@
       <section class="hero" id="top">
         <div class="container hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">Ghana · Business support and advisory</p>
-            <h1>Clarity, structure and systems for growing businesses.</h1>
-            <p class="hero-intro">
+            <p class="eyebrow" data-reveal-load style="--reveal-delay: 0ms">Ghana · Business support and advisory</p>
+            <h1 data-reveal-load style="--reveal-delay: 90ms">Clarity, structure and systems for growing businesses.</h1>
+            <p class="hero-intro" data-reveal-load style="--reveal-delay: 220ms">
               Hayalows is a Ghana-based business helping SMEs, founders and young professionals
               organise how they work, handle money, communicate and grow with more discipline.
             </p>
-            <div class="button-row">
+            <div class="button-row" data-reveal-load style="--reveal-delay: 340ms">
               <a class="button button-primary" href="mailto:info@hayalows.com">Contact Hayalows</a>
               <a class="button button-secondary" href="#projects">View current projects</a>
             </div>
-            <p class="development-note">
+            <p class="development-note" data-reveal-load style="--reveal-delay: 420ms">
               <span aria-hidden="true"></span>
               The full website is currently being developed.
             </p>
           </div>
 
-          <div class="hero-statement" aria-label="Hayalows principles">
+          <div class="hero-statement" aria-label="Hayalows principles" data-reveal-load style="--reveal-delay: 480ms">
             <span class="statement-number">01</span>
             <p>Clear thinking.</p>
             <p>Useful structure.</p>
@@ -137,8 +142,8 @@
 
       <section class="status-section" id="about">
         <div class="container status-grid">
-          <p class="section-label">Current status</p>
-          <div>
+          <p class="section-label" data-reveal>Current status</p>
+          <div data-reveal style="--reveal-delay: 80ms">
             <h2>A proper website is being built.</h2>
             <p class="section-lead">
               This page is the current official home of Hayalows while the full website is being
@@ -151,13 +156,13 @@
 
       <section class="services-section" id="services">
         <div class="container">
-          <div class="section-heading">
+          <div class="section-heading" data-reveal>
             <p class="section-label">What we do</p>
             <h2>Practical support for clearer business.</h2>
           </div>
 
           <div class="service-grid">
-            <article class="service-card">
+            <article class="service-card" data-reveal>
               <span class="card-number">01</span>
               <h3>Business Clarity &amp; Advisory</h3>
               <p>
@@ -165,7 +170,7 @@
                 organise simple records and make better operating decisions.
               </p>
             </article>
-            <article class="service-card">
+            <article class="service-card" data-reveal style="--reveal-delay: 120ms">
               <span class="card-number">02</span>
               <h3>Brand &amp; Positioning Support</h3>
               <p>
@@ -173,7 +178,7 @@
                 them. This includes messaging, identity direction and customer communication.
               </p>
             </article>
-            <article class="service-card">
+            <article class="service-card" data-reveal style="--reveal-delay: 240ms">
               <span class="card-number">03</span>
               <h3>Marketing &amp; Digital Systems</h3>
               <p>
@@ -185,40 +190,21 @@
         </div>
       </section>
 
-      <section class="founder-section" id="founder">
-        <div class="container founder-grid">
-          <div class="founder-photo" role="img" aria-label="Founder photo coming soon">
-            <span class="founder-initials" aria-hidden="true">PKM</span>
-            <span>Founder photo coming soon</span>
-          </div>
-          <div class="founder-copy">
-            <p class="section-label">Founder</p>
-            <h2>Papa Kojo Mensah</h2>
-            <p class="founder-role">Founder, Hayalows</p>
-            <p>
-              Papa Kojo Mensah works across brand identity, business systems, social media and practical
-              financial structure. His work focuses on helping small businesses move from scattered
-              effort to clearer and more disciplined execution.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <section class="projects-section" id="projects">
         <div class="container">
-          <div class="section-heading projects-heading">
+          <div class="section-heading projects-heading" data-reveal>
             <p class="section-label">Projects</p>
             <h2>Current projects and focus areas</h2>
           </div>
 
           <div class="project-list">
-            <article class="project-item">
+            <article class="project-item" data-reveal>
               <span class="project-index">01</span>
               <h3>Hayalows</h3>
               <p>Main business platform for clarity, systems, brand and advisory work.</p>
               <span class="project-status">Active</span>
             </article>
-            <article class="project-item">
+            <article class="project-item" data-reveal style="--reveal-delay: 90ms">
               <span class="project-index">02</span>
               <h3>SME Clarity Lab</h3>
               <p>
@@ -227,13 +213,13 @@
               </p>
               <span class="project-status">In development</span>
             </article>
-            <article class="project-item">
+            <article class="project-item" data-reveal style="--reveal-delay: 180ms">
               <span class="project-index">03</span>
               <h3>50's Bliss</h3>
               <p>A practical product line connected to household and everyday-use products.</p>
               <span class="project-status">In development</span>
             </article>
-            <article class="project-item">
+            <article class="project-item" data-reveal style="--reveal-delay: 270ms">
               <span class="project-index">04</span>
               <h3>CupMarket</h3>
               <p>
@@ -246,13 +232,31 @@
         </div>
       </section>
 
+      <section class="founder-section" id="founder">
+        <div class="container founder-grid">
+          <div class="founder-mark" aria-hidden="true" data-reveal>
+            <span class="founder-mark-glyph">h</span>
+          </div>
+          <div class="founder-copy" data-reveal style="--reveal-delay: 100ms">
+            <p class="section-label">Founder</p>
+            <h2>Papa Kojo Mensah</h2>
+            <p class="founder-role">Founder, Hayalows</p>
+            <p>
+              Papa Kojo Mensah works across brand identity, business systems, social media and practical
+              financial structure. His work focuses on helping small businesses move from scattered
+              effort to clearer and more disciplined execution.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section class="contact-section" id="contact">
         <div class="container contact-grid">
-          <div>
+          <div data-reveal>
             <p class="section-label section-label-light">Contact</p>
             <h2>Contact Hayalows</h2>
           </div>
-          <div class="contact-content">
+          <div class="contact-content" data-reveal style="--reveal-delay: 100ms">
             <p>
               For business inquiries, collaborations or project discussions, use the official email
               below.
