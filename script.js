@@ -8,6 +8,11 @@ function applyMobileNavigationSurface() {
   navigation.style.background = isMobile ? "var(--color-paper)" : "";
   navigation.style.backdropFilter = isMobile ? "none" : "";
   navigation.style.webkitBackdropFilter = isMobile ? "none" : "";
+  navigation.style.opacity = isMobile ? "1" : "";
+  navigation.style.visibility = isMobile ? "hidden" : "";
+  navigation.style.transition = isMobile
+    ? "transform 220ms var(--ease-out-soft)"
+    : "";
 }
 
 function setMenuState(isOpen) {
@@ -19,9 +24,11 @@ function setMenuState(isOpen) {
   document.body.classList.toggle("menu-open", shouldOpen);
 
   if (isMobile) {
+    navigation.style.visibility = shouldOpen ? "visible" : "hidden";
     navigation.toggleAttribute("inert", !shouldOpen);
     navigation.setAttribute("aria-hidden", String(!shouldOpen));
   } else {
+    navigation.style.visibility = "";
     navigation.removeAttribute("inert");
     navigation.removeAttribute("aria-hidden");
   }
