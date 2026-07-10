@@ -85,13 +85,33 @@
     <link rel="stylesheet" href="styles.css?v=20260710-3">
     <style>
       @media (max-width: 680px) {
+        .site-header,
+        .site-header.is-scrolled,
+        body.menu-open .site-header,
         .site-nav,
-        .site-nav.is-open,
-        body.menu-open .site-header {
+        .site-nav.is-open {
           background: #f7f8f4 !important;
           background-color: #f7f8f4 !important;
           -webkit-backdrop-filter: none !important;
           backdrop-filter: none !important;
+        }
+
+        .site-header,
+        .site-header.is-scrolled,
+        body.menu-open .site-header {
+          transition: none !important;
+        }
+
+        .site-nav {
+          opacity: 1 !important;
+          visibility: hidden;
+          transform: none !important;
+          transition: none !important;
+        }
+
+        .site-nav.is-open {
+          visibility: visible;
+          transform: none !important;
         }
       }
     </style>
