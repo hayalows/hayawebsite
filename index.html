@@ -82,8 +82,20 @@
         document.documentElement.classList.add("motion-ready");
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=20260710-1">
-    <script src="script.js?v=20260710-1" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260710-3">
+    <style>
+      @media (max-width: 680px) {
+        .site-nav,
+        .site-nav.is-open,
+        body.menu-open .site-header {
+          background: #f7f8f4 !important;
+          background-color: #f7f8f4 !important;
+          -webkit-backdrop-filter: none !important;
+          backdrop-filter: none !important;
+        }
+      }
+    </style>
+    <script src="script.js?v=20260710-3" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
