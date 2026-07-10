@@ -1,17 +1,31 @@
 const menuButton = document.querySelector(".menu-toggle");
 const navigation = document.querySelector(".site-nav");
+const siteHeader = document.querySelector(".site-header");
+
+function setMenuState(isOpen) {
+  const isMobile = window.innerWidth <= 680;
+  const shouldOpen = isMobile && isOpen;
+
+  menuButton.setAttribute("aria-expanded", String(shouldOpen));
+  navigation.classList.toggle("is-open", shouldOpen);
+  document.body.classList.toggle("menu-open", shouldOpen);
+
+  if (isMobile) {
+    navigation.toggleAttribute("inert", !shouldOpen);
+    navigation.setAttribute("aria-hidden", String(!shouldOpen));
+  } else {
+    navigation.removeAttribute("inert");
+    navigation.removeAttribute("aria-hidden");
+  }
+}
 
 function closeMenu() {
-  menuButton.setAttribute("aria-expanded", "false");
-  navigation.classList.remove("is-open");
-  document.body.classList.remove("menu-open");
+  setMenuState(false);
 }
 
 menuButton.addEventListener("click", () => {
   const isOpen = menuButton.getAttribute("aria-expanded") === "true";
-  menuButton.setAttribute("aria-expanded", String(!isOpen));
-  navigation.classList.toggle("is-open", !isOpen);
-  document.body.classList.toggle("menu-open", !isOpen);
+  setMenuState(!isOpen);
 });
 
 navigation.addEventListener("click", (event) => {
@@ -21,17 +35,25 @@ navigation.addEventListener("click", (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
+  const isMenuOpen = menuButton.getAttribute("aria-expanded") === "true";
+
+  if (event.key === "Escape" && isMenuOpen) {
     closeMenu();
     menuButton.focus();
   }
 });
 
-window.addEventListener("resize", () => {
-  if (window.innerWidth > 680) {
-    closeMenu();
+window.addEventListener("resize", closeMenu);
+closeMenu();
+
+function updateHeaderMaterial() {
+  if (siteHeader) {
+    siteHeader.classList.toggle("is-scrolled", window.scrollY > 8);
   }
-});
+}
+
+updateHeaderMaterial();
+window.addEventListener("scroll", updateHeaderMaterial, { passive: true });
 
 const prefersReducedMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)"
