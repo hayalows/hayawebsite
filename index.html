@@ -98,9 +98,19 @@
         text-rendering: optimizeLegibility;
       }
 
+      .hero-intro-problem,
       .hero-intro-solution {
+        display: block;
+      }
+
+      .hero-intro-solution {
+        margin-top: 0.8rem;
         color: #111310;
         font-weight: 650;
+      }
+
+      .no-wrap {
+        white-space: nowrap;
       }
 
       @media (max-width: 680px) {
@@ -109,6 +119,10 @@
           font-size: 1.05rem;
           line-height: 1.65;
           text-wrap: pretty;
+        }
+
+        .hero-intro-solution {
+          margin-top: 0.9rem;
         }
 
         .site-header,
@@ -186,9 +200,8 @@
               </span>
             </h1>
             <p class="hero-intro" data-reveal-load style="--reveal-delay: 220ms">
-              Your business may be good. But when customers do not understand your offer, trust what
-              they see or hear from you again, you lose sales, repeat customers and referrals.
-              <span class="hero-intro-solution">Hayalows helps Ghanaian SMEs fix those gaps so your business becomes easier to choose, trust and come back&nbsp;to.</span>
+              <span class="hero-intro-problem">Your business may be good. But when customers do not understand your offer, trust what they see or hear from you again, you lose sales, repeat customers and referrals.</span>
+              <span class="hero-intro-solution">Hayalows helps Ghanaian SMEs fix those gaps so your business becomes easier to choose, trust and <span class="no-wrap">come back to.</span></span>
             </p>
             <div class="button-row" data-reveal-load style="--reveal-delay: 340ms">
               <a class="button button-primary" href="mailto:info@hayalows.com">Contact Hayalows</a>
