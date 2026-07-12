@@ -1,12 +1,12 @@
 {
   "name": "Hayalows",
   "short_name": "Hayalows",
-  "description": "Clarity, structure and systems for growing businesses.",
+  "description": "Practical systems, clearer brands and useful digital experiences built in Ghana.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#f8f8f5",
-  "theme_color": "#111310",
+  "background_color": "#f7f7f4",
+  "theme_color": "#101613",
   "icons": [
     {
       "src": "/favicon.svg",
