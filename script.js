@@ -1,10 +1,10 @@
 const siteConfig = window.HAYALOWS_SITE_CONFIG || {
   businessName: "Hayalows Ventures",
   email: "info@hayalows.com",
-  whatsappLocal: "054 062 01345",
-  whatsappInternational: "+233 54 062 01345",
-  whatsappNumber: "2335406201345",
-  whatsappUrl: "https://wa.me/2335406201345",
+  whatsappLocal: "050 620 1345",
+  whatsappInternational: "+233 50 620 1345",
+  whatsappNumber: "233506201345",
+  whatsappUrl: "https://wa.me/233506201345",
   defaultWhatsappMessage:
     "Hello Hayalows. I would like to discuss something I need help with.",
 };
@@ -121,6 +121,45 @@ if (reducedMotion.matches) {
       document.documentElement.classList.add("is-loaded");
     });
   });
+}
+
+const rotatingWord = document.querySelector("[data-rotating-word]");
+
+if (rotatingWord && !reducedMotion.matches) {
+  const heroWords = ["choose.", "trust.", "grow."];
+  let wordIndex = 0;
+  let rotationTimer;
+  let changeTimer;
+
+  function rotateHeroWord() {
+    rotatingWord.classList.add("is-changing");
+    changeTimer = window.setTimeout(() => {
+      wordIndex = (wordIndex + 1) % heroWords.length;
+      rotatingWord.textContent = heroWords[wordIndex];
+      rotatingWord.classList.remove("is-changing");
+    }, 180);
+  }
+
+  function startHeroRotation() {
+    window.clearInterval(rotationTimer);
+    rotationTimer = window.setInterval(rotateHeroWord, 3000);
+  }
+
+  function stopHeroRotation() {
+    window.clearInterval(rotationTimer);
+    window.clearTimeout(changeTimer);
+    rotatingWord.classList.remove("is-changing");
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopHeroRotation();
+    } else {
+      startHeroRotation();
+    }
+  });
+
+  startHeroRotation();
 }
 
 const revealTargets = document.querySelectorAll("[data-reveal]");

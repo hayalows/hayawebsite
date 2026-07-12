@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">Hayalows Ventures sharing image</title>
-  <desc id="desc">Hayalows Ventures and the higher lows idea on an off-white, dark green and orange design.</desc>
+  <desc id="desc">Hayalows and the build back stronger idea on an off-white, dark green and orange design.</desc>
   <rect width="1200" height="630" fill="#f7f7f4"/>
   <rect x="58" y="58" width="1084" height="514" rx="12" fill="none" stroke="#cfd3cb" stroke-width="2"/>
   <g transform="translate(92 92)">
@@ -8,17 +8,16 @@
     <text x="36" y="50" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700" fill="#ffffff">h</text>
     <rect x="18" y="57" width="36" height="3" rx="1.5" fill="#e4a35f"/>
   </g>
-  <text x="92" y="272" font-family="Georgia, 'Times New Roman', serif" font-size="65" font-weight="400" fill="#111111">Hayalows Ventures</text>
-  <text x="96" y="334" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="600" fill="#52634d">USEFUL PROGRESS, BUILT WITH CARE</text>
-  <text x="96" y="400" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" fill="#575c55">Practical systems, clearer brands</text>
-  <text x="96" y="434" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" fill="#575c55">and useful digital experiences.</text>
+  <text x="92" y="272" font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="400" fill="#111111">Hayalows</text>
+  <text x="96" y="334" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="600" fill="#52634d">EASIER TO CHOOSE, TRUST AND GROW</text>
+  <text x="96" y="400" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" fill="#575c55">Clearer offers, stronger customer trust</text>
+  <text x="96" y="434" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="400" fill="#575c55">and simple systems for growth.</text>
   <text x="96" y="520" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#111111">Built in Ghana  /  hayalows.com</text>
   <g transform="translate(760 105)">
     <rect width="330" height="420" rx="8" fill="#101613"/>
-    <text x="30" y="48" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#b9c1ba">THE HIGHER LOW</text>
-    <text x="30" y="112" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="400" fill="#ffffff">A stronger base</text>
-    <text x="30" y="157" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="400" fill="#e4a35f">for what</text>
-    <text x="30" y="202" font-family="Georgia, 'Times New Roman', serif" font-size="38" font-weight="400" fill="#e4a35f">comes next.</text>
+    <text x="30" y="48" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="700" fill="#b9c1ba">THE HAYALOWS IDEA</text>
+    <text x="30" y="118" font-family="Georgia, 'Times New Roman', serif" font-size="44" font-weight="400" fill="#ffffff">Build back</text>
+    <text x="30" y="172" font-family="Georgia, 'Times New Roman', serif" font-size="44" font-style="italic" font-weight="400" fill="#e4a35f">stronger.</text>
     <path d="M30 350 C70 345 78 294 122 296 S170 330 210 306 S260 245 300 220" fill="none" stroke="#e4a35f" stroke-width="4" stroke-linecap="round"/>
     <circle cx="122" cy="296" r="6" fill="#101613" stroke="#e4a35f" stroke-width="4"/>
     <circle cx="210" cy="306" r="6" fill="#101613" stroke="#e4a35f" stroke-width="4"/>
