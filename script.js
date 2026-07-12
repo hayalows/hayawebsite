@@ -162,6 +162,108 @@ if (rotatingWord && !reducedMotion.matches) {
   startHeroRotation();
 }
 
+const customerPathPanel = document.querySelector(".customer-path-panel");
+
+if (customerPathPanel) {
+  const gapTabs = [...customerPathPanel.querySelectorAll("[data-gap-tab]")];
+  const gapDetail = customerPathPanel.querySelector("#gap-detail");
+  const problemText = customerPathPanel.querySelector("[data-gap-problem]");
+  const solutionText = customerPathPanel.querySelector("[data-gap-solution]");
+  const pathStages = [...customerPathPanel.querySelectorAll(".customer-path-chart li")];
+  const gapContent = {
+    offer: {
+      problem:
+        "They ask for the price but still do not understand why they should choose you.",
+      solution:
+        "Clarify the offer, price and next step so the decision feels easier.",
+      reachedStages: 1,
+    },
+    trust: {
+      problem:
+        "Your flyer, WhatsApp presence and service feel like different businesses.",
+      solution:
+        "Align the message and presentation so every touchpoint builds the same confidence.",
+      reachedStages: 2,
+    },
+    followup: {
+      problem:
+        "They buy once or ask a question, then hear nothing useful from the business.",
+      solution:
+        "Create a clear enquiry and follow-up process so interested customers hear from you.",
+      reachedStages: 3,
+    },
+  };
+
+  function selectGap(tab, moveFocus = false) {
+    const gap = tab.dataset.gapTab;
+    const content = gapContent[gap];
+
+    if (moveFocus) {
+      customerPathPanel.classList.add("skip-gap-motion");
+    }
+
+    customerPathPanel.dataset.activeGap = gap;
+    problemText.textContent = content.problem;
+    solutionText.textContent = content.solution;
+    gapDetail.setAttribute("aria-labelledby", tab.id);
+
+    gapTabs.forEach((item) => {
+      const isActive = item === tab;
+      item.setAttribute("aria-selected", String(isActive));
+      item.tabIndex = isActive ? 0 : -1;
+    });
+
+    pathStages.forEach((stage, index) => {
+      stage.classList.toggle("is-reached", index < content.reachedStages);
+    });
+
+    if (
+      !moveFocus &&
+      !reducedMotion.matches &&
+      typeof gapDetail.animate === "function"
+    ) {
+      gapDetail.animate(
+        [
+          { opacity: 0.5, transform: "translateY(3px)" },
+          { opacity: 1, transform: "translateY(0)" },
+        ],
+        { duration: 180, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+      );
+    }
+
+    if (moveFocus) {
+      tab.focus();
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          customerPathPanel.classList.remove("skip-gap-motion");
+        });
+      });
+    }
+  }
+
+  gapTabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => selectGap(tab));
+    tab.addEventListener("keydown", (event) => {
+      let nextIndex = index;
+
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        nextIndex = (index + 1) % gapTabs.length;
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        nextIndex = (index - 1 + gapTabs.length) % gapTabs.length;
+      } else if (event.key === "Home") {
+        nextIndex = 0;
+      } else if (event.key === "End") {
+        nextIndex = gapTabs.length - 1;
+      } else {
+        return;
+      }
+
+      event.preventDefault();
+      selectGap(gapTabs[nextIndex], true);
+    });
+  });
+}
+
 const revealTargets = document.querySelectorAll("[data-reveal]");
 
 if (!reducedMotion.matches && "IntersectionObserver" in window) {
