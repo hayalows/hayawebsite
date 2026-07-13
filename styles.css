@@ -156,12 +156,8 @@ h3 {
 .eyebrow,
 .panel-label,
 .panel-index,
-.capability-number,
 .process-number,
 .process-label,
-.trust-grid span,
-.principle-list span,
-.values-grid span,
 .form-heading > span {
   font-size: 0.76rem;
   font-weight: 750;
@@ -616,6 +612,28 @@ h3 {
   line-height: 1.48;
 }
 
+.gap-action {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 0;
+  margin-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 720;
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.gap-action span:last-child {
+  color: var(--color-accent-light);
+  font-size: 1.15rem;
+  transition: transform 180ms var(--ease-out);
+}
+
 .trust-strip {
   border-bottom: 1px solid var(--color-line);
   background: #ffffff;
@@ -627,8 +645,8 @@ h3 {
 }
 
 .trust-grid article {
-  min-height: 205px;
-  padding: 2rem;
+  min-height: 165px;
+  padding: 2.25rem 2rem;
   border-right: 1px solid var(--color-line);
 }
 
@@ -639,15 +657,6 @@ h3 {
 .trust-grid article:last-child {
   padding-right: 0;
   border-right: 0;
-}
-
-.trust-grid span,
-.capability-number,
-.principle-list span,
-.values-grid span {
-  display: block;
-  margin-bottom: 2rem;
-  color: var(--color-accent-text);
 }
 
 .trust-grid h2 {
@@ -696,14 +705,13 @@ h3 {
 
 .value-flow article {
   display: grid;
-  grid-template-columns: 56px minmax(260px, 1fr) minmax(260px, 1fr);
-  gap: 2.5rem;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+  gap: 3.5rem;
   align-items: center;
   padding: 2rem 0;
   border-bottom: 1px solid var(--color-line);
 }
 
-.flow-number,
 .flow-state > span {
   display: block;
   margin-bottom: 0.7rem;
@@ -712,11 +720,6 @@ h3 {
   font-weight: 750;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-}
-
-.flow-number {
-  align-self: start;
-  margin-top: 0.2rem;
 }
 
 .flow-state h3 {
@@ -794,14 +797,19 @@ h3 {
 
 .capability {
   display: grid;
-  grid-template-columns: 70px minmax(280px, 1fr) minmax(280px, 0.8fr);
-  gap: 2.5rem;
+  grid-template-columns: minmax(280px, 1fr) minmax(280px, 0.8fr);
+  gap: 4rem;
   padding: 2.75rem 0;
   border-bottom: 1px solid var(--color-line);
 }
 
-.capability-number {
-  margin: 0;
+.capability p.capability-kicker {
+  margin-bottom: 0.7rem;
+  color: var(--color-accent-text);
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .capability h3 {
@@ -812,6 +820,20 @@ h3 {
   max-width: 540px;
   margin-bottom: 0;
   color: var(--color-muted);
+}
+
+.capability-examples {
+  align-self: start;
+}
+
+.capability-examples summary {
+  display: none;
+}
+
+@media (min-width: 681px) {
+  .capability-examples > ul {
+    display: block;
+  }
 }
 
 .capability ul {
@@ -946,15 +968,8 @@ h3 {
 }
 
 .principle-list article {
-  display: grid;
-  grid-template-columns: 50px 1fr;
-  gap: 1.5rem;
-  padding: 2rem 0;
+  padding: 2.15rem 0;
   border-bottom: 1px solid var(--color-line);
-}
-
-.principle-list span {
-  margin: 0;
 }
 
 .principle-list h3 {
@@ -1090,8 +1105,8 @@ h3 {
 }
 
 .values-grid article {
-  min-height: 280px;
-  padding: 2rem;
+  min-height: 215px;
+  padding: 2.5rem 2rem;
   border-right: 1px solid #bfc5ba;
 }
 
@@ -1104,11 +1119,8 @@ h3 {
   border-right: 0;
 }
 
-.values-grid span {
-  margin-bottom: 3.5rem;
-}
-
 .values-grid h3 {
+  margin-bottom: 1rem;
   font-size: 1.2rem;
 }
 
@@ -1187,6 +1199,7 @@ h3 {
 }
 
 .contact-form {
+  scroll-margin-top: calc(var(--header-height) + 1.5rem);
   padding: 2.25rem;
   border: 1px solid rgba(17, 17, 17, 0.2);
   border-radius: var(--radius);
@@ -1211,6 +1224,20 @@ h3 {
   margin-bottom: 0;
   color: var(--color-muted);
   font-size: 0.92rem;
+}
+
+.form-context {
+  padding: 0.9rem 1rem;
+  margin: -0.25rem 0 1.5rem;
+  border-left: 3px solid var(--color-green);
+  color: #344231;
+  background: #e8ece4;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.form-context[hidden] {
+  display: none;
 }
 
 .form-row {
@@ -1396,6 +1423,14 @@ h3 {
   .text-action:hover {
     color: var(--color-accent-text);
   }
+
+  .gap-action:hover {
+    color: var(--color-accent-light);
+  }
+
+  .gap-action:hover span:last-child {
+    transform: translateX(4px);
+  }
 }
 
 html.motion-ready [data-reveal],
@@ -1537,16 +1572,13 @@ html.motion-ready [data-reveal-load] {
   }
 
   .capability {
-    grid-template-columns: 55px 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+    gap: 2rem;
   }
 
   .value-flow article {
-    grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1fr);
-    gap: 1.5rem;
-  }
-
-  .capability ul {
-    grid-column: 2;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2rem;
   }
 
   .process-list {
@@ -1761,10 +1793,6 @@ html.motion-ready [data-reveal-load] {
     border-bottom: 0;
   }
 
-  .trust-grid span {
-    margin-bottom: 1rem;
-  }
-
   .section-heading {
     margin-bottom: 3rem;
   }
@@ -1773,10 +1801,6 @@ html.motion-ready [data-reveal-load] {
     grid-template-columns: 1fr;
     gap: 1rem;
     padding: 1.75rem 0;
-  }
-
-  .flow-number {
-    margin-bottom: 0;
   }
 
   .flow-benefit {
@@ -1795,17 +1819,50 @@ html.motion-ready [data-reveal-load] {
   }
 
   .capability {
-    grid-template-columns: 36px 1fr;
-    gap: 1rem;
-    padding: 2rem 0;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 1.75rem 0;
   }
 
   .capability h3 {
     font-size: 1.4rem;
   }
 
-  .capability ul {
-    grid-column: 2;
+  .capability-examples {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .capability-examples summary {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--color-ink);
+    cursor: pointer;
+    font-size: 0.86rem;
+    font-weight: 700;
+    list-style: none;
+  }
+
+  .capability-examples summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .capability-examples summary::after {
+    color: var(--color-accent-text);
+    content: "+";
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: transform 180ms var(--ease-out);
+  }
+
+  .capability-examples[open] summary::after {
+    transform: rotate(45deg);
+  }
+
+  .capability-examples ul {
+    padding-bottom: 0.6rem;
   }
 
   .section-closing,
@@ -1815,11 +1872,6 @@ html.motion-ready [data-reveal-load] {
 
   .process-list {
     margin-top: 3rem;
-  }
-
-  .principle-list article {
-    grid-template-columns: 36px 1fr;
-    gap: 1rem;
   }
 
   .faq-list summary {
@@ -1856,10 +1908,6 @@ html.motion-ready [data-reveal-load] {
 
   .values-grid article:last-child {
     border-bottom: 0;
-  }
-
-  .values-grid span {
-    margin-bottom: 1.5rem;
   }
 
   .contact-layout {

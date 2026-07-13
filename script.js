@@ -169,27 +169,46 @@ if (customerPathPanel) {
   const gapDetail = customerPathPanel.querySelector("#gap-detail");
   const problemText = customerPathPanel.querySelector("[data-gap-problem]");
   const solutionText = customerPathPanel.querySelector("[data-gap-solution]");
+  const gapAction = customerPathPanel.querySelector("[data-gap-action]");
   const pathStages = [...customerPathPanel.querySelectorAll(".customer-path-chart li")];
   const gapContent = {
     offer: {
+      label: "an unclear offer",
       problem:
         "They ask for the price but still do not understand why they should choose you.",
       solution:
         "Clarify the offer, price and next step so the decision feels easier.",
+      helpType: "Business clarity or systems",
+      starter:
+        "Customers often ask about my offer or price, but many do not continue. I want help making the offer clearer.",
+      context:
+        "You selected unclear offer. We prepared a starting point below; edit it so it matches your business.",
       reachedStages: 1,
     },
     trust: {
+      label: "weak customer trust",
       problem:
         "Your flyer, WhatsApp presence and service feel like different businesses.",
       solution:
         "Align the message and presentation so every touchpoint builds the same confidence.",
+      helpType: "Brand and communication",
+      starter:
+        "My flyer, WhatsApp presence and customer experience do not feel consistent. I want help making the business easier to trust.",
+      context:
+        "You selected weak trust. We prepared a starting point below; edit it so it matches your business.",
       reachedStages: 2,
     },
     followup: {
+      label: "missing customer follow-up",
       problem:
         "They buy once or ask a question, then hear nothing useful from the business.",
       solution:
         "Create a clear enquiry and follow-up process so interested customers hear from you.",
+      helpType: "Business clarity or systems",
+      starter:
+        "Customer enquiries and follow-up are getting lost in chats or memory. I want help creating a clearer follow-up process.",
+      context:
+        "You selected no follow-up. We prepared a starting point below; edit it so it matches your business.",
       reachedStages: 3,
     },
   };
@@ -206,6 +225,10 @@ if (customerPathPanel) {
     problemText.textContent = content.problem;
     solutionText.textContent = content.solution;
     gapDetail.setAttribute("aria-labelledby", tab.id);
+    gapAction?.setAttribute(
+      "aria-label",
+      `This sounds like my business: start an enquiry about ${content.label}`
+    );
 
     gapTabs.forEach((item) => {
       const isActive = item === tab;
@@ -262,6 +285,53 @@ if (customerPathPanel) {
       selectGap(gapTabs[nextIndex], true);
     });
   });
+
+  gapAction?.addEventListener("click", (event) => {
+    const content = gapContent[customerPathPanel.dataset.activeGap];
+    const form = document.querySelector("#contact-form");
+    const helpType = form?.elements.namedItem("helpType");
+    const message = form?.elements.namedItem("message");
+    const formContext = form?.querySelector("[data-form-context]");
+
+    if (!form || !helpType || !message || !content) {
+      return;
+    }
+
+    event.preventDefault();
+    helpType.value = content.helpType;
+    helpType.dispatchEvent(new Event("change", { bubbles: true }));
+
+    const previousStarter = message.dataset.diagnosticStarter || "";
+    if (!message.value.trim() || message.value === previousStarter) {
+      message.value = content.starter;
+      message.dataset.diagnosticStarter = content.starter;
+      message.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    if (formContext) {
+      formContext.textContent = content.context;
+      formContext.hidden = false;
+    }
+
+    form.scrollIntoView({
+      behavior: reducedMotion.matches ? "auto" : "smooth",
+      block: "start",
+    });
+    message.focus({ preventScroll: true });
+  });
+}
+
+const capabilityExamples = document.querySelectorAll(".capability-examples");
+
+function syncCapabilityExamples() {
+  capabilityExamples.forEach((details) => {
+    details.open = !mobileViewport.matches;
+  });
+}
+
+if (capabilityExamples.length) {
+  syncCapabilityExamples();
+  mobileViewport.addEventListener("change", syncCapabilityExamples);
 }
 
 const revealTargets = document.querySelectorAll("[data-reveal]");
