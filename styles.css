@@ -17,6 +17,7 @@
   --radius: 6px;
   --header-height: 76px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --shadow-header: 0 12px 34px -28px rgba(16, 22, 19, 0.72);
 }
@@ -550,7 +551,7 @@ h3 {
   background: var(--color-accent-light);
   transform: scaleX(0.32);
   transform-origin: left center;
-  transition: transform 420ms var(--ease-out);
+  transition: transform 420ms var(--ease-in-out);
 }
 
 .customer-path-panel.skip-gap-motion .customer-path-track span {
@@ -1059,10 +1060,11 @@ h3 {
   line-height: 1;
   place-items: center;
   transform: translateY(-50%);
+  transition: transform 180ms var(--ease-out);
 }
 
 .faq-list details[open] summary::after {
-  content: "-";
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .faq-list summary:focus-visible {
@@ -1075,6 +1077,21 @@ h3 {
   padding: 0 3.25rem 1.75rem 0;
   margin-bottom: 0;
   color: var(--color-muted);
+}
+
+.faq-list details[open] p {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+
+@starting-style {
+  .faq-list details[open] p {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .about-section {
@@ -1238,6 +1255,21 @@ h3 {
 
 .form-context[hidden] {
   display: none;
+}
+
+.form-context:not([hidden]) {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 220ms var(--ease-out);
+}
+
+@starting-style {
+  .form-context:not([hidden]) {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .form-row {
@@ -1865,6 +1897,21 @@ html.motion-ready [data-reveal-load] {
     padding-bottom: 0.6rem;
   }
 
+  .capability-examples[open] ul {
+    opacity: 1;
+    transform: translateY(0);
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 180ms var(--ease-out);
+  }
+
+  @starting-style {
+    .capability-examples[open] ul {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
   .section-closing,
   .venture-note {
     margin-left: 0;
@@ -2015,6 +2062,12 @@ html.motion-ready [data-reveal-load] {
   html.motion-ready [data-reveal],
   html.motion-ready [data-reveal-load] {
     opacity: 1;
+    transform: none;
+  }
+
+  .form-context:not([hidden]),
+  .faq-list details[open] p,
+  .capability-examples[open] ul {
     transform: none;
   }
 
