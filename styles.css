@@ -1,16 +1,16 @@
 :root {
-  --color-paper: #f7f7f4;
-  --color-surface: #ffffff;
-  --color-ink: #111111;
-  --color-muted: #575c55;
-  --color-line: #cfd3cb;
-  --color-dark: #101613;
-  --color-dark-secondary: #141b17;
-  --color-dark-muted: #b9c1ba;
-  --color-accent: #d77f2e;
-  --color-accent-light: #e4a35f;
-  --color-accent-text: #8b4513;
-  --color-green: #52634d;
+  --color-paper: oklch(97.53% 0.004 106.5);
+  --color-surface: oklch(100% 0 0);
+  --color-ink: oklch(17.76% 0 0);
+  --color-muted: oklch(46.8% 0.0127 136.6);
+  --color-line: oklch(86.15% 0.0117 128.6);
+  --color-dark: oklch(19.27% 0.011 163.6);
+  --color-dark-secondary: oklch(21.34% 0.013 160);
+  --color-dark-muted: oklch(80.26% 0.0131 149.2);
+  --color-accent: oklch(67.85% 0.1419 58.59);
+  --color-accent-light: oklch(76.41% 0.1147 65.87);
+  --color-accent-text: oklch(47.08% 0.1121 50.85);
+  --color-green: oklch(47.88% 0.0403 138.6);
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --max-width: 1240px;
@@ -29,6 +29,9 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-height) + 1.5rem);
+  font-synthesis: none;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -39,7 +42,6 @@ body {
   font-size: 1.0625rem;
   line-height: 1.65;
   font-optical-sizing: auto;
-  -webkit-font-smoothing: antialiased;
 }
 
 body.menu-open {
@@ -54,8 +56,16 @@ svg {
 
 a {
   color: inherit;
-  text-decoration-thickness: 1px;
+  overflow-wrap: anywhere;
+  text-decoration-skip-ink: auto;
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
   text-underline-offset: 0.22em;
+}
+
+::selection {
+  color: var(--color-ink);
+  background: oklch(88% 0.065 70);
 }
 
 button,
@@ -73,6 +83,7 @@ a {
 
 button {
   cursor: pointer;
+  user-select: none;
 }
 
 h1,
@@ -80,6 +91,12 @@ h2,
 h3,
 p {
   margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 h1,
@@ -94,14 +111,12 @@ h1 {
   margin-bottom: 1.75rem;
   font-size: 5.5rem;
   line-height: 0.98;
-  text-wrap: balance;
 }
 
 h2 {
   margin-bottom: 1.5rem;
   font-size: 4rem;
   line-height: 1.02;
-  text-wrap: balance;
 }
 
 h3 {
@@ -109,6 +124,11 @@ h3 {
   font-size: 1.45rem;
   line-height: 1.18;
   letter-spacing: 0;
+}
+
+p,
+li {
+  text-wrap: pretty;
 }
 
 .container {
@@ -437,7 +457,7 @@ h3 {
 .header-contact:active,
 .menu-toggle:active,
 .text-action:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .customer-path-panel {
@@ -498,13 +518,13 @@ h3 {
   gap: 4px;
   padding: 4px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius);
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
 }
 
 .gap-tabs button {
   min-width: 0;
-  min-height: 42px;
+  min-height: 44px;
   padding: 0.55rem 0.45rem;
   border: 0;
   border-radius: 4px;
@@ -516,16 +536,20 @@ h3 {
   transition:
     color 160ms ease,
     background-color 160ms ease,
+    box-shadow 160ms var(--ease-out),
     transform 120ms var(--ease-out);
 }
 
 .gap-tabs button[aria-selected="true"] {
   color: var(--color-dark);
   background: var(--color-paper);
+  box-shadow:
+    0 0 0 1px oklch(100% 0 0 / 0.08),
+    0 1px 2px oklch(0% 0 0 / 0.18);
 }
 
 .gap-tabs button:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .gap-tabs button:focus-visible {
