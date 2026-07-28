@@ -18,6 +18,13 @@ Problems Hayalows helps solve:
 Official website:
 https://hayalows.com/
 
+Public routes:
+- Main website: https://hayalows.com/
+- Payments: https://hayalows.com/pay/
+- Payments and refunds policy: https://hayalows.com/payments-and-refunds/
+- Privacy policy: https://hayalows.com/privacy/
+- Terms of use: https://hayalows.com/terms/
+
 Contact:
 info@hayalows.com
 +233 50 620 1345
@@ -36,5 +43,7 @@ Important notes:
 - A new logo, website or app is not automatically the answer; Hayalows identifies the gap first
 - Small or early-stage businesses can begin with a clear, practical scope
 - Visitors can contact Hayalows by WhatsApp or email without preparing a perfect brief
+- Payments are completed on verified Paystack pages or through the public USSD options shown on the payment page
+- Hayalows.com does not collect card details or claim payment success
 
 Hayalows does not publish invented testimonials, client claims or venture links. Individual products and ventures receive public destinations only when they are ready.
