@@ -24,36 +24,35 @@ window.HAYALOWS_SITE_CONFIG = Object.freeze({
     }),
     flows: Object.freeze({
       hayalows: Object.freeze({
-        title: "Pay Hayalows Ventures",
+        title: "Pay for a Hayalows service",
         description:
-          "You are about to open the Hayalows secure Paystack payment page.",
+          "You'll continue to Paystack to pay the amount agreed with Hayalows.",
         url: "https://paystack.shop/pay/vt_h0ybe0po",
         actionLabel: "Continue to Paystack",
         points: Object.freeze([
-          "Confirm the amount agreed with Hayalows.",
-          "Enter your correct full name when Paystack requests it.",
-          "Keep the Paystack payment confirmation after paying.",
+          "Check the agreed amount.",
+          "Use your correct name.",
+          "Keep the Paystack reference after paying.",
         ]),
       }),
       fiftysBlissStore: Object.freeze({
-        title: "Visit the 50's Bliss store",
+        title: "Shop 50's Bliss",
         description:
-          "You will be taken to the 50's Bliss Paystack Storefront, where you can browse available products and place an order.",
+          "You'll continue to the 50's Bliss Paystack store to browse products and place a new order.",
         url: "https://paystack.shop/50sbliss",
         actionLabel: "Continue to store",
         points: Object.freeze([]),
       }),
       fiftysBlissOrder: Object.freeze({
-        title: "Pay for a 50's Bliss order",
+        title: "Pay for your 50's Bliss order",
         description:
-          "You are about to open the 50's Bliss secure Paystack payment page.",
+          "You'll continue to Paystack to pay the total already confirmed with 50's Bliss.",
         url: "https://paystack.shop/pay/vt_voypnsow",
         actionLabel: "Continue to Paystack",
         points: Object.freeze([
-          "Confirm the products and quantity in your order.",
-          "Confirm the total amount.",
-          "Use the same name you used when placing the order.",
-          "Keep the Paystack payment confirmation after paying.",
+          "Check the products, quantity and total.",
+          "Use the same name as your order.",
+          "Keep the Paystack reference after paying.",
         ]),
       }),
     }),

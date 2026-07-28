@@ -4,12 +4,39 @@ const paymentFlows = paymentConfig.flows || {};
 const paymentDialog = document.querySelector("[data-payment-dialog]");
 const paymentTriggers = document.querySelectorAll("[data-payment-trigger]");
 const copyButtons = document.querySelectorAll("[data-copy-ussd]");
+const paymentRoutes = [...document.querySelectorAll("[data-payment-route]")];
+const mobilePaymentViewport = window.matchMedia("(max-width: 680px)");
 const reducedPaymentMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)"
 );
 
 let activePaymentTrigger = null;
 const copyResetTimers = new WeakMap();
+
+function setPaymentRouteLayout(viewport) {
+  paymentRoutes.forEach((route) => {
+    route.open = !viewport.matches;
+  });
+}
+
+if (paymentRoutes.length) {
+  setPaymentRouteLayout(mobilePaymentViewport);
+  mobilePaymentViewport.addEventListener("change", setPaymentRouteLayout);
+
+  paymentRoutes.forEach((route) => {
+    route.addEventListener("toggle", () => {
+      if (!mobilePaymentViewport.matches || !route.open) {
+        return;
+      }
+
+      paymentRoutes.forEach((otherRoute) => {
+        if (otherRoute !== route) {
+          otherRoute.open = false;
+        }
+      });
+    });
+  });
+}
 
 function getFocusableElements(container) {
   return [

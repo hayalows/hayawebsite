@@ -182,7 +182,7 @@ if (customerPathPanel) {
       starter:
         "Customers often ask about my offer or price, but many do not continue. I want help making the offer clearer.",
       context:
-        "You selected unclear offer. We prepared a starting point below; edit it so it matches your business.",
+        "Let's start with the offer. Edit the note below so it matches what your customers do.",
       reachedStages: 1,
     },
     trust: {
@@ -195,7 +195,7 @@ if (customerPathPanel) {
       starter:
         "My flyer, WhatsApp presence and customer experience do not feel consistent. I want help making the business easier to trust.",
       context:
-        "You selected weak trust. We prepared a starting point below; edit it so it matches your business.",
+        "Let's look at trust. Edit the note below so it matches what customers see and experience.",
       reachedStages: 2,
     },
     followup: {
@@ -208,7 +208,7 @@ if (customerPathPanel) {
       starter:
         "Customer enquiries and follow-up are getting lost in chats or memory. I want help creating a clearer follow-up process.",
       context:
-        "You selected no follow-up. We prepared a starting point below; edit it so it matches your business.",
+        "Let's look at follow-up. Edit the note below so it matches what happens after someone contacts you.",
       reachedStages: 3,
     },
   };
@@ -359,6 +359,71 @@ if (!reducedMotion.matches && "IntersectionObserver" in window) {
 
 const contactForm = document.querySelector("#contact-form");
 
+const mobileDisclosureViewport = window.matchMedia("(max-width: 680px)");
+const mobileDisclosures = document.querySelectorAll("[data-mobile-disclosure]");
+
+function setMobileDisclosures(viewport) {
+  mobileDisclosures.forEach((disclosure) => {
+    disclosure.open = !viewport.matches;
+  });
+}
+
+if (mobileDisclosures.length) {
+  setMobileDisclosures(mobileDisclosureViewport);
+  mobileDisclosureViewport.addEventListener("change", setMobileDisclosures);
+}
+
+async function copyTextWithFallback(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.append(textArea);
+  textArea.select();
+  const copied = document.execCommand("copy");
+  textArea.remove();
+
+  if (!copied) {
+    throw new Error("Copy command was unavailable.");
+  }
+}
+
+document.querySelectorAll("[data-share-page]").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const status = button
+      .closest(".footer-contact")
+      ?.querySelector("[data-share-status]");
+    const shareData = {
+      title: document.title,
+      url: window.location.href.split("#")[0],
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        if (status) {
+          status.textContent = "Share options opened.";
+        }
+      } else {
+        await copyTextWithFallback(shareData.url);
+        if (status) {
+          status.textContent = "Page link copied.";
+        }
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError" && status) {
+        status.textContent = "Sharing did not open. Copy the address from your browser.";
+      }
+    }
+  });
+});
+
 if (contactForm) {
   const formStatus = contactForm.querySelector("[data-form-status]");
   const emailButton = contactForm.querySelector("[data-email-message]");
@@ -373,11 +438,10 @@ if (contactForm) {
   };
 
   const errorMessages = {
-    name: "Please enter your name.",
-    phone: "Please enter a phone or WhatsApp number.",
-    email: "Enter a valid email address or leave this field empty.",
-    helpType: "Please select the type of help you need.",
-    message: "Please tell us what is happening now.",
+    phone: "Check the phone number or leave this field empty.",
+    email: "Check the email address or leave this field empty.",
+    helpType: "Choose what you would like help with.",
+    message: "Tell us a little about what is happening.",
   };
 
   function setFieldError(name, message = "") {
@@ -399,10 +463,10 @@ if (contactForm) {
     }
 
     if (name === "phone") {
-      return value.replace(/\D/g, "").length >= 7;
+      return !value || value.replace(/\D/g, "").length >= 7;
     }
 
-    if (name === "business") {
+    if (name === "name" || name === "business") {
       return true;
     }
 
@@ -410,7 +474,7 @@ if (contactForm) {
   }
 
   function validateForm() {
-    const names = ["name", "phone", "email", "helpType", "message"];
+    const names = ["phone", "email", "helpType", "message"];
     let firstInvalidField = null;
 
     names.forEach((name) => {
@@ -433,27 +497,27 @@ if (contactForm) {
   }
 
   function buildMessage() {
-    const lines = [
-      "Hello Hayalows.",
-      "",
-      `My name is: ${fields.name.value.trim()}`,
-    ];
+    const lines = ["Hello Hayalows.", ""];
 
-    if (fields.business.value.trim()) {
-      lines.push("", `Business or organisation: ${fields.business.value.trim()}`);
+    if (fields.name.value.trim()) {
+      lines.push(`My name is: ${fields.name.value.trim()}`);
     }
 
-    lines.push("", `Phone or WhatsApp: ${fields.phone.value.trim()}`);
+    if (fields.business.value.trim()) {
+      lines.push(`Business or organisation: ${fields.business.value.trim()}`);
+    }
+
+    if (fields.phone.value.trim()) {
+      lines.push(`Phone or WhatsApp: ${fields.phone.value.trim()}`);
+    }
 
     if (fields.email.value.trim()) {
-      lines.push("", `Email: ${fields.email.value.trim()}`);
+      lines.push(`Email: ${fields.email.value.trim()}`);
     }
 
     lines.push(
       "",
-      `Type of help: ${fields.helpType.value}`,
-      "",
-      "What is happening now:",
+      `I would like help with: ${fields.helpType.value}`,
       "",
       fields.message.value.trim()
     );
@@ -466,7 +530,7 @@ if (contactForm) {
   }
 
   Object.entries(fields).forEach(([name, field]) => {
-    if (name === "business") {
+    if (name === "name" || name === "business") {
       return;
     }
 
@@ -504,7 +568,9 @@ if (contactForm) {
       return;
     }
 
-    const subject = `Hayalows enquiry from ${fields.name.value.trim()}`;
+    const subject = fields.name.value.trim()
+      ? `Hayalows enquiry from ${fields.name.value.trim()}`
+      : "Hayalows enquiry";
     window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
     formStatus.textContent = "Your email app should open with the message ready to review.";
   });
@@ -517,19 +583,10 @@ if (contactForm) {
     }
 
     try {
-      await navigator.clipboard.writeText(message);
+      await copyTextWithFallback(message);
+      formStatus.textContent = "Message copied. You can paste it wherever you prefer.";
     } catch {
-      const textArea = document.createElement("textarea");
-      textArea.value = message;
-      textArea.setAttribute("readonly", "");
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.append(textArea);
-      textArea.select();
-      document.execCommand("copy");
-      textArea.remove();
+      formStatus.textContent = "Copying did not work. Select the note and copy it manually.";
     }
-
-    formStatus.textContent = "Message copied. You can paste it wherever you prefer.";
   });
 }
