@@ -15,6 +15,7 @@ const siteHeader = document.querySelector(".site-header");
 const mainContent = document.querySelector("main");
 const siteFooter = document.querySelector(".site-footer");
 const mobileViewport = window.matchMedia("(max-width: 680px)");
+const navigationViewport = window.matchMedia("(max-width: 960px)");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 document.querySelectorAll("[data-whatsapp-default]").forEach((link) => {
@@ -54,13 +55,13 @@ function setMenuState(isOpen, options = {}) {
     return;
   }
 
-  const shouldOpen = mobileViewport.matches && isOpen;
+  const shouldOpen = navigationViewport.matches && isOpen;
   menuButton.setAttribute("aria-expanded", String(shouldOpen));
   menuButton.setAttribute("aria-label", shouldOpen ? "Close menu" : "Open menu");
   navigation.classList.toggle("is-open", shouldOpen);
   document.body.classList.toggle("menu-open", shouldOpen);
 
-  if (mobileViewport.matches) {
+  if (navigationViewport.matches) {
     navigation.toggleAttribute("inert", !shouldOpen);
     navigation.setAttribute("aria-hidden", String(!shouldOpen));
     setBackgroundInteraction(shouldOpen);
@@ -103,7 +104,53 @@ if (menuButton && navigation) {
   });
 
   window.addEventListener("resize", () => closeMenu());
+  navigationViewport.addEventListener("change", () => closeMenu());
   setMenuState(false);
+}
+
+const isHomepage = window.location.pathname === "/" || window.location.pathname === "/index.html";
+
+if (isHomepage && navigation) {
+  const sectionLinks = [...navigation.querySelectorAll('a[href^="/#"]')]
+    .map((link) => {
+      const sectionId = link.getAttribute("href")?.split("#")[1];
+      return {
+        link,
+        section: sectionId ? document.getElementById(sectionId) : null,
+      };
+    })
+    .filter(({ section }) => section);
+  let sectionUpdateFrame = 0;
+
+  function updateCurrentSection() {
+    sectionUpdateFrame = 0;
+    const headerOffset = (siteHeader?.offsetHeight || 0) + 24;
+    let currentSectionIndex = -1;
+
+    sectionLinks.forEach(({ section }, index) => {
+      if (section.getBoundingClientRect().top <= headerOffset) {
+        currentSectionIndex = index;
+      }
+    });
+
+    sectionLinks.forEach(({ link }, index) => {
+      if (index === currentSectionIndex) {
+        link.setAttribute("aria-current", "location");
+      } else if (link.getAttribute("aria-current") === "location") {
+        link.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  function scheduleCurrentSectionUpdate() {
+    if (!sectionUpdateFrame) {
+      sectionUpdateFrame = window.requestAnimationFrame(updateCurrentSection);
+    }
+  }
+
+  window.addEventListener("scroll", scheduleCurrentSectionUpdate, { passive: true });
+  window.addEventListener("resize", scheduleCurrentSectionUpdate);
+  updateCurrentSection();
 }
 
 function updateHeaderMaterial() {
@@ -112,16 +159,6 @@ function updateHeaderMaterial() {
 
 updateHeaderMaterial();
 window.addEventListener("scroll", updateHeaderMaterial, { passive: true });
-
-if (reducedMotion.matches) {
-  document.documentElement.classList.add("is-loaded");
-} else {
-  window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(() => {
-      document.documentElement.classList.add("is-loaded");
-    });
-  });
-}
 
 const rotatingWord = document.querySelector("[data-rotating-word]");
 
@@ -428,6 +465,8 @@ if (contactForm) {
   const formStatus = contactForm.querySelector("[data-form-status]");
   const emailButton = contactForm.querySelector("[data-email-message]");
   const copyButton = contactForm.querySelector("[data-copy-message]");
+  const copyButtonLabel = copyButton?.textContent || "Copy message";
+  let copyResetTimer;
   const fields = {
     name: contactForm.elements.namedItem("name"),
     business: contactForm.elements.namedItem("business"),
@@ -443,6 +482,19 @@ if (contactForm) {
     helpType: "Choose what you would like help with.",
     message: "Tell us a little about what is happening.",
   };
+
+  function setFormStatus(message, state = "") {
+    if (!formStatus) {
+      return;
+    }
+
+    formStatus.textContent = message;
+    if (state) {
+      formStatus.dataset.state = state;
+    } else {
+      formStatus.removeAttribute("data-state");
+    }
+  }
 
   function setFieldError(name, message = "") {
     const field = fields[name];
@@ -487,12 +539,16 @@ if (contactForm) {
     });
 
     if (firstInvalidField) {
-      formStatus.textContent = "Please check the highlighted fields.";
+      setFormStatus("Please check the highlighted fields.", "error");
+      const disclosure = firstInvalidField.closest("details");
+      if (disclosure && !disclosure.open) {
+        disclosure.open = true;
+      }
       firstInvalidField.focus();
       return false;
     }
 
-    formStatus.textContent = "";
+    setFormStatus();
     return true;
   }
 
@@ -555,9 +611,12 @@ if (contactForm) {
 
     if (whatsappWindow) {
       whatsappWindow.opener = null;
-      formStatus.textContent = "WhatsApp opened with your message ready to review.";
+      setFormStatus("WhatsApp opened with your message ready to review.", "success");
     } else {
-      formStatus.textContent = "WhatsApp could not open. Copy the message and send it in the app you prefer.";
+      setFormStatus(
+        "WhatsApp could not open. Copy the message and send it in the app you prefer.",
+        "error"
+      );
     }
   });
 
@@ -571,8 +630,8 @@ if (contactForm) {
     const subject = fields.name.value.trim()
       ? `Hayalows enquiry from ${fields.name.value.trim()}`
       : "Hayalows enquiry";
+    setFormStatus("Your email app should open with the message ready to review.", "success");
     window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
-    formStatus.textContent = "Your email app should open with the message ready to review.";
   });
 
   copyButton?.addEventListener("click", async () => {
@@ -584,9 +643,15 @@ if (contactForm) {
 
     try {
       await copyTextWithFallback(message);
-      formStatus.textContent = "Message copied. You can paste it wherever you prefer.";
+      setFormStatus("Message copied. You can paste it wherever you prefer.", "success");
+      copyButton.textContent = "Copied";
+      window.clearTimeout(copyResetTimer);
+      copyResetTimer = window.setTimeout(() => {
+        copyButton.textContent = copyButtonLabel;
+        copyResetTimer = undefined;
+      }, 1800);
     } catch {
-      formStatus.textContent = "Copying did not work. Select the note and copy it manually.";
+      setFormStatus("Copying did not work. Select the note and copy it manually.", "error");
     }
   });
 }

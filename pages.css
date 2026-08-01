@@ -606,6 +606,17 @@ body.modal-open {
   .dialog-close:hover {
     background: oklch(0% 0 0 / 0.1);
   }
+
+  .payment-route summary:hover,
+  .ussd-disclosure > summary:hover,
+  .policy-toc summary:hover {
+    background: rgba(17, 17, 17, 0.035);
+  }
+
+  .policy-toc a:hover {
+    color: var(--color-ink);
+    background: rgba(82, 99, 77, 0.06);
+  }
 }
 
 @media (max-width: 900px) {

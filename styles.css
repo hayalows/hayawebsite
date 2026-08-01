@@ -279,9 +279,17 @@ li {
 }
 
 .site-nav a:hover::after,
-.site-nav a:focus-visible::after {
+.site-nav a:focus-visible::after,
+.site-nav a[aria-current="page"]::after,
+.site-nav a[aria-current="location"]::after {
   transform: scaleX(1);
   transform-origin: left;
+}
+
+.site-nav a[aria-current="page"]::after,
+.site-nav a[aria-current="location"]::after {
+  height: 2px;
+  background: var(--color-green);
 }
 
 .header-actions {
@@ -1447,8 +1455,16 @@ li {
 
 .form-status {
   min-height: 1.25rem;
-  color: var(--color-green);
+  color: var(--color-muted);
   font-weight: 650;
+}
+
+.form-status[data-state="success"] {
+  color: var(--color-green);
+}
+
+.form-status[data-state="error"] {
+  color: #8f2118;
 }
 
 .site-footer {
@@ -1614,6 +1630,16 @@ li {
     color: var(--color-accent-text);
   }
 
+  .faq-list summary:hover,
+  .form-contact-details summary:hover,
+  .capability-examples summary:hover {
+    background: rgba(17, 17, 17, 0.035);
+  }
+
+  .footer-group summary:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
   .gap-action:hover {
     color: var(--color-accent-light);
   }
@@ -1636,17 +1662,25 @@ html.motion-ready [data-reveal] {
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-html.motion-ready [data-reveal].is-visible,
-html.motion-ready.is-loaded [data-reveal-load] {
+html.motion-ready [data-reveal].is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
 html.motion-ready [data-reveal-load] {
-  transition:
-    opacity 700ms var(--ease-out),
-    transform 700ms var(--ease-out);
-  transition-delay: var(--reveal-delay, 0ms);
+  animation: page-entry-reveal 700ms var(--ease-out) var(--reveal-delay, 0ms) both;
+}
+
+@keyframes page-entry-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1100px) {
@@ -1701,17 +1735,97 @@ html.motion-ready [data-reveal-load] {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
+  .site-header,
+  .site-header.is-scrolled {
+    background: #f7f7f4;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
   .section {
     padding: 6rem 0;
   }
 
-  .site-nav {
+  .header-inner {
+    display: flex;
     gap: 1rem;
+    justify-content: space-between;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .header-contact {
+    display: none;
+  }
+
+  .site-nav {
+    position: fixed;
+    z-index: 29;
+    top: var(--header-height);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 1rem;
+    background: var(--color-paper);
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+      opacity 180ms var(--ease-out),
+      transform 180ms var(--ease-drawer),
+      visibility 0s linear 180ms;
+  }
+
+  .site-nav.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
   }
 
   .site-nav a {
-    font-size: 0.82rem;
+    width: 100%;
+    min-height: 58px;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--color-line);
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    font-weight: 400;
+  }
+
+  .site-nav a::after {
+    display: none;
+  }
+
+  .site-nav a[aria-current="page"],
+  .site-nav a[aria-current="location"] {
+    color: var(--color-green);
+    background: rgba(82, 99, 77, 0.06);
+  }
+
+  .site-nav .nav-contact-mobile {
+    display: inline-flex !important;
+    min-height: 50px;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+    margin-top: 1.25rem;
+    border: 0;
+    border-radius: var(--radius);
+    color: #ffffff;
+    background: var(--color-dark);
+    font-family: var(--font-sans);
+    font-size: 0.94rem;
+    font-weight: 720;
   }
 
   .hero {
@@ -1795,8 +1909,9 @@ html.motion-ready [data-reveal-load] {
   }
 
   .footer-grid {
-    grid-template-columns: 1.35fr 0.5fr 0.7fr 0.65fr;
-    gap: 2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 3rem;
+    row-gap: 2.5rem;
   }
 }
 
@@ -1829,86 +1944,8 @@ html.motion-ready [data-reveal-load] {
     padding: 4.75rem 0;
   }
 
-  .header-inner {
-    display: flex;
-    gap: 1rem;
-    justify-content: space-between;
-  }
-
-  .site-header,
-  .site-header.is-scrolled {
-    background: #f7f7f4;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-
-  .menu-toggle {
-    display: block;
-  }
-
-  .header-contact {
-    display: none;
-  }
-
-  .site-nav {
-    position: fixed;
-    z-index: 29;
-    top: var(--header-height);
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap: 0;
-    padding: 1rem;
-    background: var(--color-paper);
-    opacity: 0;
-    pointer-events: none;
-    visibility: hidden;
-    transform: translateY(-8px);
-    transition:
-      opacity 180ms var(--ease-out),
-      transform 180ms var(--ease-drawer),
-      visibility 0s linear 180ms;
-  }
-
-  .site-nav.is-open {
-    opacity: 1;
-    pointer-events: auto;
-    visibility: visible;
-    transform: translateY(0);
-    transition-delay: 0s;
-  }
-
   .site-nav a {
-    width: 100%;
-    min-height: 58px;
-    padding: 0.65rem 0;
-    border-bottom: 1px solid var(--color-line);
-    font-family: var(--font-serif);
     font-size: 1.55rem;
-    font-weight: 400;
-  }
-
-  .site-nav a::after {
-    display: none;
-  }
-
-  .site-nav .nav-contact-mobile {
-    display: inline-flex !important;
-    min-height: 50px;
-    justify-content: center;
-    padding: 0.8rem 1rem;
-    margin-top: 1.25rem;
-    border: 0;
-    border-radius: var(--radius);
-    color: #ffffff;
-    background: var(--color-dark);
-    font-family: var(--font-sans);
-    font-size: 0.94rem;
-    font-weight: 720;
   }
 
   .hero {
@@ -2259,6 +2296,7 @@ html.motion-ready [data-reveal-load] {
   html.motion-ready [data-reveal-load] {
     opacity: 1;
     transform: none;
+    animation: none;
   }
 
   .form-context:not([hidden]),
