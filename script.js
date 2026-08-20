@@ -120,83 +120,41 @@ if (isHomepage && navigation) {
       };
     })
     .filter(({ section }) => section);
-  let sectionUpdateFrame = 0;
+  const sectionObserver = new IntersectionObserver(
+    (entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
 
-  function updateCurrentSection() {
-    sectionUpdateFrame = 0;
-    const headerOffset = (siteHeader?.offsetHeight || 0) + 24;
-    let currentSectionIndex = -1;
-
-    sectionLinks.forEach(({ section }, index) => {
-      if (section.getBoundingClientRect().top <= headerOffset) {
-        currentSectionIndex = index;
+      if (!visible) {
+        return;
       }
-    });
 
-    sectionLinks.forEach(({ link }, index) => {
-      if (index === currentSectionIndex) {
-        link.setAttribute("aria-current", "location");
-      } else if (link.getAttribute("aria-current") === "location") {
-        link.removeAttribute("aria-current");
-      }
-    });
-  }
-
-  function scheduleCurrentSectionUpdate() {
-    if (!sectionUpdateFrame) {
-      sectionUpdateFrame = window.requestAnimationFrame(updateCurrentSection);
+      sectionLinks.forEach(({ link, section }) => {
+        if (section === visible.target) {
+          link.setAttribute("aria-current", "location");
+        } else if (link.getAttribute("aria-current") === "location") {
+          link.removeAttribute("aria-current");
+        }
+      });
+    },
+    {
+      rootMargin: `-${(siteHeader?.offsetHeight || 0) + 24}px 0px -58% 0px`,
+      threshold: [0, 0.15, 0.45],
     }
-  }
+  );
 
-  window.addEventListener("scroll", scheduleCurrentSectionUpdate, { passive: true });
-  window.addEventListener("resize", scheduleCurrentSectionUpdate);
-  updateCurrentSection();
+  sectionLinks.forEach(({ section }) => sectionObserver.observe(section));
 }
 
-function updateHeaderMaterial() {
-  siteHeader?.classList.toggle("is-scrolled", window.scrollY > 10);
-}
+const headerObserverTarget = document.querySelector(".header-observer");
 
-updateHeaderMaterial();
-window.addEventListener("scroll", updateHeaderMaterial, { passive: true });
-
-const rotatingWord = document.querySelector("[data-rotating-word]");
-
-if (rotatingWord && !reducedMotion.matches) {
-  const heroWords = ["choose.", "trust.", "grow."];
-  let wordIndex = 0;
-  let rotationTimer;
-  let changeTimer;
-
-  function rotateHeroWord() {
-    rotatingWord.classList.add("is-changing");
-    changeTimer = window.setTimeout(() => {
-      wordIndex = (wordIndex + 1) % heroWords.length;
-      rotatingWord.textContent = heroWords[wordIndex];
-      rotatingWord.classList.remove("is-changing");
-    }, 180);
-  }
-
-  function startHeroRotation() {
-    window.clearInterval(rotationTimer);
-    rotationTimer = window.setInterval(rotateHeroWord, 3000);
-  }
-
-  function stopHeroRotation() {
-    window.clearInterval(rotationTimer);
-    window.clearTimeout(changeTimer);
-    rotatingWord.classList.remove("is-changing");
-  }
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) {
-      stopHeroRotation();
-    } else {
-      startHeroRotation();
-    }
+if (siteHeader && headerObserverTarget && "IntersectionObserver" in window) {
+  const headerObserver = new IntersectionObserver(([entry]) => {
+    siteHeader.classList.toggle("is-scrolled", !entry.isIntersecting);
   });
 
-  startHeroRotation();
+  headerObserver.observe(headerObserverTarget);
 }
 
 const customerPathPanel = document.querySelector(".customer-path-panel");
