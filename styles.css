@@ -515,55 +515,13 @@ li {
    -------------------------------------------------------------------------- */
 
 .hero {
-  position: relative;
   display: flex;
   min-height: calc(100dvh - var(--header-height));
   align-items: center;
   padding: clamp(3rem, 6vh, 5rem) 0;
-  overflow: hidden;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  background:
-    radial-gradient(60rem 42rem at 10% 16%, oklch(93% 0.03 140 / 0.55), transparent 70%),
-    radial-gradient(52rem 38rem at 90% 86%, oklch(89% 0.055 70 / 0.4), transparent 70%);
-  pointer-events: none;
-}
-
-.word-cycle {
-  display: inline-grid;
-  vertical-align: baseline;
-}
-
-.cycle-word {
-  grid-area: 1 / 1;
-  color: var(--color-green);
-  font-style: italic;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(0.32em);
-  transition:
-    opacity 420ms var(--ease-out),
-    transform 420ms var(--ease-out);
-}
-
-.cycle-word.is-active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.cycle-word.is-leaving {
-  opacity: 0;
-  transform: translateY(-0.28em);
 }
 
 .hero-grid {
-  position: relative;
-  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(350px, 0.75fr);
   gap: clamp(3rem, 6vw, 6.5rem);
