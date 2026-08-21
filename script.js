@@ -392,6 +392,33 @@ if (!reducedMotion.matches && "IntersectionObserver" in window) {
   revealTargets.forEach((target) => target.classList.add("is-visible"));
 }
 
+const wordCycle = document.querySelector("[data-word-cycle]");
+
+if (wordCycle && !reducedMotion.matches) {
+  const cycleWords = [...wordCycle.querySelectorAll(".cycle-word")];
+  const CYCLE_INTERVAL = 2600;
+  const LEAVE_MS = 450;
+  let cycleIndex = 0;
+
+  window.setInterval(() => {
+    if (document.hidden) {
+      return;
+    }
+
+    const current = cycleWords[cycleIndex];
+    cycleIndex = (cycleIndex + 1) % cycleWords.length;
+    const next = cycleWords[cycleIndex];
+
+    current.classList.remove("is-active");
+    current.classList.add("is-leaving");
+    next.classList.add("is-active");
+
+    window.setTimeout(() => {
+      current.classList.remove("is-leaving");
+    }, LEAVE_MS);
+  }, CYCLE_INTERVAL);
+}
+
 const contactForm = document.querySelector("#contact-form");
 
 const mobileDisclosureViewport = window.matchMedia("(max-width: 680px)");
