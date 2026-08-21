@@ -515,10 +515,118 @@ li {
    -------------------------------------------------------------------------- */
 
 .hero {
+  position: relative;
   display: flex;
   min-height: calc(100dvh - var(--header-height));
   align-items: center;
   padding: clamp(3rem, 6vh, 5rem) 0;
+  overflow: hidden;
+}
+
+.hero-backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--color-ink);
+  pointer-events: none;
+}
+
+.hero-backdrop rect {
+  opacity: 0.05;
+}
+
+.journey-path {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.journey-path-green {
+  stroke: var(--color-green);
+  opacity: 0.28;
+}
+
+.journey-path-accent {
+  stroke: var(--color-accent);
+  opacity: 0.2;
+}
+
+.journey-node {
+  fill: var(--color-paper);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.journey-node-green {
+  stroke: var(--color-green);
+}
+
+.journey-node-accent {
+  stroke: var(--color-accent);
+}
+
+html.motion-ready .journey-path {
+  stroke-dashoffset: 1;
+  animation: journey-draw 1600ms var(--ease-out) forwards;
+}
+
+html.motion-ready .journey-path-accent {
+  animation-delay: 250ms;
+}
+
+html.motion-ready .journey-nodes {
+  opacity: 0;
+  animation: journey-fade 500ms var(--ease-out) 900ms forwards;
+}
+
+html.motion-ready .journey-node {
+  animation: journey-pulse 3.6s ease-in-out 2s infinite;
+}
+
+html.motion-ready .journey-node:nth-of-type(2n) {
+  animation-delay: 2.6s;
+}
+
+html.motion-ready .hero-journeys {
+  animation: journeys-drift 14s ease-in-out 2.4s infinite alternate;
+}
+
+@keyframes journey-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes journey-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes journey-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.35);
+  }
+}
+
+@keyframes journeys-drift {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-10px);
+  }
 }
 
 .hero-grid {
@@ -2252,6 +2360,7 @@ html.motion-ready [data-reveal-load] {
   .skip-link,
   .menu-toggle,
   .header-actions,
+  .hero-backdrop,
   .button-row,
   .contact-buttons,
   .form-actions,

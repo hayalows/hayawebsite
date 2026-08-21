@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en-GH">
   <head>
     <meta charset="utf-8">
@@ -185,7 +185,7 @@
         document.documentElement.classList.add("motion-ready");
       }
     </script>
-    <link rel="stylesheet" href="/styles.css?v=20260821-1">
+    <link rel="stylesheet" href="/styles.css?v=20260821-2">
     <script src="/site.config.js?v=20260821-1" defer></script>
     <script src="/script.js?v=20260821-1" defer></script>
   </head>
@@ -221,6 +221,24 @@
     <main id="main-content">
       <div class="header-observer" aria-hidden="true"></div>
       <section class="hero" id="top">
+        <svg class="hero-backdrop" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+          <defs>
+            <pattern id="hero-dot-grid" width="36" height="36" patternUnits="userSpaceOnUse">
+              <circle cx="1.5" cy="1.5" r="1.1" fill="currentColor"></circle>
+            </pattern>
+          </defs>
+          <rect width="1440" height="900" fill="url(#hero-dot-grid)"></rect>
+          <g class="hero-journeys">
+            <path class="journey-path journey-path-green" d="M -40 780 C 260 760, 380 620, 560 520 S 940 300, 1180 210 S 1420 120, 1520 96" pathLength="1"></path>
+            <path class="journey-path journey-path-accent" d="M -40 860 C 240 850, 420 760, 620 660 S 1000 430, 1240 330 S 1460 250, 1540 230" pathLength="1"></path>
+            <g class="journey-nodes">
+              <circle class="journey-node journey-node-green" cx="560" cy="520" r="4"></circle>
+              <circle class="journey-node journey-node-green" cx="1180" cy="210" r="4"></circle>
+              <circle class="journey-node journey-node-accent" cx="620" cy="660" r="4"></circle>
+              <circle class="journey-node journey-node-accent" cx="1240" cy="330" r="4"></circle>
+            </g>
+          </g>
+        </svg>
         <div class="container hero-grid">
           <div class="hero-copy">
             <h1 data-reveal-load style="--reveal-delay: 0ms">Make your business easier to choose, trust and grow.</h1>
