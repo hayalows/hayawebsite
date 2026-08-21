@@ -1,3 +1,8 @@
+/* ==========================================================================
+   Hayalows — subpages (pay, policies)
+   Depends on the token system in styles.css
+   ========================================================================== */
+
 .subpage-main {
   min-height: 65vh;
 }
@@ -46,6 +51,10 @@
   color: var(--color-ink);
 }
 
+/* --------------------------------------------------------------------------
+   Payment routes
+   -------------------------------------------------------------------------- */
+
 .payment-section {
   padding: 4.75rem 0;
 }
@@ -61,7 +70,7 @@
 
 .payment-section-heading h2 {
   margin-bottom: 1rem;
-  font-size: 3.35rem;
+  font-size: clamp(2.4rem, 3.6vw, 3.35rem);
 }
 
 .payment-section-heading p {
@@ -110,9 +119,9 @@
 .choice-label {
   margin: 0;
   color: var(--color-green);
-  font-size: 0.74rem;
-  font-weight: 750;
-  letter-spacing: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -206,6 +215,16 @@
   margin: 0;
   white-space: nowrap;
 }
+
+@media (min-width: 681px) {
+  .payment-route .acc-body {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   USSD
+   -------------------------------------------------------------------------- */
 
 .payment-alternatives {
   padding-top: 0;
@@ -325,6 +344,17 @@
   grid-column: 1 / -1;
 }
 
+@media (min-width: 681px) {
+  .ussd-actions .copy-action {
+    color: #ffffff;
+    background: var(--color-dark);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Payment help
+   -------------------------------------------------------------------------- */
+
 .payment-help {
   padding: 5rem 0;
   color: #ffffff;
@@ -339,7 +369,7 @@
 
 .payment-help h2 {
   margin-bottom: 1rem;
-  font-size: 3.4rem;
+  font-size: clamp(2.6rem, 3.6vw, 3.4rem);
 }
 
 .payment-help p,
@@ -354,7 +384,7 @@
 
 .payment-warning {
   padding-top: 1rem;
-  border-top: 1px solid oklch(100% 0 0 / 0.16);
+  border-top: 1px solid var(--line-on-dark);
   color: #ffffff !important;
   font-weight: 700;
 }
@@ -365,15 +395,20 @@
 
 .payment-help .button-secondary {
   border-color: oklch(100% 0 0 / 0.45);
+  background: transparent;
   color: #ffffff;
 }
+
+/* --------------------------------------------------------------------------
+   Payment dialog
+   -------------------------------------------------------------------------- */
 
 .payment-dialog {
   width: min(calc(100% - 2rem), 580px);
   max-height: min(720px, calc(100dvh - 2rem));
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   color: var(--color-ink);
   background: var(--color-paper);
   box-shadow:
@@ -420,12 +455,16 @@
   height: 18px;
 }
 
+.dialog-close:focus-visible {
+  outline-offset: 1px;
+}
+
 .dialog-eyebrow {
   margin-bottom: 1rem;
   color: var(--color-green);
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -441,7 +480,7 @@
 
 .dialog-before {
   margin: 1.5rem 0 0.65rem;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .dialog-points {
@@ -458,7 +497,7 @@
   margin: 1.5rem 0;
   border-left: 3px solid var(--color-accent);
   color: var(--color-muted);
-  background: oklch(94% 0.015 100);
+  background: var(--color-wash);
   font-size: 0.86rem;
 }
 
@@ -484,6 +523,22 @@ body.modal-open {
   }
 }
 
+@keyframes sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Policy pages
+   -------------------------------------------------------------------------- */
+
 .policy-hero {
   padding-bottom: 3.5rem;
 }
@@ -499,7 +554,7 @@ body.modal-open {
 }
 
 .breadcrumb span[aria-hidden="true"] {
-  color: var(--color-line);
+  color: var(--color-line-strong);
 }
 
 .policy-notice {
@@ -507,7 +562,7 @@ body.modal-open {
   padding: 1rem 1.15rem;
   margin-top: 2rem;
   border-left: 3px solid var(--color-accent);
-  background: oklch(94% 0.015 100);
+  background: var(--color-wash);
   font-size: 0.92rem;
 }
 
@@ -531,9 +586,9 @@ body.modal-open {
   margin-bottom: 0.45rem;
   color: var(--color-green);
   cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   list-style: none;
   text-transform: uppercase;
 }
@@ -591,12 +646,16 @@ body.modal-open {
 .policy-contact {
   padding: 1.5rem;
   border-left: 3px solid var(--color-green);
-  background: oklch(94% 0.012 140);
+  background: var(--color-wash);
 }
 
 .policy-contact p:last-child {
   margin-bottom: 0;
 }
+
+/* --------------------------------------------------------------------------
+   Hover
+   -------------------------------------------------------------------------- */
 
 @media (hover: hover) and (pointer: fine) {
   .external-action:hover svg {
@@ -610,14 +669,18 @@ body.modal-open {
   .payment-route summary:hover,
   .ussd-disclosure > summary:hover,
   .policy-toc summary:hover {
-    background: rgba(17, 17, 17, 0.035);
+    background: oklch(17.76% 0 0 / 0.035);
   }
 
   .policy-toc a:hover {
     color: var(--color-ink);
-    background: rgba(82, 99, 77, 0.06);
+    background: oklch(47.88% 0.0403 138.6 / 0.06);
   }
 }
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
 
 @media (max-width: 900px) {
   .page-hero-grid,
@@ -654,7 +717,7 @@ body.modal-open {
   }
 
   .page-hero h1 {
-    font-size: 3rem;
+    font-size: clamp(3rem, 12vw, 3.6rem);
   }
 
   .page-intro {
@@ -663,10 +726,6 @@ body.modal-open {
 
   .payment-section {
     padding: 4.5rem 0;
-  }
-
-  .payment-section-heading {
-    margin-bottom: 2.25rem;
   }
 
   .payment-section-heading h2,
@@ -771,7 +830,7 @@ body.modal-open {
     max-width: none;
     max-height: min(82dvh, 720px);
     margin: auto 0 0;
-    border-radius: 12px 12px 0 0;
+    border-radius: var(--radius-panel) var(--radius-panel) 0 0;
   }
 
   .payment-dialog-shell {
@@ -834,25 +893,6 @@ body.modal-open {
 
   .policy-content h2 {
     font-size: 2rem;
-  }
-}
-
-@media (min-width: 681px) {
-  .ussd-actions .copy-action {
-    color: #ffffff;
-    background: var(--color-dark);
-  }
-}
-
-@keyframes sheet-enter {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

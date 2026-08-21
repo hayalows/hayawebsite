@@ -50,6 +50,21 @@ function setBackgroundInteraction(isDisabled) {
   });
 }
 
+function setBodyScrollLock(isLocked) {
+  if (isLocked) {
+    const scrollY = window.scrollY;
+    document.body.style.top = `-${scrollY}px`;
+    document.body.classList.add("menu-open");
+    document.body.dataset.scrollY = String(scrollY);
+  } else {
+    document.body.classList.remove("menu-open");
+    document.body.style.top = "";
+    const scrollY = Number(document.body.dataset.scrollY || 0);
+    delete document.body.dataset.scrollY;
+    window.scrollTo(0, scrollY);
+  }
+}
+
 function setMenuState(isOpen, options = {}) {
   if (!menuButton || !navigation) {
     return;
@@ -59,7 +74,7 @@ function setMenuState(isOpen, options = {}) {
   menuButton.setAttribute("aria-expanded", String(shouldOpen));
   menuButton.setAttribute("aria-label", shouldOpen ? "Close menu" : "Open menu");
   navigation.classList.toggle("is-open", shouldOpen);
-  document.body.classList.toggle("menu-open", shouldOpen);
+  setBodyScrollLock(shouldOpen);
 
   if (navigationViewport.matches) {
     navigation.toggleAttribute("inert", !shouldOpen);
@@ -97,13 +112,12 @@ if (menuButton && navigation) {
     }
   });
 
-  document.addEventListener("keydown", (event) => {
+  window.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeMenu({ returnFocus: true });
     }
   });
 
-  window.addEventListener("resize", () => closeMenu());
   navigationViewport.addEventListener("change", () => closeMenu());
   setMenuState(false);
 }
@@ -160,6 +174,21 @@ if (siteHeader && headerObserverTarget && "IntersectionObserver" in window) {
 const customerPathPanel = document.querySelector(".customer-path-panel");
 
 if (customerPathPanel) {
+  if (reducedMotion.matches || !("IntersectionObserver" in window)) {
+    customerPathPanel.classList.add("is-chart-live");
+  } else {
+    const chartObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          customerPathPanel.classList.add("is-chart-live");
+          chartObserver.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    chartObserver.observe(customerPathPanel);
+  }
+
   const gapTabs = [...customerPathPanel.querySelectorAll("[data-gap-tab]")];
   const gapDetail = customerPathPanel.querySelector("#gap-detail");
   const problemText = customerPathPanel.querySelector("[data-gap-problem]");
@@ -318,6 +347,17 @@ if (customerPathPanel) {
 
 const capabilityExamples = document.querySelectorAll(".capability-examples");
 
+function syncDisclosuresWithoutAnimation(sync) {
+  const root = document.documentElement;
+  root.classList.add("disclosures-syncing");
+  sync();
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      root.classList.remove("disclosures-syncing");
+    });
+  });
+}
+
 function syncCapabilityExamples() {
   capabilityExamples.forEach((details) => {
     details.open = !mobileViewport.matches;
@@ -325,7 +365,7 @@ function syncCapabilityExamples() {
 }
 
 if (capabilityExamples.length) {
-  syncCapabilityExamples();
+  syncDisclosuresWithoutAnimation(syncCapabilityExamples);
   mobileViewport.addEventListener("change", syncCapabilityExamples);
 }
 
@@ -364,7 +404,7 @@ function setMobileDisclosures(viewport) {
 }
 
 if (mobileDisclosures.length) {
-  setMobileDisclosures(mobileDisclosureViewport);
+  syncDisclosuresWithoutAnimation(() => setMobileDisclosures(mobileDisclosureViewport));
   mobileDisclosureViewport.addEventListener("change", setMobileDisclosures);
 }
 
@@ -389,8 +429,24 @@ async function copyTextWithFallback(text) {
   }
 }
 
-document.querySelectorAll("[data-share-page]").forEach((button) => {
-  button.addEventListener("click", async () => {
+const printOpenDetails = [];
+
+window.addEventListener("beforeprint", () => {
+  printOpenDetails.length = 0;
+  document.querySelectorAll("details:not([open])").forEach((details) => {
+    details.open = true;
+    printOpenDetails.push(details);
+  });
+});
+
+window.addEventListener("afterprint", () => {
+  printOpenDetails.forEach((details) => {
+    details.open = false;
+  });
+  printOpenDetails.length = 0;
+});
+
+document.querySelectorAll("[data-share-page]").forEach((button) => {  button.addEventListener("click", async () => {
     const status = button
       .closest(".footer-contact")
       ?.querySelector("[data-share-status]");

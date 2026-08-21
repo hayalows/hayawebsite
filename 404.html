@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en-GH">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page not found | Hayalows</title>
+    <meta name="description" content="This page does not exist. Head back to the Hayalows homepage, make a payment or start an enquiry.">
+    <meta name="robots" content="noindex">
+    <meta name="theme-color" content="#101613">
+    <meta name="application-name" content="Hayalows">
+    <meta name="apple-mobile-web-app-title" content="Hayalows">
+
+    <link rel="canonical" href="https://hayalows.com/404">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/assets/favicon-48x48.png" type="image/png" sizes="48x48">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <script>
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("motion-ready");
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css?v=20260821-1">
+    <style>
+      .notfound {
+        display: flex;
+        min-height: calc(100dvh - var(--header-height));
+        align-items: center;
+        padding: 5rem 0;
+      }
+
+      .notfound-code {
+        margin-bottom: 1rem;
+        color: var(--color-green);
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .notfound h1 {
+        max-width: 12ch;
+        font-size: clamp(3rem, 8vw, 5.5rem);
+      }
+
+      .notfound p {
+        max-width: 480px;
+        margin-bottom: 2rem;
+        color: var(--color-muted);
+        font-size: 1.08rem;
+      }
+
+      .notfound-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      @media (max-width: 680px) {
+        .notfound-links {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .notfound-links .button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label="Hayalows home">
+          <img src="/assets/hayalows-mark.svg" alt="" width="36" height="36">
+          <span>Hayalows</span>
+        </a>
+
+        <nav class="site-nav" id="site-navigation" aria-label="Main navigation">
+          <a href="/#what-we-do">What we do</a>
+          <a href="/#how-we-work">How we work</a>
+          <a href="/#questions">Questions</a>
+          <a href="/pay/">Payments</a>
+          <a href="/#contact">Contact</a>
+          <a class="nav-contact-mobile" href="/#contact-form">Start an enquiry</a>
+        </nav>
+
+        <div class="header-actions">
+          <a class="header-contact" href="/#contact-form">Start an enquiry</a>
+          <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Open menu">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="notfound">
+        <div class="container">
+          <p class="notfound-code" data-reveal-load>Error 404</p>
+          <h1 data-reveal-load style="--reveal-delay: 60ms">This page took a wrong turn.</h1>
+          <p data-reveal-load style="--reveal-delay: 120ms">The address may be old or mistyped. The rest of Hayalows is exactly where you left it.</p>
+          <div class="notfound-links" data-reveal-load style="--reveal-delay: 180ms">
+            <a class="button button-primary" href="/">Back to the homepage</a>
+            <a class="button button-secondary" href="/pay/">Make a payment</a>
+            <a class="text-link" href="/#contact-form">Start an enquiry</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-bottom" style="border-top: 0; padding-top: 0;">
+        <p>&copy; 2026 Hayalows Ventures.</p>
+        <p>Ghana. Built around useful progress.</p>
+      </div>
+    </footer>
+
+    <script src="/site.config.js?v=20260821-1" defer></script>
+    <script src="/script.js?v=20260821-1" defer></script>
+  </body>
+</html>

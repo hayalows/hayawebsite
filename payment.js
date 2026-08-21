@@ -20,7 +20,14 @@ function setPaymentRouteLayout(viewport) {
 }
 
 if (paymentRoutes.length) {
+  const root = document.documentElement;
+  root.classList.add("disclosures-syncing");
   setPaymentRouteLayout(mobilePaymentViewport);
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      root.classList.remove("disclosures-syncing");
+    });
+  });
   mobilePaymentViewport.addEventListener("change", setPaymentRouteLayout);
 
   paymentRoutes.forEach((route) => {
@@ -100,7 +107,7 @@ function openPaymentDialog(trigger) {
   paymentDialog.showModal();
 
   window.requestAnimationFrame(() => {
-    paymentDialog.querySelector("[data-dialog-close]")?.focus();
+    paymentDialog.querySelector("[data-dialog-title]")?.focus();
   });
 
   return true;
