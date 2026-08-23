@@ -14,17 +14,18 @@ Open `http://localhost:4173`.
 
 ## Public CV
 
-`resume/` is a public, print-friendly CV generated from the private Google Doc source. It deliberately omits the private document URL and phone number. The main site links to this route as “View CV”.
+`resume/` is a one-page, print-friendly public CV built from private Google Drive source material. It deliberately omits the private document URL and phone number. The main site links to this route as “View one-page CV”.
 
-## Listening connection
+## Spotify connection
 
-The site reads `listening.json` using a small provider-neutral shape. It defaults to `not_connected`, so the public site never invents a current song.
+The personal listening panel reads `listening.json` and defaults to `not_connected`, so the public site never invents a current song.
 
-For a future live connection:
+Spotify's Web API can provide a current or recently played track after the account owner grants access. A future implementation should:
 
-- Spotify supports current and recently played tracks through its Web API. Use a server-side Vercel function with OAuth scopes `user-read-currently-playing` and `user-read-recently-played`. Keep the client secret and refresh token in Vercel environment variables, never in this folder or browser JavaScript.
-- YouTube’s official Data API can read public playlists, but it does not provide access to watch history (`watchHistoryNotAccessible`). Use a deliberately public, curated playlist rather than unofficial YouTube Music cookie/session scraping.
-- Return the same shape as `listening.json` from a future `/api/listening` route, then change the `listening-endpoint` meta value in `index.html`.
+- use a server-side Vercel function and Spotify OAuth scopes `user-read-currently-playing` and `user-read-recently-played`;
+- keep the client secret and refresh token only in Vercel environment variables;
+- return the same shape as `listening.json` from a private-by-default `/api/listening` route;
+- never expose OAuth tokens in this folder or browser JavaScript.
 
 Example connected payload:
 

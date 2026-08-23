@@ -1,11 +1,27 @@
 const sectionLinks = [...document.querySelectorAll('[data-section-link]')];
 const sections = [...document.querySelectorAll('[data-section]')];
+const mobileNav = document.querySelector('.mobile-nav__scroll');
 const year = document.querySelector('[data-year]');
 const listeningEndpoint = document.querySelector('meta[name="listening-endpoint"]')?.content;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-function setActiveSection(sectionId) {
+function keepActiveMobileLinkVisible(sectionId) {
+  const link = mobileNav?.querySelector(`[data-section-link="${sectionId}"]`);
+  if (!link || !mobileNav) return;
+
+  const desiredLeft = link.offsetLeft - (mobileNav.clientWidth - link.offsetWidth) / 2;
+  mobileNav.scrollTo({
+    left: Math.max(0, desiredLeft),
+    behavior: reducedMotion.matches ? 'auto' : 'smooth'
+  });
+}
+
+function setActiveSection(sectionId, keepVisible = true) {
+  let changed = false;
+
   sectionLinks.forEach((link) => {
     const active = link.dataset.sectionLink === sectionId;
+    changed ||= active && !link.classList.contains('is-active');
     link.classList.toggle('is-active', active);
 
     if (active) {
@@ -14,6 +30,8 @@ function setActiveSection(sectionId) {
       link.removeAttribute('aria-current');
     }
   });
+
+  if (changed && keepVisible) keepActiveMobileLinkVisible(sectionId);
 }
 
 function isAtPageBottom() {
@@ -25,11 +43,13 @@ function contactHasEnteredView() {
   if (!contact) return false;
 
   const bounds = contact.getBoundingClientRect();
-  return bounds.top <= window.innerHeight * 0.72 && bounds.bottom > 0;
+  return bounds.top <= window.innerHeight * .72 && bounds.bottom > 0;
 }
 
+setActiveSection('about', false);
+
 if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => {
+  const navigationObserver = new IntersectionObserver((entries) => {
     if (isAtPageBottom() || contactHasEnteredView()) {
       setActiveSection('contact');
       return;
@@ -42,12 +62,24 @@ if ('IntersectionObserver' in window) {
     if (visible) setActiveSection(visible.target.id);
   }, {
     rootMargin: '-18% 0px -62% 0px',
-    threshold: [0, 0.12, 0.35]
+    threshold: [0, .12, .35]
   });
 
-  sections.forEach((section) => observer.observe(section));
-} else {
-  setActiveSection('about');
+  sections.forEach((section) => navigationObserver.observe(section));
+
+  const revealObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-revealed');
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: .06 });
+
+  sections.forEach((section) => {
+    if (section.getBoundingClientRect().top > window.innerHeight * .92) {
+      revealObserver.observe(section);
+    }
+  });
 }
 
 window.addEventListener('scroll', () => {
@@ -68,7 +100,11 @@ async function loadListeningState() {
     if (!response.ok) return;
 
     const state = await response.json();
-    if (state.status !== 'connected' || !state.track?.name) return;
+    if (
+      state.status !== 'connected'
+      || state.provider !== 'Spotify'
+      || !state.track?.name
+    ) return;
 
     const panel = document.querySelector('[data-listening]');
     const title = document.querySelector('[data-listening-title]');
@@ -85,12 +121,12 @@ async function loadListeningState() {
       const link = document.createElement('a');
       link.className = 'track-link';
       link.href = state.track.url;
-      link.textContent = `Open in ${state.provider || 'music app'}`;
+      link.textContent = 'Open in Spotify';
       link.rel = 'noreferrer';
       copy.insertAdjacentElement('afterend', link);
     }
   } catch {
-    // The static, private-by-default state is intentional until an account is connected.
+    // The static, private-by-default state is intentional until Spotify is connected.
   }
 }
 
