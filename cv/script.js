@@ -92,41 +92,127 @@ sectionLinks.forEach((link) => {
 
 if (year) year.textContent = String(new Date().getFullYear());
 
+function formatPlayedAt(value) {
+  if (!value) return 'recently';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'recently';
+
+  const age = Math.max(0, Date.now() - date.getTime());
+  const minutes = Math.floor(age / 60000);
+  const hours = Math.floor(minutes / 60);
+
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return minutes + 'm ago';
+  if (hours < 24) return hours + 'h ago';
+
+  return 'on ' + new Intl.DateTimeFormat(undefined, {
+    day: 'numeric',
+    month: 'short',
+  }).format(date);
+}
+
+function setOptionalListeningLink(link, label, item) {
+  if (!link) return;
+
+  if (!item?.name) {
+    link.hidden = true;
+    link.removeAttribute('href');
+    return;
+  }
+
+  link.textContent = label + ': ' + item.name;
+  link.hidden = !item.url;
+
+  if (item.url) {
+    link.href = item.url;
+    link.target = '_blank';
+    link.rel = 'noreferrer noopener';
+  }
+}
+
 async function loadListeningState() {
   if (!listeningEndpoint) return;
+
+  const panel = document.querySelector('[data-listening]');
+  const title = document.querySelector('[data-listening-title]');
+  const copy = document.querySelector('[data-listening-copy]');
+  const status = document.querySelector('[data-listening-status]');
+  const art = document.querySelector('[data-listening-art]');
+  const mark = document.querySelector('[data-listening-mark]');
+  const extra = document.querySelector('[data-listening-extra]');
+  const artistLink = document.querySelector('[data-listening-artist]');
+  const playlistLink = document.querySelector('[data-listening-playlist]');
 
   try {
     const response = await fetch(listeningEndpoint, { cache: 'no-store' });
     if (!response.ok) return;
 
     const state = await response.json();
+
+    if (state.status === 'needs_reconnect') {
+      if (status) status.textContent = 'reconnect needed';
+      return;
+    }
+
+    if (state.status === 'connected_empty') {
+      if (status) status.textContent = 'no recent track';
+      return;
+    }
+
     if (
       state.status !== 'connected'
       || state.provider !== 'Spotify'
       || !state.track?.name
     ) return;
 
-    const panel = document.querySelector('[data-listening]');
-    const title = document.querySelector('[data-listening-title]');
-    const copy = document.querySelector('[data-listening-copy]');
     const artist = Array.isArray(state.track.artists)
       ? state.track.artists.join(', ')
       : state.track.artist;
 
-    title.textContent = state.track.name;
-    copy.textContent = `${artist || 'Artist unavailable'} · ${state.isPlaying ? 'playing now' : 'recently played'}`;
+    if (title) title.textContent = state.track.name;
+    if (copy) {
+      copy.textContent = (artist || 'Artist unavailable')
+        + ' · last played ' + formatPlayedAt(state.track.playedAt);
+    }
+    if (status) status.textContent = 'last played ' + formatPlayedAt(state.track.playedAt);
     panel?.classList.add('is-connected');
 
-    if (state.track.url) {
-      const link = document.createElement('a');
-      link.className = 'track-link';
+    if (art && state.track.imageUrl) {
+      art.src = state.track.imageUrl;
+      art.alt = state.track.album
+        ? state.track.album + ' album artwork'
+        : 'Album artwork';
+      art.hidden = false;
+      if (mark) mark.hidden = true;
+    }
+
+    if (state.track.url && copy) {
+      let link = copy.parentElement.querySelector('[data-listening-track-link]');
+      if (!link) {
+        link = document.createElement('a');
+        link.className = 'track-link';
+        link.dataset.listeningTrackLink = '';
+        copy.insertAdjacentElement('afterend', link);
+      }
       link.href = state.track.url;
-      link.textContent = 'Open in Spotify';
-      link.rel = 'noreferrer';
-      copy.insertAdjacentElement('afterend', link);
+      link.textContent = 'Open in Spotify ↗';
+      link.target = '_blank';
+      link.rel = 'noreferrer noopener';
+      link.hidden = false;
+    }
+
+    setOptionalListeningLink(artistLink, 'Top artist', state.favoriteArtist);
+    setOptionalListeningLink(playlistLink, 'In rotation', state.featuredPlaylist);
+
+    if (
+      extra
+      && (!artistLink?.hidden || !playlistLink?.hidden)
+    ) {
+      extra.hidden = false;
     }
   } catch {
-    // The static, private-by-default state is intentional until Spotify is connected.
+    // The public page keeps the quiet placeholder if Spotify is unavailable.
   }
 }
 

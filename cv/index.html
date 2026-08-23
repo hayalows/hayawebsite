@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Papa Kojo Mensah is an operations and customer experience professional who uses data quality, practical tools and clear communication to make work easier to run and use.">
     <meta name="theme-color" content="#080808">
-    <meta name="listening-endpoint" content="listening.json">
+    <meta name="listening-endpoint" content="/api/listening">
     <title>Papa Kojo Mensah — Operations &amp; Customer Experience</title>
     <link rel="canonical" href="https://papa-kojo-cv.vercel.app/">
     <link rel="icon" href="assets/papa-kojo-portrait.webp" type="image/webp">
@@ -142,14 +142,19 @@
           </div>
 
           <aside class="listening-panel" data-listening aria-labelledby="listening-title">
-            <div class="listening-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+            <img class="listening-art" data-listening-art width="44" height="44" alt="" hidden>
+            <div class="listening-mark" data-listening-mark aria-hidden="true"><i></i><i></i><i></i><i></i></div>
             <div class="listening-copy">
               <p class="eyebrow">Personal signal</p>
-              <h3 id="listening-title" data-listening-title>Spotify, when it is ready</h3>
-              <p data-listening-copy>This quiet corner can later show what I am playing now or listened to recently. It stays honest and empty until a secure Spotify connection is added.</p>
+              <h3 id="listening-title" data-listening-title>Last played, when I feel like sharing it</h3>
+              <p data-listening-copy>This quiet corner can show the last song I played on Spotify. It stays private and empty until I connect it.</p>
+              <div class="listening-extra" data-listening-extra hidden>
+                <a data-listening-artist hidden></a>
+                <a data-listening-playlist hidden></a>
+              </div>
             </div>
             <div class="service-status" role="status" aria-label="Music connection status">
-              <span><b>Spotify</b> <small>not connected yet</small></span>
+              <span><b>Spotify</b> <small data-listening-status>not connected yet</small></span>
             </div>
           </aside>
         </section>

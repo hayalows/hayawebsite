@@ -18,30 +18,47 @@ Open `http://localhost:4173`.
 
 ## Spotify connection
 
-The personal listening panel reads `listening.json` and defaults to `not_connected`, so the public site never invents a current song.
+The personal listening panel reads the most recent track from a server-side Vercel function. It stays quiet when Spotify is not connected and never exposes OAuth tokens to browser JavaScript.
 
-Spotify's Web API can provide a current or recently played track after the account owner grants access. A future implementation should:
+The production project needs these Vercel environment variables:
 
-- use a server-side Vercel function and Spotify OAuth scopes `user-read-currently-playing` and `user-read-recently-played`;
-- keep the client secret and refresh token only in Vercel environment variables;
-- return the same shape as `listening.json` from a private-by-default `/api/listening` route;
-- never expose OAuth tokens in this folder or browser JavaScript.
+~~~text
+SPOTIFY_CLIENT_ID
+SPOTIFY_CLIENT_SECRET
+SPOTIFY_REDIRECT_URI
+SPOTIFY_REFRESH_TOKEN
+~~~
 
-Example connected payload:
+The redirect URI must match the Spotify Developer app exactly:
 
-```json
+~~~text
+https://papa-kojo-cv.vercel.app/api/spotify/callback
+~~~
+
+To authorise the account, open /api/spotify/login on the production site. Spotify returns a one-time refresh token page. Add that value to Vercel as SPOTIFY_REFRESH_TOKEN, then redeploy. Keep the value private.
+
+The connection requests user-read-recently-played, user-top-read and playlist-read-private. The page shows the last played song by default. A selected playlist can be added later with the optional SPOTIFY_FEATURED_PLAYLIST_ID variable.
+
+The public /api/listening route returns metadata only:
+
+~~~json
 {
   "status": "connected",
   "provider": "Spotify",
-  "isPlaying": true,
+  "isPlaying": false,
   "track": {
     "name": "Track title",
     "artists": ["Artist"],
-    "url": "https://open.spotify.com/track/..."
+    "album": "Album title",
+    "imageUrl": "https://i.scdn.co/image/...",
+    "url": "https://open.spotify.com/track/...",
+    "playedAt": "2026-08-23T12:00:00Z"
   },
+  "favoriteArtist": null,
+  "featuredPlaylist": null,
   "updatedAt": "2026-08-23T12:00:00Z"
 }
-```
+~~~
 
 ## Deployment
 
