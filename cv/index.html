@@ -1,272 +1,165 @@
 <!doctype html>
-<html lang="en-GH" data-theme="dark">
+<html lang="en-GH">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Papa Kojo Mensah is a brand identity designer and social media marketer building clear brands, useful content and practical digital tools.">
-    <meta name="theme-color" content="#101111">
-    <title>Papa Kojo Mensah | Brand, content and systems</title>
+    <meta name="description" content="Papa Kojo Mensah. Brand identity, social media marketing and practical digital systems.">
+    <meta name="theme-color" content="#0d0d0d">
+    <title>Papa Kojo Mensah</title>
     <link rel="canonical" href="https://cv.hayalows.com/">
-    <link rel="icon" href="assets/hayalows-mark.svg" type="image/svg+xml">
-    <meta property="og:title" content="Papa Kojo Mensah | Brand, content and systems">
-    <meta property="og:description" content="A personal index of selected work, experiments and experience.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://cv.hayalows.com/">
     <link rel="stylesheet" href="styles.css">
-    <script>
-      try {
-        const savedTheme = localStorage.getItem("pk-theme");
-        const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-        document.documentElement.dataset.theme = savedTheme || systemTheme;
-      } catch (_) {}
-    </script>
     <script src="script.js" defer></script>
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Skip to content</a>
+    <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="site-header">
-      <div class="shell nav-shell">
-        <a class="identity" href="#top" aria-label="Papa Kojo Mensah home">
-          <span class="identity-mark" aria-hidden="true">PK</span>
-          <span>Papa Kojo Mensah</span>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#top">home</a>
+        <a href="#projects">work</a>
+        <a href="#extras">extras</a>
+        <a href="#contact">contact</a>
+        <span class="nav-spacer" aria-hidden="true"></span>
+        <a class="icon-link" href="https://github.com/hayalows" aria-label="Papa Kojo on GitHub">
+          <img src="https://cdn.simpleicons.org/github/ffffff" width="17" height="17" alt="">
         </a>
-
-        <button class="menu-button" type="button" aria-expanded="false" aria-controls="primary-nav">
-          <span class="visually-hidden">Open menu</span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-        </button>
-
-        <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
-          <a href="#work">Work</a>
-          <a href="#experience">Experience</a>
-          <a href="#notes">Notes</a>
-          <a href="#contact">Contact</a>
-          <button class="theme-button" type="button" data-theme-toggle aria-label="Switch colour theme">
-            <span data-theme-label>Light mode</span>
-          </button>
-        </nav>
-      </div>
+        <button class="theme-button" type="button" data-theme-toggle aria-label="Switch colour theme">◐</button>
+      </nav>
     </header>
 
-    <main id="main-content">
-      <section class="hero shell" id="top">
-        <div class="hero-copy" data-reveal>
-          <p class="eyebrow">Personal index</p>
-          <h1>Clear brands. Useful systems. Work people can feel.</h1>
-          <p class="intro">I am Papa Kojo Mensah, a brand identity designer and social media marketer with a background in actuarial science. I turn unclear ideas into practical messages, visual systems and digital tools.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#work">See selected work</a>
-            <a class="button button-secondary" href="mailto:info@hayalows.com?subject=Hello%20Papa%20Kojo">Send an email</a>
+    <main id="main">
+      <section class="intro" id="top">
+        <div class="identity-row">
+          <img class="avatar" src="assets/papa-kojo-portrait.webp" width="60" height="60" alt="Papa Kojo Mensah">
+          <div>
+            <h1>Papa Kojo Mensah</h1>
+            <p>Brand identity designer and social media marketer</p>
           </div>
         </div>
 
-        <figure class="hero-image" data-reveal data-reveal-delay="120">
-          <img src="assets/papa-kojo-portrait.webp" alt="Portrait of Papa Kojo Mensah" width="800" height="800">
-          <figcaption>
-            <span>Based in Ghana. Working across brand, content and digital systems.</span>
-            <a href="https://hayalows.com/">Hayalows <span aria-hidden="true">↗</span></a>
-          </figcaption>
-        </figure>
+        <p>I care about making a business easier to understand, trust and choose through clear identity, content and practical systems.</p>
+        <p>I also build small tools around the problems I keep running into: clearer decisions, better work habits and less lost information.</p>
       </section>
 
-      <section class="proof-band">
-        <div class="shell proof-grid" data-reveal>
-          <p>I care about the details people notice before they know how to explain them: the words, the structure, the visual rhythm, and the next step.</p>
-          <div class="proof-links" aria-label="Areas of work">
-            <a href="#work">Brand identity</a>
-            <a href="#work">Social content</a>
-            <a href="#work">Digital tools</a>
+      <section class="activity-card" aria-labelledby="activity-title">
+        <div class="activity-card__inner">
+          <div class="months" aria-hidden="true">
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span>
+          </div>
+          <div class="activity-graph" data-activity-graph aria-label="A visual record of current projects and learning activity"></div>
+          <div class="activity-footer">
+            <span id="activity-title">Current work and learning rhythm</span>
+            <span class="legend" aria-label="Activity level: less to more"><small>Less</small><i></i><i></i><i></i><i></i><small>More</small></span>
+          </div>
+        </div>
+        <div class="activity-card__cta">
+          <p>Interested in working together? <a href="mailto:info@hayalows.com?subject=Hello%20Papa%20Kojo">Send me an email</a></p>
+          <div>
+            <a class="action action--light" href="mailto:info@hayalows.com?subject=Hello%20Papa%20Kojo">Email Papa Kojo</a>
+            <a class="action" href="https://hayalows.com/">Visit Hayalows</a>
           </div>
         </div>
       </section>
 
-      <section class="section shell" id="work">
-        <div class="section-heading" data-reveal>
-          <p class="section-label">Selected work</p>
-          <h2>Things I have built, shaped, or am actively making better.</h2>
+      <section class="content-section" id="projects">
+        <div class="section-title-row">
+          <h2>projects.</h2>
+          <button class="view-toggle" type="button" data-view-toggle aria-label="Toggle compact project view"><span></span><span></span><span></span></button>
         </div>
 
-        <div class="filter-bar" role="toolbar" aria-label="Filter selected work" data-reveal>
-          <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">Everything</button>
-          <button class="filter-button" type="button" data-filter="brand" aria-pressed="false">Brand and growth</button>
-          <button class="filter-button" type="button" data-filter="systems" aria-pressed="false">Tools and systems</button>
-          <button class="filter-button" type="button" data-filter="research" aria-pressed="false">Research</button>
-        </div>
-
-        <div class="work-list" data-work-list>
-          <article class="work-item" data-work="brand systems" data-reveal>
-            <div class="work-number">01</div>
-            <div class="work-main">
-              <p class="work-type">Brand and digital foundation</p>
+        <div class="project-list" data-project-list>
+          <article class="project-row">
+            <div>
+              <h3>English Chat Finder</h3>
+              <p>A focused way for people learning English to find someone to practise conversation with at the right level and time.</p>
+            </div>
+            <span>In build</span>
+          </article>
+          <article class="project-row">
+            <div>
               <h3>Hayalows Ventures</h3>
-              <p>Clarifying how a growing Ghanaian business explains its services, builds trust and gives customers a useful next step.</p>
+              <p>Brand, messaging and digital foundations for a growing Ghanaian business.</p>
             </div>
-            <div class="work-side">
-              <span>Ongoing</span>
-              <a href="https://hayalows.com/" aria-label="Visit Hayalows">Visit site <span aria-hidden="true">↗</span></a>
-            </div>
+            <a href="https://hayalows.com/">Website</a>
           </article>
-
-          <article class="work-item" data-work="systems research" data-reveal>
-            <div class="work-number">02</div>
-            <div class="work-main">
-              <p class="work-type">Decision tool</p>
+          <article class="project-row">
+            <div>
               <h3>FPL Engine</h3>
-              <p>A work-in-progress system for turning Fantasy Premier League data, team news and transfer choices into clearer weekly decisions.</p>
+              <p>A decision tool that brings Fantasy Premier League data, team news and planning into one useful weekly view.</p>
             </div>
-            <div class="work-side">
-              <span>In build</span>
-              <span class="quiet-link">Private project</span>
-            </div>
+            <span>In build</span>
           </article>
-
-          <article class="work-item" data-work="systems" data-reveal>
-            <div class="work-number">03</div>
-            <div class="work-main">
-              <p class="work-type">Chrome extension</p>
+          <article class="project-row">
+            <div>
               <h3>Springboard Time Tracker</h3>
-              <p>A focused time-tracking extension built around one real constraint: finish the workday cleanly without losing track during pauses and restarts.</p>
+              <p>A focused Chrome extension for tracking an eight-hour workday without losing time across pauses and restarts.</p>
             </div>
-            <div class="work-side">
-              <span>Product build</span>
-              <span class="quiet-link">Private project</span>
-            </div>
+            <span>In build</span>
           </article>
-
-          <article class="work-item" data-work="brand research" data-reveal>
-            <div class="work-number">04</div>
-            <div class="work-main">
-              <p class="work-type">Brand and content practice</p>
+          <article class="project-row">
+            <div>
               <h3>Small business communication</h3>
-              <p>Brand identity and social media work that makes an offer easier to understand, remember and act on.</p>
+              <p>Identity and social media work that helps a business explain its offer and follow up with people properly.</p>
             </div>
-            <div class="work-side">
-              <span>Selected work</span>
-              <a href="#contact">Ask about it <span aria-hidden="true">↘</span></a>
-            </div>
+            <a href="#contact">Ask about it</a>
           </article>
         </div>
-        <p class="filter-empty" data-filter-empty hidden>No projects match that view yet.</p>
       </section>
 
-      <section class="section current-section" id="notes">
-        <div class="shell current-layout">
-          <div class="current-copy" data-reveal>
-            <p class="section-label">Current focus</p>
-            <h2>Learning in public, then making the lesson useful.</h2>
-            <p>I am interested in the point where creative judgment meets evidence. That is why my work moves between visual identity, customer behaviour, finance, systems and small software experiments.</p>
-          </div>
-
-          <div class="focus-list" data-reveal data-reveal-delay="100">
-            <a class="focus-item" href="#work">
-              <span>01</span>
-              <div>
-                <strong>Building decision tools</strong>
-                <p>Turning messy information into a next action.</p>
-              </div>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <a class="focus-item" href="#work">
-              <span>02</span>
-              <div>
-                <strong>Making brands easier to choose</strong>
-                <p>Using clear language and deliberate visual systems.</p>
-              </div>
-              <span aria-hidden="true">↗</span>
-            </a>
-            <a class="focus-item" href="#experience">
-              <span>03</span>
-              <div>
-                <strong>Learning finance from first principles</strong>
-                <p>Looking for ideas that hold up when real money is involved.</p>
-              </div>
-              <span aria-hidden="true">↗</span>
-            </a>
-          </div>
+      <section class="content-section" id="extras">
+        <div class="section-title-row">
+          <h2>crafts.</h2>
+        </div>
+        <div class="compact-list">
+          <a href="#projects"><strong>English Chat Finder</strong><span>Conversation practice built around comfort, availability and steady improvement.</span></a>
+          <a href="#projects"><strong>FPL Engine</strong><span>Weekly decision support using real data, team news and better questions.</span></a>
+          <a href="#projects"><strong>Springboard tracker</strong><span>A quieter way to see what remains in an eight-hour workday.</span></a>
         </div>
       </section>
 
-      <section class="section shell" id="experience">
-        <div class="section-heading experience-heading" data-reveal>
-          <p class="section-label">Experience</p>
-          <h2>A career path shaped by detail, service and a habit of figuring things out.</h2>
+      <section class="content-section" id="experience">
+        <div class="section-title-row">
+          <h2>experience.</h2>
         </div>
-
         <div class="experience-list">
-          <article class="experience-item" data-reveal>
-            <p class="experience-date">2026 - present</p>
+          <article>
             <div>
               <h3>Data Entry Specialist and Reviewer</h3>
-              <p class="experience-place">Springboard, remote</p>
-              <p>Reviewing locality data with accuracy, consistency and evidence-based judgment. The work has made me more patient with edge cases and clearer about the cost of small errors.</p>
+              <a href="https://springboard.com/">at, Springboard</a>
             </div>
+            <time>Apr, 2026 - present</time>
+            <p>Accuracy review / research / evidence-based decisions / documentation / remote collaboration</p>
           </article>
-          <article class="experience-item" data-reveal>
-            <p class="experience-date">Ongoing</p>
+          <article>
             <div>
-              <h3>Brand, content and digital systems</h3>
-              <p class="experience-place">Hayalows Ventures</p>
-              <p>Helping small businesses explain themselves better, communicate with more confidence and build practical ways to follow up with customers.</p>
+              <h3>Brand identity and social media marketer</h3>
+              <a href="https://hayalows.com/">at, Hayalows Ventures</a>
             </div>
+            <time>Ongoing</time>
+            <p>Brand identity / content direction / social media / customer communication / digital systems</p>
           </article>
-          <article class="experience-item" data-reveal>
-            <p class="experience-date">Foundation</p>
+          <article>
             <div>
-              <h3>Actuarial science and hospitality training</h3>
-              <p class="experience-place">Quantitative thinking, customer experience and communication</p>
-              <p>A mix that keeps my creative work grounded. A brand has to look right, but it also has to make sense to the person deciding whether to trust it.</p>
+              <h3>Actuarial science graduate</h3>
+              <span>Quantitative thinking with a practical eye for people and businesses.</span>
             </div>
+            <time>Foundation</time>
+            <p>Research / financial thinking / structured problem solving / customer experience</p>
           </article>
         </div>
       </section>
 
-      <section class="section shell capabilities-section">
-        <div class="capability-panel primary-panel" data-reveal>
-          <p class="section-label">What I can help with</p>
-          <h2>Building the parts people see, understand and use.</h2>
-          <p>My best work starts with a practical question. What is confusing the customer, the team, or the person using the tool?</p>
+      <section class="content-section socials" id="contact">
+        <div class="section-title-row">
+          <h2>socials.</h2>
         </div>
-        <div class="capability-panel capability-list" data-reveal data-reveal-delay="90">
-          <div>
-            <h3>Brand identity</h3>
-            <p>Positioning, visual direction, service language and simple brand systems.</p>
-          </div>
-          <div>
-            <h3>Social media marketing</h3>
-            <p>Content ideas, campaign structure and a more consistent public voice.</p>
-          </div>
-          <div>
-            <h3>Research and systems</h3>
-            <p>Clearer decisions, useful documentation and small tools that remove friction.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="contact-section" id="contact">
-        <div class="shell contact-layout" data-reveal>
-          <div>
-            <p class="section-label">Contact</p>
-            <h2>Have a thoughtful problem to work through?</h2>
-          </div>
-          <div class="contact-copy">
-            <p>Tell me what is not working, what people keep misunderstanding, or what you want to build. A good first message does not need to be polished.</p>
-            <div class="contact-actions">
-              <a class="button button-primary" href="mailto:info@hayalows.com?subject=Hello%20Papa%20Kojo">Email Papa Kojo</a>
-              <a class="text-link" href="https://github.com/hayalows">GitHub <span aria-hidden="true">↗</span></a>
-              <a class="text-link" href="https://hayalows.com/">Hayalows <span aria-hidden="true">↗</span></a>
-            </div>
-          </div>
+        <div class="social-grid">
+          <a href="https://github.com/hayalows"><img src="https://cdn.simpleicons.org/github/ffffff" width="16" height="16" alt=""> GitHub</a>
+          <a href="https://hayalows.com/">Hayalows</a>
+          <a href="mailto:info@hayalows.com">Email</a>
+          <a href="#top">Back to top</a>
         </div>
       </section>
     </main>
-
-    <footer class="site-footer">
-      <div class="shell footer-inner">
-        <p>© <span data-current-year></span> Papa Kojo Mensah</p>
-        <p>Built through <a href="https://hayalows.com/">Hayalows</a>.</p>
-      </div>
-    </footer>
   </body>
 </html>
