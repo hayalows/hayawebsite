@@ -1,107 +1,45 @@
 const root = document.documentElement;
-const menuButton = document.querySelector(".menu-button");
-const primaryNav = document.querySelector(".primary-nav");
-const themeButton = document.querySelector("[data-theme-toggle]");
-const themeLabel = document.querySelector("[data-theme-label]");
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const themeToggle = document.querySelector('[data-theme-toggle]');
+const graph = document.querySelector('[data-activity-graph]');
+const viewToggle = document.querySelector('[data-view-toggle]');
+const projectList = document.querySelector('[data-project-list]');
 
 function setTheme(theme) {
   root.dataset.theme = theme;
-  if (themeLabel) {
-    themeLabel.textContent = theme === "dark" ? "Light mode" : "Dark mode";
-  }
-
-  try {
-    localStorage.setItem("pk-theme", theme);
-  } catch (_) {}
+  themeToggle.textContent = theme === 'dark' ? '◐' : '◑';
+  localStorage.setItem('pk-cv-theme', theme);
 }
 
-setTheme(root.dataset.theme === "light" ? "light" : "dark");
+const savedTheme = localStorage.getItem('pk-cv-theme');
+if (savedTheme) setTheme(savedTheme);
 
-themeButton?.addEventListener("click", () => {
-  setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+themeToggle.addEventListener('click', () => {
+  setTheme(root.dataset.theme === 'light' ? 'dark' : 'light');
 });
 
-function closeMenu() {
-  menuButton?.setAttribute("aria-expanded", "false");
-  primaryNav?.classList.remove("is-open");
-  document.body.classList.remove("menu-open");
-}
+const activityPattern = [
+  0, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 3, 0, 1, 0, 2, 0, 0, 1, 0, 0,
+  0, 2, 0, 0, 1, 3, 0, 0, 0, 1, 0, 2, 0, 0, 3, 1, 0, 0, 2, 0, 1,
+  0, 3, 0, 2, 0, 0, 1, 0, 3, 0, 2, 1, 0, 0, 4, 2, 0, 1, 3, 0, 2,
+  0, 1, 0, 3, 2, 0, 4, 1, 0, 2, 3, 0, 1, 4, 2, 0, 3, 1, 4, 2, 0,
+  3, 1, 4, 2, 3, 0, 4, 1, 2, 3, 4, 0, 1, 3, 2, 4, 1, 0, 3, 4, 2,
+  1, 4, 3, 0, 2, 4, 1, 3, 2, 4, 0, 1, 3, 2, 4, 1, 0, 2, 3, 4, 0,
+  1, 2, 3, 4, 1, 0, 2, 3, 1, 4, 2, 0, 3, 4, 1, 2, 3, 0, 4, 1, 2,
+  3, 4, 0, 1, 2, 3, 1, 4, 2, 0, 3, 4, 1, 2, 3, 0, 4, 1, 2, 3, 4,
+  0, 1, 2, 3, 1, 4, 2, 0, 3, 4, 1, 2, 3, 0, 4, 1, 2, 3, 4, 0, 1,
+  2, 3, 1, 4, 2, 0, 3, 4, 1, 2, 3, 0, 4, 1, 2, 3, 4, 0, 1, 2, 3,
+  1, 4, 2, 0, 3, 4, 1, 2, 3, 0, 4, 1, 2, 3, 4, 0, 1, 2, 3, 1, 4,
+  2, 0, 3, 4, 1, 2, 3, 0, 4, 1, 2, 3, 4, 0, 1, 2, 3
+];
 
-menuButton?.addEventListener("click", () => {
-  const isOpen = menuButton.getAttribute("aria-expanded") === "true";
-  menuButton.setAttribute("aria-expanded", String(!isOpen));
-  primaryNav?.classList.toggle("is-open", !isOpen);
-  document.body.classList.toggle("menu-open", !isOpen);
+activityPattern.forEach((level) => {
+  const cell = document.createElement('span');
+  cell.dataset.level = String(level);
+  graph.append(cell);
 });
 
-primaryNav?.addEventListener("click", (event) => {
-  if (event.target.closest("a")) closeMenu();
+viewToggle.addEventListener('click', () => {
+  const compact = projectList.classList.toggle('is-compact');
+  viewToggle.classList.toggle('is-compact', compact);
+  viewToggle.setAttribute('aria-label', compact ? 'Show project descriptions' : 'Toggle compact project view');
 });
-
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeMenu();
-});
-
-window.matchMedia("(min-width: 761px)").addEventListener("change", closeMenu);
-
-const revealItems = document.querySelectorAll("[data-reveal]");
-
-if (prefersReducedMotion.matches || !("IntersectionObserver" in window)) {
-  revealItems.forEach((item) => item.classList.add("is-visible"));
-} else {
-  const revealObserver = new IntersectionObserver(
-    (entries, observer) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("is-visible");
-        observer.unobserve(entry.target);
-      });
-    },
-    { threshold: 0.16 }
-  );
-
-  revealItems.forEach((item) => {
-    const delay = item.dataset.revealDelay;
-    if (delay) item.style.setProperty("--reveal-delay", delay);
-    revealObserver.observe(item);
-  });
-}
-
-const filterButtons = document.querySelectorAll("[data-filter]");
-const workItems = document.querySelectorAll("[data-work]");
-const emptyMessage = document.querySelector("[data-filter-empty]");
-
-filterButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    const selected = button.dataset.filter;
-    let shown = 0;
-
-    filterButtons.forEach((item) => {
-      const active = item === button;
-      item.classList.toggle("is-active", active);
-      item.setAttribute("aria-pressed", String(active));
-    });
-
-    workItems.forEach((item) => {
-      const matches = selected === "all" || item.dataset.work.split(" ").includes(selected);
-      item.classList.toggle("is-hidden", !matches);
-      if (matches) shown += 1;
-    });
-
-    if (emptyMessage) emptyMessage.hidden = shown > 0;
-  });
-});
-
-document.querySelector("[data-current-year]").textContent = String(new Date().getFullYear());
-
-const header = document.querySelector(".site-header");
-const topSection = document.querySelector("#top");
-
-if (header && topSection && "IntersectionObserver" in window) {
-  const headerObserver = new IntersectionObserver(([entry]) => {
-    header.classList.toggle("is-scrolled", !entry.isIntersecting);
-  }, { threshold: 0.04 });
-
-  headerObserver.observe(topSection);
-}
