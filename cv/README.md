@@ -1,31 +1,47 @@
-# Papa Kojo Mensah personal site
+# Papa Kojo Mensah CV site
 
-This folder is a standalone static site for `cv.hayalows.com`.
+This folder is the standalone static site deployed to the existing Vercel project `papa-kojo-cv`.
 
 ## Local preview
 
-```bash
-python3 -m http.server 4173 --directory cv
+From the repository root:
+
+```powershell
+python -m http.server 4173 --directory cv
 ```
 
 Open `http://localhost:4173`.
 
-## Cloudflare Pages setup
+## Public CV
 
-Create a second Cloudflare Pages project from this same GitHub repository.
+`resume/` is a public, print-friendly CV generated from the private Google Doc source. It deliberately omits the private document URL and phone number. The main site links to this route as “View CV”.
 
-- Production branch: `main`
-- Framework preset: `None`
-- Build command: leave empty
-- Build output directory: `cv`
-- Root directory: leave empty
+## Listening connection
 
-Add `cv.hayalows.com` as the custom domain for this second project. Cloudflare will show the exact DNS verification record if one is needed.
+The site reads `listening.json` using a small provider-neutral shape. It defaults to `not_connected`, so the public site never invents a current song.
 
-The existing Hayalows Pages project stays pointed at the repository root. Do not change its domain, payment pages, email records or build settings.
+For a future live connection:
 
-## Content to personalise later
+- Spotify supports current and recently played tracks through its Web API. Use a server-side Vercel function with OAuth scopes `user-read-currently-playing` and `user-read-recently-played`. Keep the client secret and refresh token in Vercel environment variables, never in this folder or browser JavaScript.
+- YouTube’s official Data API can read public playlists, but it does not provide access to watch history (`watchHistoryNotAccessible`). Use a deliberately public, curated playlist rather than unofficial YouTube Music cookie/session scraping.
+- Return the same shape as `listening.json` from a future `/api/listening` route, then change the `listening-endpoint` meta value in `index.html`.
 
-- Replace `info@hayalows.com` if a personal inbox becomes preferable.
-- Add live links when FPL Engine and the Springboard Time Tracker are ready to be public.
-- Add a downloadable CV only after the PDF is final.
+Example connected payload:
+
+```json
+{
+  "status": "connected",
+  "provider": "Spotify",
+  "isPlaying": true,
+  "track": {
+    "name": "Track title",
+    "artists": ["Artist"],
+    "url": "https://open.spotify.com/track/..."
+  },
+  "updatedAt": "2026-08-23T12:00:00Z"
+}
+```
+
+## Deployment
+
+The existing Vercel project uses `cv` as its Git root directory. Deploy from this folder and keep the main Hayalows website configuration untouched.
