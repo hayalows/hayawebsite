@@ -1261,7 +1261,8 @@ summary { -webkit-tap-highlight-color: transparent; }
 
 .project-row::details-content,
 .timeline-item::details-content,
-.listening-panel::details-content {
+.listening-panel::details-content,
+.changelog::details-content {
   block-size: 0;
   overflow-y: clip;
   transition:
@@ -1272,13 +1273,14 @@ summary { -webkit-tap-highlight-color: transparent; }
 
 .project-row[open]::details-content,
 .timeline-item[open]::details-content,
-.listening-panel[open]::details-content {
+.listening-panel[open]::details-content,
+.changelog[open]::details-content {
   block-size: auto;
 }
 
 .project-row summary,
 .timeline-item summary {
-  transition: background-color 150ms ease;
+  transition: background-color 140ms ease;
 }
 
 .project-row summary:hover,
@@ -1287,12 +1289,14 @@ summary { -webkit-tap-highlight-color: transparent; }
 }
 
 .project-summary,
-.timeline-heading {
-  transition: translate 200ms cubic-bezier(.2, .75, .25, 1);
+.timeline-heading,
+.listening-summary-copy {
+  transition: translate 140ms cubic-bezier(.2, .75, .25, 1);
 }
 
 .project-row summary:hover .project-summary,
-.timeline-item summary:hover .timeline-heading {
+.timeline-item summary:hover .timeline-heading,
+.listening-summary:hover .listening-summary-copy {
   translate: 3px 0;
 }
 
@@ -1324,7 +1328,7 @@ summary { -webkit-tap-highlight-color: transparent; }
   background: currentColor;
   transform: scaleX(0);
   transform-origin: 100% 50%;
-  transition: transform 260ms cubic-bezier(.4, 0, .2, 1);
+  transition: transform 220ms cubic-bezier(.4, 0, .2, 1);
 }
 
 a:hover .u-draw::after,
@@ -1489,15 +1493,16 @@ html.js .contact-section.is-revealed::before {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html.js .hero > * {
+  html.hero-intro .hero > * {
     animation: hero-rise 560ms cubic-bezier(.2, .75, .25, 1) backwards;
   }
 
-  html.js .hero > :nth-child(1) { animation-delay: 40ms; }
-  html.js .hero > :nth-child(2) { animation-delay: 150ms; }
-  html.js .hero > :nth-child(3) { animation-delay: 260ms; }
-  html.js .hero > :nth-child(4) { animation-delay: 370ms; }
-  html.js .hero > :nth-child(5) { animation-delay: 500ms; }
+  html.hero-intro .hero > :nth-child(1) { animation-delay: 40ms; }
+  html.hero-intro .hero > :nth-child(2) { animation-delay: 170ms; }
+  html.hero-intro .hero > :nth-child(3) { animation-delay: 280ms; }
+  html.hero-intro .hero > :nth-child(4) { animation-delay: 390ms; }
+  html.hero-intro .hero > :nth-child(5) { animation-delay: 500ms; }
+  html.hero-intro .hero > :nth-child(6) { animation-delay: 620ms; }
 
   #skills.is-revealed .skill-row li {
     animation: chip-in 340ms cubic-bezier(.2, .75, .25, 1) backwards;
@@ -1522,4 +1527,144 @@ html.js .contact-section.is-revealed::before {
 
   .timeline-item[open] .timeline-detail li:nth-child(2) { animation-delay: 55ms; }
   .timeline-item[open] .timeline-detail li:nth-child(3) { animation-delay: 110ms; }
+}
+
+.monogram {
+  display: block;
+  inline-size: 5.5rem;
+  block-size: auto;
+  margin-block-end: 2.2rem;
+  color: var(--accent);
+}
+
+html.js.hero-intro .monogram path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js.hero-intro .monogram path {
+    animation: draw-stroke 620ms cubic-bezier(.4, 0, .2, 1) forwards;
+  }
+
+  html.js.hero-intro .monogram path:nth-of-type(1) { animation-delay: 560ms; }
+  html.js.hero-intro .monogram path:nth-of-type(2) { animation-delay: 860ms; }
+  html.js.hero-intro .monogram path:nth-of-type(3) { animation-delay: 1000ms; }
+  html.js.hero-intro .monogram path:nth-of-type(4) { animation-delay: 1240ms; }
+}
+
+@keyframes draw-stroke {
+  to { stroke-dashoffset: 0; }
+}
+
+.local-time-chip {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-block: -.6rem 1rem;
+  color: var(--quiet);
+  font-size: .72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.local-time-chip i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--quiet);
+}
+
+.changelog {
+  margin-block-start: 4.5rem;
+  border-top: 1px solid var(--line-strong);
+}
+
+.changelog summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.25rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--quiet);
+  transition: color 140ms ease;
+}
+
+.changelog summary::-webkit-details-marker { display: none; }
+.changelog summary:hover { color: var(--muted); }
+.changelog[open] summary { color: var(--muted); }
+
+.changelog__label {
+  font-size: .74rem;
+  font-weight: 650;
+}
+
+.changelog__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+}
+
+.changelog__meta span {
+  padding: .12rem .45rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--quiet);
+  font-size: .64rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.changelog__meta i {
+  position: relative;
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.changelog__meta i::before,
+.changelog__meta i::after {
+  position: absolute;
+  top: calc(50% - .5px);
+  left: 2px;
+  width: 12px;
+  height: 1px;
+  background: currentColor;
+  content: "";
+  transition-property: rotate;
+  transition-duration: 180ms;
+}
+
+.changelog__meta i::after { rotate: 90deg; }
+.changelog[open] .changelog__meta i::after { rotate: 0deg; }
+
+.changelog__list {
+  padding-block: .1rem 1.25rem;
+}
+
+.changelog__list article {
+  padding-block: .85rem;
+  border-top: 1px solid var(--line);
+}
+
+.changelog__list strong {
+  display: block;
+  font-size: .86rem;
+  letter-spacing: -.014em;
+}
+
+.changelog__list p {
+  max-width: 54ch;
+  margin-block-start: .32rem;
+  color: var(--muted);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+.hero-actions a {
+  transition: color 140ms ease;
+}
+
+footer a {
+  transition: color 140ms ease;
 }

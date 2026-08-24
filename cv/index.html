@@ -9,9 +9,19 @@
     <title>Papa Kojo Mensah — Operations &amp; Customer Experience</title>
     <link rel="canonical" href="https://pkm.hayalows.com/">
     <link rel="icon" href="assets/papa-kojo-portrait.webp" type="image/webp">
-    <script>if ('IntersectionObserver' in window) { document.documentElement.classList.add('js'); }</script>
-    <link rel="stylesheet" href="styles.css?v=icon-copy-1">
-    <script src="script.js?v=icon-copy-1" defer></script>
+    <script>
+      if ('IntersectionObserver' in window) { document.documentElement.classList.add('js'); }
+      try {
+        if (sessionStorage.getItem('pkm-hero-played') !== '1') {
+          document.documentElement.classList.add('hero-intro');
+          sessionStorage.setItem('pkm-hero-played', '1');
+        }
+      } catch {
+        document.documentElement.classList.add('hero-intro');
+      }
+    </script>
+    <link rel="stylesheet" href="styles.css?v=roadmap-1">
+    <script src="script.js?v=roadmap-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -58,6 +68,12 @@
 
       <main id="main">
         <section class="hero reveal-section" id="about" data-section="about" aria-labelledby="name">
+          <svg class="monogram" viewBox="0 0 88 42" role="img" aria-label="PKM monogram" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <path pathLength="1" d="M6 36 L6 6 L20 6 C26 6 29 9.5 29 14 C29 18.5 26 22 20 22 L6 22"/>
+            <path pathLength="1" d="M38 6 L38 36"/>
+            <path pathLength="1" d="M38 22 L52 6 M38 22 L52 36"/>
+            <path pathLength="1" d="M62 36 L62 6 L72 24 L82 6 L82 36"/>
+          </svg>
           <div class="identity-row">
             <img class="portrait" src="assets/papa-kojo-portrait.webp" width="88" height="88" alt="Portrait of Papa Kojo Mensah">
             <div>
@@ -294,6 +310,10 @@
               <p>When I’m not working, music is one of the ways I reset. I keep this small Spotify corner for what I’m listening to now or what I played recently.</p>
             </div>
           </header>
+          <p class="local-time-chip">
+            <i aria-hidden="true"></i>
+            Accra · <time data-local-time>--:--</time> GMT
+          </p>
           <details class="listening-panel" data-listening data-state="loading">
             <summary class="listening-summary">
               <span class="listening-visual" aria-hidden="true">
@@ -319,6 +339,27 @@
             </div>
           </details>
         </section>
+
+        <details class="changelog">
+          <summary>
+            <span class="changelog__label">Site changelog</span>
+            <span class="changelog__meta"><span>v3</span><i aria-hidden="true"></i></span>
+          </summary>
+          <div class="changelog__list">
+            <article>
+              <strong>v3 — Motion layer</strong>
+              <p>A choreographed entrance, gliding section navigation, softer accordions and a quicker way to copy my email.</p>
+            </article>
+            <article>
+              <strong>v2 — Personal signals</strong>
+              <p>Reworded this page in my own voice and added the live Spotify listening corner.</p>
+            </article>
+            <article>
+              <strong>v1 — First public CV</strong>
+              <p>The original one-page CV with projects, experience, skills and a printable resume route.</p>
+            </article>
+          </div>
+        </details>
 
         <footer>
           <span>© <span data-year></span> Papa Kojo Mensah</span>

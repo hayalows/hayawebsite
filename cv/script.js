@@ -526,3 +526,30 @@ if (copyButton) {
     }, copied ? 1800 : 2400);
   });
 }
+
+const localTimeElement = document.querySelector('[data-local-time]');
+if (localTimeElement) {
+  let accraFormatter = null;
+
+  try {
+    accraFormatter = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Africa/Accra',
+    });
+  } catch {
+    accraFormatter = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }
+
+  const renderLocalTime = () => {
+    localTimeElement.textContent = accraFormatter.format(new Date());
+  };
+
+  renderLocalTime();
+  window.setInterval(renderLocalTime, 15000);
+}
