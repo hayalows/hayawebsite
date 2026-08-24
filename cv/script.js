@@ -209,12 +209,12 @@ function renderListeningTrack(state) {
   listeningPanel.dataset.state = state.status;
   listeningHasTrack = true;
   if (kicker) kicker.textContent = playing
-    ? 'Spotify · now playing'
-    : 'Spotify · recently played';
+    ? 'Listening now'
+    : 'Recently listened to';
   if (title) title.textContent = state.track.name;
   if (copy) copy.textContent = playing
     ? (artist || 'Artist unavailable') + ' · playing now'
-    : (artist || 'Artist unavailable') + ' · ' + playedAt;
+    : (artist || 'Artist unavailable') + ' · last played ' + playedAt;
   if (status) status.textContent = playing ? 'live' : playedAt;
   if (album) album.textContent = state.track.album
     ? 'From the album “' + state.track.album + '”.'
