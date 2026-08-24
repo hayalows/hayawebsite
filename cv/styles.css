@@ -490,6 +490,7 @@ h2 {
 }
 
 .listening-panel {
+  min-width: 0;
   margin-block-start: 1.8rem;
   border-radius: 14px;
   background: var(--surface);
@@ -499,6 +500,7 @@ h2 {
 
 .listening-summary {
   display: grid;
+  min-width: 0;
   grid-template-columns: 3.25rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 1rem;
@@ -515,12 +517,14 @@ h2 {
 
 .listening-visual {
   position: relative;
+  min-width: 0;
   display: block;
   width: 3.25rem;
   height: 3.25rem;
 }
 
 .listening-art {
+  display: block;
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 10px;
@@ -579,6 +583,7 @@ h2 {
 .listening-summary-copy {
   display: block;
   min-width: 0;
+  overflow: hidden;
 }
 
 .listening-summary-copy strong {
@@ -599,6 +604,7 @@ h2 {
 
 .listening-summary-status {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: .65rem;
   color: var(--quiet);
@@ -1112,7 +1118,7 @@ footer a {
   }
 
   .listening-summary {
-    grid-template-columns: 3.25rem minmax(0, 1fr) 1rem;
+    grid-template-columns: 3.25rem minmax(0, 1fr) auto;
     gap: .85rem;
     padding-inline: .9rem;
   }
