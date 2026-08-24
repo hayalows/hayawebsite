@@ -8,6 +8,23 @@ const mobileMoreSectionIds = new Set(mobileMoreLinks.map((link) => link.dataset.
 const year = document.querySelector('[data-year]');
 const listeningEndpoint = document.querySelector('meta[name="listening-endpoint"]')?.content;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const listeningPanel = document.querySelector('[data-listening]');
+const listeningElements = {
+  kicker: document.querySelector('[data-listening-kicker]'),
+  title: document.querySelector('[data-listening-title]'),
+  copy: document.querySelector('[data-listening-copy]'),
+  status: document.querySelector('[data-listening-status]'),
+  album: document.querySelector('[data-listening-album]'),
+  art: document.querySelector('[data-listening-art]'),
+  trackLink: document.querySelector('[data-listening-track-link]'),
+  refresh: document.querySelector('[data-listening-refresh]'),
+};
+
+let listeningTimer;
+let listeningStarted = false;
+let listeningLoading = false;
+let listeningFailures = 0;
+let listeningHasTrack = false;
 
 let activeSectionId = 'about';
 
@@ -155,108 +172,206 @@ function formatPlayedAt(value) {
   }).format(date);
 }
 
-function setOptionalListeningLink(link, label, item) {
-  if (!link) return;
+function clearListeningTimer() {
+  window.clearTimeout(listeningTimer);
+  listeningTimer = undefined;
+}
 
-  if (!item?.name) {
-    link.hidden = true;
-    link.removeAttribute('href');
-    return;
+function scheduleListeningUpdate(delay) {
+  clearListeningTimer();
+  if (document.hidden) return;
+  listeningTimer = window.setTimeout(loadListeningState, delay);
+}
+
+function resetListeningArtwork() {
+  const { art, trackLink } = listeningElements;
+
+  if (art) {
+    art.hidden = true;
+    art.removeAttribute('src');
+    art.alt = '';
   }
 
-  link.textContent = label + ': ' + item.name;
-  link.hidden = !item.url;
-
-  if (item.url) {
-    link.href = item.url;
-    link.target = '_blank';
-    link.rel = 'noreferrer noopener';
+  if (trackLink) {
+    trackLink.hidden = true;
+    trackLink.removeAttribute('href');
   }
+}
+
+function renderListeningTrack(state) {
+  const { kicker, title, copy, status, album, art, trackLink } = listeningElements;
+  const playing = state.status === 'playing';
+  const artist = Array.isArray(state.track.artists)
+    ? state.track.artists.join(', ')
+    : state.track.artist;
+  const playedAt = formatPlayedAt(state.track.playedAt);
+
+  listeningPanel.dataset.state = state.status;
+  listeningHasTrack = true;
+  if (kicker) kicker.textContent = playing
+    ? 'Spotify · now playing'
+    : 'Spotify · recently played';
+  if (title) title.textContent = state.track.name;
+  if (copy) copy.textContent = playing
+    ? (artist || 'Artist unavailable') + ' · playing now'
+    : (artist || 'Artist unavailable') + ' · ' + playedAt;
+  if (status) status.textContent = playing ? 'live' : playedAt;
+  if (album) album.textContent = state.track.album
+    ? 'From the album “' + state.track.album + '”.'
+    : 'Album details are unavailable for this track.';
+
+  if (art && state.track.imageUrl) {
+    art.src = state.track.imageUrl;
+    art.alt = state.track.album
+      ? state.track.album + ' album artwork'
+      : 'Album artwork';
+    art.hidden = false;
+  } else if (art) {
+    art.hidden = true;
+  }
+
+  if (trackLink && state.track.url) {
+    trackLink.href = state.track.url;
+    trackLink.hidden = false;
+  } else if (trackLink) {
+    trackLink.hidden = true;
+  }
+}
+
+function renderListeningService(statusName) {
+  const { kicker, title, copy, status, album } = listeningElements;
+  const states = {
+    offline: {
+      title: 'Nothing playing right now',
+      copy: 'This corner will update when there is something recent to share.',
+      status: 'offline',
+    },
+    not_connected: {
+      title: 'Spotify is resting',
+      copy: 'Nothing is being shared here right now.',
+      status: 'quiet',
+    },
+    needs_reconnect: {
+      title: 'Spotify connection paused',
+      copy: 'Recent listening will return after a private reconnect.',
+      status: 'paused',
+    },
+    rate_limited: {
+      title: 'Spotify is taking a breath',
+      copy: 'The panel will retry gently in a moment.',
+      status: 'retrying',
+    },
+    unavailable: {
+      title: 'Spotify is taking a quiet break',
+      copy: 'The CV remains available while the music feed recovers.',
+      status: 'unavailable',
+    },
+  };
+  const state = states[statusName] || states.unavailable;
+
+  listeningPanel.dataset.state = statusName;
+  listeningHasTrack = false;
+  resetListeningArtwork();
+  if (kicker) kicker.textContent = 'Spotify · personal signal';
+  if (title) title.textContent = state.title;
+  if (copy) copy.textContent = state.copy;
+  if (status) status.textContent = state.status;
+  if (album) album.textContent = 'Only current or recently played track metadata appears here.';
+}
+
+function nextListeningDelay(state, response) {
+  if (state.status === 'playing') return 15_000;
+  if (state.status === 'recent') return 60_000;
+  if (state.status === 'rate_limited') {
+    const retryAfter = Number(state.retryAfter)
+      || Number(response.headers.get('retry-after'))
+      || 30;
+    return Math.max(30, retryAfter) * 1000;
+  }
+  if (state.status === 'not_connected' || state.status === 'needs_reconnect') {
+    return 300_000;
+  }
+  return 120_000;
 }
 
 async function loadListeningState() {
-  if (!listeningEndpoint) return;
+  if (!listeningEndpoint || !listeningPanel || listeningLoading) return;
 
-  const panel = document.querySelector('[data-listening]');
-  const title = document.querySelector('[data-listening-title]');
-  const copy = document.querySelector('[data-listening-copy]');
-  const status = document.querySelector('[data-listening-status]');
-  const art = document.querySelector('[data-listening-art]');
-  const mark = document.querySelector('[data-listening-mark]');
-  const extra = document.querySelector('[data-listening-extra]');
-  const artistLink = document.querySelector('[data-listening-artist]');
-  const playlistLink = document.querySelector('[data-listening-playlist]');
+  listeningStarted = true;
+  listeningLoading = true;
+  clearListeningTimer();
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 8_000);
 
   try {
-    const response = await fetch(listeningEndpoint, { cache: 'no-store' });
-    if (!response.ok) return;
+    const response = await fetch(listeningEndpoint, {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    const state = await response.json().catch(() => ({ status: 'unavailable' }));
 
-    const state = await response.json();
-
-    if (state.status === 'needs_reconnect') {
-      if (status) status.textContent = 'reconnect needed';
-      return;
+    if (!response.ok && response.status !== 429) {
+      throw new Error('listening_unavailable');
     }
 
-    if (state.status === 'connected_empty') {
-      if (status) status.textContent = 'no recent track';
-      return;
-    }
-
+    listeningFailures = 0;
     if (
-      state.status !== 'connected'
-      || state.provider !== 'Spotify'
-      || !state.track?.name
-    ) return;
-
-    const artist = Array.isArray(state.track.artists)
-      ? state.track.artists.join(', ')
-      : state.track.artist;
-
-    if (title) title.textContent = state.track.name;
-    if (copy) {
-      copy.textContent = (artist || 'Artist unavailable')
-        + ' · last played ' + formatPlayedAt(state.track.playedAt);
-    }
-    if (status) status.textContent = 'last played ' + formatPlayedAt(state.track.playedAt);
-    panel?.classList.add('is-connected');
-
-    if (art && state.track.imageUrl) {
-      art.src = state.track.imageUrl;
-      art.alt = state.track.album
-        ? state.track.album + ' album artwork'
-        : 'Album artwork';
-      art.hidden = false;
-      if (mark) mark.hidden = true;
-    }
-
-    if (state.track.url && copy) {
-      let link = copy.parentElement.querySelector('[data-listening-track-link]');
-      if (!link) {
-        link = document.createElement('a');
-        link.className = 'track-link';
-        link.dataset.listeningTrackLink = '';
-        copy.insertAdjacentElement('afterend', link);
-      }
-      link.href = state.track.url;
-      link.textContent = 'Open in Spotify ↗';
-      link.target = '_blank';
-      link.rel = 'noreferrer noopener';
-      link.hidden = false;
-    }
-
-    setOptionalListeningLink(artistLink, 'Top artist', state.favoriteArtist);
-    setOptionalListeningLink(playlistLink, 'In rotation', state.featuredPlaylist);
-
-    if (
-      extra
-      && (!artistLink?.hidden || !playlistLink?.hidden)
+      (state.status === 'playing' || state.status === 'recent')
+      && state.provider === 'Spotify'
+      && state.track?.name
     ) {
-      extra.hidden = false;
+      renderListeningTrack(state);
+    } else {
+      renderListeningService(state.status);
     }
+    scheduleListeningUpdate(nextListeningDelay(state, response));
   } catch {
-    // The public page keeps the quiet placeholder if Spotify is unavailable.
+    listeningFailures += 1;
+    if (listeningHasTrack) {
+      if (listeningElements.status) listeningElements.status.textContent = 'update paused';
+    } else {
+      renderListeningService('unavailable');
+    }
+    scheduleListeningUpdate(Math.min(300_000, 30_000 * (2 ** listeningFailures)));
+  } finally {
+    window.clearTimeout(timeout);
+    listeningLoading = false;
   }
 }
 
-loadListeningState();
+function startListeningUpdates() {
+  if (listeningStarted) return;
+  loadListeningState();
+}
+
+if (listeningPanel && listeningEndpoint) {
+  if ('IntersectionObserver' in window) {
+    const listeningObserver = new IntersectionObserver((entries, observer) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      startListeningUpdates();
+      observer.disconnect();
+    }, { rootMargin: '300px 0px' });
+    listeningObserver.observe(listeningPanel);
+  } else {
+    startListeningUpdates();
+  }
+
+  listeningPanel.addEventListener('toggle', () => {
+    if (listeningPanel.open) startListeningUpdates();
+  });
+
+  listeningElements.refresh?.addEventListener('click', () => {
+    listeningFailures = 0;
+    loadListeningState();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearListeningTimer();
+    } else if (listeningStarted) {
+      loadListeningState();
+    }
+  });
+
+  window.addEventListener('pagehide', clearListeningTimer);
+}

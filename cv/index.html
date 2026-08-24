@@ -149,22 +149,30 @@
             </details>
           </div>
 
-          <aside class="listening-panel" data-listening aria-labelledby="listening-title">
-            <img class="listening-art" data-listening-art width="44" height="44" alt="" hidden>
-            <div class="listening-mark" data-listening-mark aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-            <div class="listening-copy">
-              <p class="eyebrow">Personal signal</p>
-              <h3 id="listening-title" data-listening-title>Last played, when I feel like sharing it</h3>
-              <p data-listening-copy>This quiet corner can show the last song I played on Spotify. It stays private and empty until I connect it.</p>
-              <div class="listening-extra" data-listening-extra hidden>
-                <a data-listening-artist hidden></a>
-                <a data-listening-playlist hidden></a>
+          <details class="listening-panel" data-listening data-state="loading">
+            <summary class="listening-summary">
+              <span class="listening-visual" aria-hidden="true">
+                <img class="listening-art" data-listening-art width="52" height="52" alt="" hidden>
+                <span class="listening-mark" data-listening-mark><i></i><i></i><i></i><i></i></span>
+              </span>
+              <span class="listening-summary-copy">
+                <span class="eyebrow" data-listening-kicker>Spotify · personal signal</span>
+                <strong id="listening-title" data-listening-title>Checking recent listening…</strong>
+                <small data-listening-copy>Quiet by default. Open for the album and link.</small>
+              </span>
+              <span class="listening-summary-status">
+                <small data-listening-status role="status" aria-live="polite">checking</small>
+                <i aria-hidden="true"></i>
+              </span>
+            </summary>
+            <div class="listening-detail">
+              <p data-listening-album>Current or recently played music appears here when Spotify is available.</p>
+              <div class="listening-actions">
+                <a class="track-link" data-listening-track-link target="_blank" rel="noreferrer noopener" hidden>Open in Spotify <span aria-hidden="true">↗</span></a>
+                <button type="button" data-listening-refresh>Refresh</button>
               </div>
             </div>
-            <div class="service-status" role="status" aria-label="Music connection status">
-              <span><b>Spotify</b> <small data-listening-status>not connected yet</small></span>
-            </div>
-          </aside>
+          </details>
         </section>
 
         <section class="content-section reveal-section" id="experience" data-section="experience" aria-labelledby="experience-title">
@@ -177,7 +185,7 @@
           </header>
 
           <div class="timeline">
-            <details class="timeline-item" open>
+            <details class="timeline-item" name="experience">
               <summary>
                 <time datetime="2026-04">Apr 2026—Present</time>
                 <span class="timeline-heading">
@@ -196,7 +204,7 @@
               </div>
             </details>
 
-            <details class="timeline-item">
+            <details class="timeline-item" name="experience">
               <summary>
                 <time datetime="2024-11">Nov 2024—Oct 2025</time>
                 <span class="timeline-heading">
@@ -215,7 +223,7 @@
               </div>
             </details>
 
-            <details class="timeline-item">
+            <details class="timeline-item" name="experience">
               <summary>
                 <time datetime="2022">2022—Present</time>
                 <span class="timeline-heading">
@@ -274,9 +282,9 @@
           </header>
 
           <div class="education-list">
-            <article><time>2026</time><div><h3>Hospitality &amp; Tourism Management Certificate</h3><p>Ensign College · through BYU-Pathway Worldwide</p></div></article>
-            <article><time>2025</time><div><h3>Professional training</h3><p>Excel · Customer Experience · Digital Payments · Enterprise Risk Management</p></div></article>
-            <article><time>2024</time><div><h3>BSc Actuarial Science</h3><p>Kwame Nkrumah University of Science and Technology</p></div></article>
+            <article><time datetime="2026-05">May 2026</time><div><h3>Hospitality &amp; Tourism Management Certificate</h3><p>Ensign College · through BYU-Pathway Worldwide</p></div></article>
+            <article><time datetime="2025">2025</time><div><h3>Professional training</h3><p>Excel · Customer Experience · Digital Payments · Enterprise Risk Management</p></div></article>
+            <article><time datetime="2024">2024</time><div><h3>BSc Actuarial Science</h3><p>Kwame Nkrumah University of Science and Technology</p></div></article>
             <article><time>2023</time><div><h3>Social Media Marketing Certificate</h3><p>Ensign College</p></div></article>
             <article><time>2023</time><div><h3>Google Project Management Certificate</h3><p>Coursera</p></div></article>
           </div>

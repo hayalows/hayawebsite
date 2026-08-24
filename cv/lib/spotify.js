@@ -1,10 +1,14 @@
 const crypto = require("node:crypto");
 
 const SCOPES = [
+  "user-read-currently-playing",
   "user-read-recently-played",
-  "user-top-read",
-  "playlist-read-private",
 ];
+
+let accessTokenCache = {
+  token: "",
+  expiresAt: 0,
+};
 
 function createError(code, message, status = 500) {
   const error = new Error(message);
@@ -116,17 +120,29 @@ async function requestToken(parameters) {
   const body = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw createError(
-      "spotify_token_exchange_failed",
+    const error = createError(
+      body.error === "invalid_grant"
+        ? "spotify_refresh_token_invalid"
+        : "spotify_token_exchange_failed",
       "Spotify did not accept the connection.",
       response.status,
     );
+    error.retryAfter = Number(response.headers.get("retry-after")) || null;
+    throw error;
   }
 
   return body;
 }
 
-async function getAccessToken() {
+async function getAccessToken(options = {}) {
+  if (
+    !options.forceRefresh
+    && accessTokenCache.token
+    && Date.now() < accessTokenCache.expiresAt
+  ) {
+    return accessTokenCache.token;
+  }
+
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
     throw createError(
@@ -149,32 +165,51 @@ async function getAccessToken() {
     );
   }
 
-  return body.access_token;
+  const lifetime = Math.max(0, Number(body.expires_in) || 3600);
+  accessTokenCache = {
+    token: body.access_token,
+    expiresAt: Date.now() + Math.max(0, lifetime * 1000 - 60_000),
+  };
+
+  return accessTokenCache.token;
 }
 
-async function spotifyRequest(path, accessToken) {
+function clearAccessToken() {
+  accessTokenCache = { token: "", expiresAt: 0 };
+}
+
+async function spotifyRequest(path, accessToken, options = {}) {
   const response = await fetch("https://api.spotify.com" + path, {
     headers: {
       Authorization: "Bearer " + accessToken,
     },
   });
 
+  const retryAfter = Number(response.headers.get("retry-after")) || null;
+
+  if (response.status === 204 && options.allowNoContent) {
+    return { status: 204, data: null, retryAfter };
+  }
+
   const body = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw createError(
+    const error = createError(
       "spotify_api_request_failed",
       "Spotify did not return the requested data.",
       response.status,
     );
+    error.retryAfter = retryAfter;
+    throw error;
   }
 
-  return body;
+  return { status: response.status, data: body, retryAfter };
 }
 
 module.exports = {
   SCOPES,
   buildAuthorizationUrl,
+  clearAccessToken,
   createError,
   createState,
   getAccessToken,

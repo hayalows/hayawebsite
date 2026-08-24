@@ -36,6 +36,12 @@ h1, h2, h3, p { margin: 0; }
 
 .resume-tools span { text-align: center; }
 
+.resume-tools a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
 .resume-tools button {
   justify-self: end;
   min-height: 2.75rem;
@@ -193,14 +199,6 @@ li + li { margin-top: .2rem; }
 .project-grid strong { font-size: .76rem; }
 .project-grid span { color: var(--muted); font-size: .66rem; line-height: 1.35; }
 
-.privacy-note {
-  margin-top: .9rem;
-  padding-top: .55rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: .62rem;
-}
-
 @media (max-width: 40rem) {
   .resume-tools {
     grid-template-columns: 1fr auto;
@@ -238,8 +236,7 @@ li + li { margin-top: .2rem; }
   }
 
   body { font-size: 9.2pt; line-height: 1.42; }
-  .resume-tools,
-  .privacy-note { display: none; }
+  .resume-tools { display: none; }
 
   .resume-page {
     width: auto;
