@@ -1155,8 +1155,16 @@ footer a {
     gap: .8rem;
   }
 
-  .contact-actions { display: grid; }
-  .contact-actions a { justify-content: center; }
+  .contact-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.75rem;
+  }
+
+  .contact-actions a,
+  .contact-actions .copy-action { justify-content: center; }
+  .contact-actions .primary-action { grid-column: 1 / -1; }
+  .contact-actions a[rel="me"] { grid-column: 1; grid-row: 2; }
+  .contact-actions .copy-action { grid-column: 2; grid-row: 2; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1182,6 +1190,21 @@ footer a {
 }
 
 html.js { interpolate-size: allow-keywords; }
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+a,
+button,
+summary { -webkit-tap-highlight-color: transparent; }
 
 .progress-hairline {
   position: fixed;
@@ -1325,21 +1348,36 @@ html:not(.js) .copy-action,
 html:not(.js) .progress-hairline { display: none !important; }
 
 .contact-actions .copy-action {
-  display: inline-flex;
-  align-items: center;
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  inline-size: 2.75rem;
   min-height: 2.75rem;
-  padding-inline: 1rem;
+  padding: 0;
   border: 0;
   border-radius: 9px;
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: .8rem;
-  font-weight: 650;
   cursor: pointer;
   box-shadow: inset 0 0 0 1px var(--line-strong);
-  transition-property: color, background-color, scale;
+  transition-property: color, background-color, box-shadow, scale;
   transition-duration: 140ms;
+}
+
+.contact-actions .copy-action svg {
+  grid-area: 1 / 1;
+  inline-size: 1.05rem;
+  block-size: 1.05rem;
+  transition:
+    opacity 150ms ease,
+    scale 240ms cubic-bezier(.3, .7, .25, 1.15);
+}
+
+.contact-actions .copy-action .icon-check {
+  opacity: 0;
+  scale: .4;
 }
 
 .contact-actions .copy-action:hover {
@@ -1347,8 +1385,22 @@ html:not(.js) .progress-hairline { display: none !important; }
   background: var(--surface);
 }
 
-.contact-actions .copy-action:active { scale: .96; }
-.contact-actions .copy-action.is-copied { color: var(--accent); }
+.contact-actions .copy-action:active { scale: .94; }
+
+.contact-actions .copy-action.is-copied {
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgb(175 208 232 / .45);
+}
+
+.contact-actions .copy-action.is-copied .icon-copy {
+  opacity: 0;
+  scale: .55;
+}
+
+.contact-actions .copy-action.is-copied .icon-check {
+  opacity: 1;
+  scale: 1;
+}
 
 .contact-actions .primary-action {
   position: relative;

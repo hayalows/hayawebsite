@@ -492,7 +492,7 @@ if (contactTitle) {
 
 const copyButton = document.querySelector('[data-copy-email]');
 if (copyButton) {
-  const originalLabel = copyButton.textContent;
+  const statusLabel = copyButton.querySelector('[data-copy-status]');
   let revertTimer;
 
   copyButton.addEventListener('click', async () => {
@@ -517,12 +517,12 @@ if (copyButton) {
       }
     }
 
-    copyButton.classList.toggle('is-copied', copied);
-    copyButton.textContent = copied ? 'Copied ✓' : 'Copy failed';
     window.clearTimeout(revertTimer);
+    copyButton.classList.toggle('is-copied', copied);
+    if (statusLabel) statusLabel.textContent = copied ? 'Email address copied.' : 'Copying did not work.';
     revertTimer = window.setTimeout(() => {
       copyButton.classList.remove('is-copied');
-      copyButton.textContent = originalLabel;
+      if (statusLabel) statusLabel.textContent = '';
     }, copied ? 1800 : 2400);
   });
 }
