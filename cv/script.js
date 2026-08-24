@@ -28,6 +28,71 @@ let listeningHasTrack = false;
 
 let activeSectionId = 'about';
 
+const EMAIL_ADDRESS = 'mpapakojo@gmail.com';
+const sideNavElement = document.querySelector('.section-nav');
+const mobilePrimaryElement = document.querySelector('.mobile-nav__primary');
+
+function createGlide(container) {
+  if (!container) return null;
+  const glide = document.createElement('span');
+  glide.className = 'nav-glide';
+  glide.setAttribute('aria-hidden', 'true');
+  container.prepend(glide);
+  return glide;
+}
+
+const sideGlide = createGlide(sideNavElement);
+const mobileGlide = createGlide(mobilePrimaryElement);
+
+function placeGlides(animated) {
+  const applyPlacement = () => {
+    if (sideGlide && sideNavElement) {
+      const activeLink = sideNavElement.querySelector('a.is-active');
+      if (activeLink) {
+        const navRect = sideNavElement.getBoundingClientRect();
+        const linkRect = activeLink.getBoundingClientRect();
+        sideGlide.style.height = linkRect.height + 'px';
+        sideGlide.style.transform = 'translateY(' + (linkRect.top - navRect.top).toFixed(1) + 'px)';
+      }
+    }
+
+    if (mobileGlide && mobilePrimaryElement) {
+      const activeItem = mobilePrimaryElement.querySelector('.is-active');
+      if (activeItem) {
+        const navRect = mobilePrimaryElement.getBoundingClientRect();
+        const itemRect = activeItem.getBoundingClientRect();
+        mobileGlide.style.width = itemRect.width + 'px';
+        mobileGlide.style.transform = 'translateX(' + (itemRect.left - navRect.left).toFixed(1) + 'px)';
+      }
+    }
+  };
+
+  if (animated) {
+    applyPlacement();
+    return;
+  }
+
+  if (sideGlide) sideGlide.classList.remove('is-ready');
+  if (mobileGlide) mobileGlide.classList.remove('is-ready');
+  applyPlacement();
+  requestAnimationFrame(() => {
+    sideGlide?.classList.add('is-ready');
+    mobileGlide?.classList.add('is-ready');
+  });
+}
+
+if (sideGlide || mobileGlide) {
+  placeGlides(false);
+
+  let glideResizeFrame = 0;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(glideResizeFrame);
+    glideResizeFrame = requestAnimationFrame(() => placeGlides(false));
+  }, { passive: true });
+
+  document.fonts?.ready?.then(() => placeGlides(false));
+}
+
 function setMoreMenu(open, focusFirst = false, returnFocus = false) {
   if (!mobileMoreButton || !mobileMoreMenu) return;
 
@@ -67,6 +132,8 @@ function setActiveSection(sectionId) {
     'is-active',
     mobileMoreMenuOpen() || mobileMoreSectionIds.has(sectionId),
   );
+
+  placeGlides(true);
 
   return changed;
 }
@@ -221,11 +288,15 @@ function renderListeningTrack(state) {
     : 'Album details are unavailable for this track.';
 
   if (art && state.track.imageUrl) {
+    art.removeAttribute('data-fresh');
     art.src = state.track.imageUrl;
     art.alt = state.track.album
       ? state.track.album + ' album artwork'
       : 'Album artwork';
     art.hidden = false;
+    art.addEventListener('load', () => {
+      if (art.src === state.track.imageUrl) art.setAttribute('data-fresh', '');
+    }, { once: true });
   } else if (art) {
     art.hidden = true;
   }
@@ -374,4 +445,84 @@ if (listeningPanel && listeningEndpoint) {
   });
 
   window.addEventListener('pagehide', clearListeningTimer);
+}
+
+const progressHairline = document.createElement('div');
+progressHairline.className = 'progress-hairline';
+progressHairline.setAttribute('aria-hidden', 'true');
+document.body.append(progressHairline);
+
+let progressQueued = false;
+
+function renderScrollProgress() {
+  const trackLength = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = trackLength > 0 ? Math.min(1, window.scrollY / trackLength) : 0;
+  progressHairline.style.transform = 'scaleX(' + progress.toFixed(4) + ')';
+  progressQueued = false;
+}
+
+window.addEventListener('scroll', () => {
+  if (!progressQueued) {
+    progressQueued = true;
+    requestAnimationFrame(renderScrollProgress);
+  }
+}, { passive: true });
+
+window.addEventListener('resize', renderScrollProgress, { passive: true });
+renderScrollProgress();
+
+document.querySelectorAll('#skills .skill-row li').forEach((chip, index) => {
+  chip.style.setProperty('--chip-i', String(Math.min(index, 12)));
+});
+
+const contactTitle = document.querySelector('#contact-title');
+if (contactTitle) {
+  const words = contactTitle.textContent.trim().split(/\s+/);
+  contactTitle.textContent = '';
+  words.forEach((word, index) => {
+    const wordSpan = document.createElement('span');
+    wordSpan.className = 'w';
+    wordSpan.style.setProperty('--w-i', String(index));
+    wordSpan.textContent = word;
+    contactTitle.append(wordSpan);
+    if (index < words.length - 1) contactTitle.append(' ');
+  });
+  contactTitle.classList.add('word-rise');
+}
+
+const copyButton = document.querySelector('[data-copy-email]');
+if (copyButton) {
+  const originalLabel = copyButton.textContent;
+  let revertTimer;
+
+  copyButton.addEventListener('click', async () => {
+    let copied = false;
+
+    try {
+      await navigator.clipboard.writeText(EMAIL_ADDRESS);
+      copied = true;
+    } catch {
+      try {
+        const helper = document.createElement('textarea');
+        helper.value = EMAIL_ADDRESS;
+        helper.setAttribute('readonly', '');
+        helper.style.position = 'fixed';
+        helper.style.opacity = '0';
+        document.body.append(helper);
+        helper.select();
+        copied = document.execCommand('copy');
+        helper.remove();
+      } catch {
+        copied = false;
+      }
+    }
+
+    copyButton.classList.toggle('is-copied', copied);
+    copyButton.textContent = copied ? 'Copied ✓' : 'Copy failed';
+    window.clearTimeout(revertTimer);
+    revertTimer = window.setTimeout(() => {
+      copyButton.classList.remove('is-copied');
+      copyButton.textContent = originalLabel;
+    }, copied ? 1800 : 2400);
+  });
 }
