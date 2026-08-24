@@ -1668,3 +1668,50 @@ html.js.hero-intro .monogram path {
 footer a {
   transition: color 140ms ease;
 }
+
+:root {
+  --spring-soft: linear(
+    0,
+    0.13 6.3%,
+    0.39 14.4%,
+    0.66 23.6%,
+    0.85 32.2%,
+    0.97 41.2%,
+    1.03 50.4%,
+    1.045 58%,
+    1.02 68%,
+    0.996 79%,
+    1.001 91%,
+    1
+  );
+}
+
+.project-meta i::before,
+.project-meta i::after,
+.disclosure-control i::before,
+.disclosure-control i::after,
+.listening-summary-status i::before,
+.listening-summary-status i::after,
+.changelog__meta i::before,
+.changelog__meta i::after {
+  transition-duration: 260ms;
+  transition-timing-function: var(--spring-soft);
+}
+
+.nav-glide.is-ready {
+  transition:
+    transform 340ms var(--spring-soft),
+    width 300ms cubic-bezier(.3, .75, .25, 1),
+    height 300ms cubic-bezier(.3, .75, .25, 1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    html.js .reveal-section,
+    html.js .reveal-section.is-revealed {
+      animation: section-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 8% entry 42%;
+    }
+  }
+}
