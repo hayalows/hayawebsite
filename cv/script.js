@@ -243,27 +243,27 @@ function renderListeningService(statusName) {
   const states = {
     offline: {
       title: 'Nothing playing right now',
-      copy: 'This corner will update when there is something recent to share.',
+      copy: 'I’m not playing anything right now. This corner will update when there is something recent to share.',
       status: 'offline',
     },
     not_connected: {
       title: 'Spotify is resting',
-      copy: 'Nothing is being shared here right now.',
+      copy: 'Nothing recent to share here right now.',
       status: 'quiet',
     },
     needs_reconnect: {
       title: 'Spotify connection paused',
-      copy: 'Recent listening will return after a private reconnect.',
+      copy: 'I’ll bring this back after the private connection is refreshed.',
       status: 'paused',
     },
     rate_limited: {
       title: 'Spotify is taking a breath',
-      copy: 'The panel will retry gently in a moment.',
+      copy: 'I’ll check again gently in a moment.',
       status: 'retrying',
     },
     unavailable: {
-      title: 'Spotify is taking a quiet break',
-      copy: 'The CV remains available while the music feed recovers.',
+      title: 'Spotify is quiet for now',
+      copy: 'The rest of the site is here while the music feed catches up.',
       status: 'unavailable',
     },
   };
@@ -272,11 +272,11 @@ function renderListeningService(statusName) {
   listeningPanel.dataset.state = statusName;
   listeningHasTrack = false;
   resetListeningArtwork();
-  if (kicker) kicker.textContent = 'Spotify · personal signal';
+  if (kicker) kicker.textContent = 'A small personal update';
   if (title) title.textContent = state.title;
   if (copy) copy.textContent = state.copy;
   if (status) status.textContent = state.status;
-  if (album) album.textContent = 'Only current or recently played track metadata appears here.';
+  if (album) album.textContent = 'Only the track, artist and album details are shared here.';
 }
 
 function nextListeningDelay(state, response) {
