@@ -1529,32 +1529,52 @@ html.js .contact-section.is-revealed::before {
   .timeline-item[open] .timeline-detail li:nth-child(3) { animation-delay: 110ms; }
 }
 
-.monogram {
-  display: block;
-  inline-size: 5.5rem;
-  block-size: auto;
-  margin-block-end: 2.2rem;
-  color: var(--accent);
+.hero-stamp {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin-block-end: 2.75rem;
+  color: var(--quiet);
+  font-size: .64rem;
+  font-weight: 680;
+  letter-spacing: .15em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
-html.js.hero-intro .monogram path {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+.hero-stamp i {
+  width: 2.75rem;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+html.js.hero-intro .hero-stamp i {
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+html.js.hero-intro .hero-stamp span {
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html.js.hero-intro .monogram path {
-    animation: draw-stroke 620ms cubic-bezier(.4, 0, .2, 1) forwards;
+  html.js.hero-intro .hero-stamp i {
+    animation: rule-draw 640ms cubic-bezier(.2, .65, .25, 1) forwards;
+    animation-delay: 340ms;
   }
 
-  html.js.hero-intro .monogram path:nth-of-type(1) { animation-delay: 560ms; }
-  html.js.hero-intro .monogram path:nth-of-type(2) { animation-delay: 860ms; }
-  html.js.hero-intro .monogram path:nth-of-type(3) { animation-delay: 1000ms; }
-  html.js.hero-intro .monogram path:nth-of-type(4) { animation-delay: 1240ms; }
+  html.js.hero-intro .hero-stamp span {
+    animation: stamp-fade 480ms ease forwards;
+    animation-delay: 760ms;
+  }
 }
 
-@keyframes draw-stroke {
-  to { stroke-dashoffset: 0; }
+@keyframes rule-draw {
+  to { transform: scaleX(1); }
+}
+
+@keyframes stamp-fade {
+  to { opacity: 1; }
 }
 
 .local-time-chip {
