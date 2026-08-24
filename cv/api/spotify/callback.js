@@ -45,7 +45,7 @@ module.exports = async function handler(request, response) {
     return;
   }
 
-  const url = new URL(request.url, "https://papa-kojo-cv.vercel.app");
+  const url = new URL(request.url, "https://pkm.hayalows.com");
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const error = url.searchParams.get("error");

@@ -95,8 +95,9 @@ module.exports = async function handler(request, response) {
       );
     } catch (error) {
       // Existing authorisations may not yet include the new current-track scope.
-      // A 403 should keep the already-working recent-track experience intact.
-      if (error.status !== 403) throw error;
+      // Keep the already-working recent-track experience intact if Spotify
+      // rejects only this newer endpoint after the access-token retry.
+      if (error.status !== 401 && error.status !== 403) throw error;
       current = null;
     }
 

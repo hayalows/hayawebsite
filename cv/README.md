@@ -32,10 +32,10 @@ SPOTIFY_REFRESH_TOKEN
 The redirect URI must match the Spotify Developer app exactly:
 
 ~~~text
-https://papa-kojo-cv.vercel.app/api/spotify/callback
+https://pkm.hayalows.com/api/spotify/callback
 ~~~
 
-To authorise the account, open /api/spotify/login on the production site. Spotify returns a one-time refresh token page. Add that value to Vercel as SPOTIFY_REFRESH_TOKEN, then redeploy. Keep the value private.
+To authorise the account, open https://pkm.hayalows.com/api/spotify/login. Spotify returns a one-time refresh token page. Add that value to Vercel as SPOTIFY_REFRESH_TOKEN, then redeploy. Keep the value private.
 
 The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. The public page polls gently only while visible: every 15 seconds during playback, every 60 seconds for a recent track, and less often for offline or error states. Spotify `204`, expired access tokens, `401`, `403`, `429` with `Retry-After`, and temporary offline states are handled explicitly.
 
