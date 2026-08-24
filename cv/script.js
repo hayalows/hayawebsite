@@ -1,23 +1,38 @@
 const sectionLinks = [...document.querySelectorAll('[data-section-link]')];
 const sections = [...document.querySelectorAll('[data-section]')];
-const mobileNav = document.querySelector('.mobile-nav__scroll');
+const mobileNav = document.querySelector('.mobile-nav');
+const mobileMoreButton = document.querySelector('.mobile-nav__more');
+const mobileMoreMenu = document.querySelector('#mobile-more-menu');
+const mobileMoreLinks = [...document.querySelectorAll('.mobile-nav__more-menu [data-section-link]')];
+const mobileMoreSectionIds = new Set(mobileMoreLinks.map((link) => link.dataset.sectionLink));
 const year = document.querySelector('[data-year]');
 const listeningEndpoint = document.querySelector('meta[name="listening-endpoint"]')?.content;
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-function keepActiveMobileLinkVisible(sectionId) {
-  const link = mobileNav?.querySelector(`[data-section-link="${sectionId}"]`);
-  if (!link || !mobileNav) return;
+let activeSectionId = 'about';
 
-  const desiredLeft = link.offsetLeft - (mobileNav.clientWidth - link.offsetWidth) / 2;
-  mobileNav.scrollTo({
-    left: Math.max(0, desiredLeft),
-    behavior: reducedMotion.matches ? 'auto' : 'smooth'
-  });
+function setMoreMenu(open, focusFirst = false, returnFocus = false) {
+  if (!mobileMoreButton || !mobileMoreMenu) return;
+
+  mobileMoreMenu.hidden = !open;
+  mobileMoreButton.setAttribute('aria-expanded', String(open));
+  mobileMoreButton.querySelector('.mobile-nav__more-icon').textContent = open ? '×' : '+';
+  mobileMoreButton.classList.toggle('is-open', open);
+  mobileMoreButton.classList.toggle(
+    'is-active',
+    open || mobileMoreSectionIds.has(activeSectionId),
+  );
+
+  if (open && focusFirst) {
+    requestAnimationFrame(() => mobileMoreLinks[0]?.focus());
+  }
+
+  if (!open && returnFocus) mobileMoreButton.focus();
 }
 
-function setActiveSection(sectionId, keepVisible = true) {
+function setActiveSection(sectionId) {
   let changed = false;
+  activeSectionId = sectionId;
 
   sectionLinks.forEach((link) => {
     const active = link.dataset.sectionLink === sectionId;
@@ -31,7 +46,16 @@ function setActiveSection(sectionId, keepVisible = true) {
     }
   });
 
-  if (changed && keepVisible) keepActiveMobileLinkVisible(sectionId);
+  mobileMoreButton?.classList.toggle(
+    'is-active',
+    mobileMoreMenuOpen() || mobileMoreSectionIds.has(sectionId),
+  );
+
+  return changed;
+}
+
+function mobileMoreMenuOpen() {
+  return Boolean(mobileMoreMenu && !mobileMoreMenu.hidden);
 }
 
 function isAtPageBottom() {
@@ -46,7 +70,7 @@ function contactHasEnteredView() {
   return bounds.top <= window.innerHeight * .72 && bounds.bottom > 0;
 }
 
-setActiveSection('about', false);
+setActiveSection('about');
 
 if ('IntersectionObserver' in window) {
   const navigationObserver = new IntersectionObserver((entries) => {
@@ -87,7 +111,26 @@ window.addEventListener('scroll', () => {
 }, { passive: true });
 
 sectionLinks.forEach((link) => {
-  link.addEventListener('click', () => setActiveSection(link.dataset.sectionLink));
+  link.addEventListener('click', () => {
+    setActiveSection(link.dataset.sectionLink);
+    if (mobileMoreSectionIds.has(link.dataset.sectionLink)) setMoreMenu(false);
+  });
+});
+
+mobileMoreButton?.addEventListener('click', () => {
+  setMoreMenu(mobileMoreMenu?.hidden === true, true);
+});
+
+document.addEventListener('click', (event) => {
+  if (mobileMoreMenuOpen() && !mobileNav?.contains(event.target)) {
+    setMoreMenu(false);
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && mobileMoreMenuOpen()) {
+    setMoreMenu(false, false, true);
+  }
 });
 
 if (year) year.textContent = String(new Date().getFullYear());

@@ -16,16 +16,24 @@
     <a class="skip-link" href="#main">Skip to content</a>
 
     <header class="mobile-nav" aria-label="Page navigation">
-      <a class="mobile-mark" href="#about" aria-label="Papa Kojo Mensah, back to about">PKM</a>
-      <span class="mobile-nav__divider" aria-hidden="true"></span>
-      <nav class="mobile-nav__scroll" aria-label="CV sections">
+      <nav class="mobile-nav__primary" aria-label="Primary CV sections">
         <a href="#about" data-section-link="about">About</a>
         <a href="#projects" data-section-link="projects">Projects</a>
         <a href="#experience" data-section-link="experience">Experience</a>
-        <a href="#skills" data-section-link="skills">Skills</a>
-        <a href="#education" data-section-link="education">Education</a>
-        <a href="#contact" data-section-link="contact">Contact</a>
+        <button class="mobile-nav__more" type="button" aria-expanded="false" aria-controls="mobile-more-menu">
+          <span>More</span>
+          <span class="mobile-nav__more-icon" aria-hidden="true">+</span>
+        </button>
       </nav>
+
+      <div class="mobile-nav__more-menu" id="mobile-more-menu" hidden>
+        <p class="mobile-nav__more-label">More sections</p>
+        <nav aria-label="Additional CV sections">
+          <a href="#skills" data-section-link="skills">Skills</a>
+          <a href="#education" data-section-link="education">Education</a>
+          <a href="#contact" data-section-link="contact">Contact</a>
+        </nav>
+      </div>
     </header>
 
     <div class="page-shell">
