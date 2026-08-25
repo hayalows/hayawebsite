@@ -7,7 +7,6 @@ const mobileMoreLinks = [...document.querySelectorAll('.mobile-nav__more-menu [d
 const mobileMoreSectionIds = new Set(mobileMoreLinks.map((link) => link.dataset.sectionLink));
 const year = document.querySelector('[data-year]');
 const listeningEndpoint = document.querySelector('meta[name="listening-endpoint"]')?.content;
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const listeningPanel = document.querySelector('[data-listening]');
 const listeningElements = {
   kicker: document.querySelector('[data-listening-kicker]'),
@@ -30,6 +29,33 @@ let activeSectionId = 'about';
 const EMAIL_ADDRESS = 'mpapakojo@gmail.com';
 const sideNavElement = document.querySelector('.section-nav');
 const mobilePrimaryElement = document.querySelector('.mobile-nav__primary');
+
+const localTimeElement = document.querySelector('[data-local-time]');
+if (localTimeElement) {
+  let accraFormatter = null;
+
+  try {
+    accraFormatter = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: 'Africa/Accra',
+    });
+  } catch {
+    accraFormatter = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }
+
+  const renderLocalTime = () => {
+    localTimeElement.textContent = accraFormatter.format(new Date());
+  };
+
+  renderLocalTime();
+  window.setInterval(renderLocalTime, 15000);
+}
 
 function createGlide(container) {
   if (!container) return null;
@@ -493,6 +519,8 @@ function startListeningUpdates() {
 }
 
 if (listeningPanel && listeningEndpoint) {
+  startListeningUpdates();
+
   if ('IntersectionObserver' in window) {
     const listeningObserver = new IntersectionObserver((entries, observer) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;
@@ -600,29 +628,3 @@ if (copyButton) {
   });
 }
 
-const localTimeElement = document.querySelector('[data-local-time]');
-if (localTimeElement) {
-  let accraFormatter = null;
-
-  try {
-    accraFormatter = new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-      timeZone: 'Africa/Accra',
-    });
-  } catch {
-    accraFormatter = new Intl.DateTimeFormat('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  }
-
-  const renderLocalTime = () => {
-    localTimeElement.textContent = accraFormatter.format(new Date());
-  };
-
-  renderLocalTime();
-  window.setInterval(renderLocalTime, 15000);
-}
