@@ -12,11 +12,10 @@ const listeningPanel = document.querySelector('[data-listening]');
 const listeningElements = {
   kicker: document.querySelector('[data-listening-kicker]'),
   title: document.querySelector('[data-listening-title]'),
-  copy: document.querySelector('[data-listening-copy]'),
   status: document.querySelector('[data-listening-status]'),
-  album: document.querySelector('[data-listening-album]'),
-  art: document.querySelector('[data-listening-art]'),
-  trackLink: document.querySelector('[data-listening-track-link]'),
+  list: document.querySelector('[data-listening-list]'),
+  window: document.querySelector('[data-listening-window]'),
+  note: document.querySelector('[data-listening-note]'),
   refresh: document.querySelector('[data-listening-refresh]'),
 };
 
@@ -24,7 +23,7 @@ let listeningTimer;
 let listeningStarted = false;
 let listeningLoading = false;
 let listeningFailures = 0;
-let listeningHasTrack = false;
+let listeningHasTracks = false;
 
 let activeSectionId = 'about';
 
@@ -219,107 +218,173 @@ document.addEventListener('keydown', (event) => {
 
 if (year) year.textContent = String(new Date().getFullYear());
 
-function formatPlayedAt(value) {
-  if (!value) return 'recently';
+function formatListeningWindow(range) {
+  const from = range?.from ? new Date(range.from) : null;
+  const to = range?.to ? new Date(range.to) : null;
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'recently';
+  if (
+    !from
+    || !to
+    || Number.isNaN(from.getTime())
+    || Number.isNaN(to.getTime())
+  ) {
+    return 'Recent listening';
+  }
 
-  const age = Math.max(0, Date.now() - date.getTime());
-  const minutes = Math.floor(age / 60000);
-  const hours = Math.floor(minutes / 60);
-
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return minutes + 'm ago';
-  if (hours < 24) return hours + 'h ago';
-
-  return 'on ' + new Intl.DateTimeFormat(undefined, {
-    day: 'numeric',
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
     month: 'short',
-  }).format(date);
+  });
+
+  return formatter.format(from) + ' — ' + formatter.format(to);
 }
 
-function clearListeningTimer() {
-  window.clearTimeout(listeningTimer);
-  listeningTimer = undefined;
+function clearListeningRows() {
+  if (listeningElements.list) listeningElements.list.textContent = '';
 }
 
-function scheduleListeningUpdate(delay) {
-  clearListeningTimer();
-  if (document.hidden) return;
-  listeningTimer = window.setTimeout(loadListeningState, delay);
-}
+function createListeningRow(track, index) {
+  const item = document.createElement('li');
+  item.className = 'listening-ranking__item';
 
-function resetListeningArtwork() {
-  const { art, trackLink } = listeningElements;
+  const row = track.url
+    ? document.createElement('a')
+    : document.createElement('div');
+  row.className = 'listening-row' + (index === 0 ? ' listening-row--top' : '');
+  row.style.setProperty('--row-i', String(index));
 
-  if (art) {
-    art.hidden = true;
-    art.removeAttribute('src');
-    art.alt = '';
+  if (track.url) {
+    row.href = track.url;
+    row.target = '_blank';
+    row.rel = 'noreferrer noopener';
+    row.setAttribute(
+      'aria-label',
+      'Open ' + track.name + ' by ' + (track.artists?.join(', ') || 'unknown artist') + ' in Spotify',
+    );
   }
 
-  if (trackLink) {
-    trackLink.hidden = true;
-    trackLink.removeAttribute('href');
+  const rank = document.createElement('span');
+  rank.className = 'listening-rank';
+  rank.textContent = String(index + 1).padStart(2, '0');
+
+  const art = document.createElement('span');
+  art.className = 'listening-art';
+
+  if (track.imageUrl) {
+    const image = document.createElement('img');
+    image.src = track.imageUrl;
+    image.alt = '';
+    image.width = 52;
+    image.height = 52;
+    image.loading = 'lazy';
+    art.append(image);
+  } else {
+    art.classList.add('listening-art--fallback');
+    art.textContent = '♪';
   }
+
+  const copy = document.createElement('span');
+  copy.className = 'listening-row__copy';
+
+  const title = document.createElement('strong');
+  title.textContent = track.name || 'Untitled track';
+
+  const artist = document.createElement('small');
+  artist.textContent = Array.isArray(track.artists) && track.artists.length
+    ? track.artists.join(', ')
+    : 'Unknown artist';
+
+  copy.append(title, artist);
+
+  const count = document.createElement('span');
+  count.className = 'listening-count';
+
+  const countValue = document.createElement('strong');
+  countValue.textContent = String(Number(track.plays) || 1);
+
+  const countLabel = document.createElement('small');
+  countLabel.textContent = 'plays';
+
+  count.append(countValue, countLabel);
+  row.append(rank, art, copy, count);
+  item.append(row);
+
+  return item;
 }
 
-function renderListeningTrack(state) {
-  const { kicker, title, copy, status, album, art, trackLink } = listeningElements;
-  const playing = state.status === 'playing';
-  const artist = Array.isArray(state.track.artists)
-    ? state.track.artists.join(', ')
-    : state.track.artist;
-  const playedAt = formatPlayedAt(state.track.playedAt);
+function renderListeningRows(tracks, emptyCopy) {
+  clearListeningRows();
+  const list = listeningElements.list;
+  if (!list) return;
+
+  if (!tracks.length) {
+    const item = document.createElement('li');
+    item.className = 'listening-ranking__item';
+
+    const empty = document.createElement('div');
+    empty.className = 'listening-empty';
+
+    const message = document.createElement('strong');
+    message.textContent = emptyCopy || 'Nothing recent to show yet.';
+
+    empty.append(message);
+    item.append(empty);
+    list.append(item);
+    return;
+  }
+
+  tracks.slice(0, 5).forEach((track, index) => {
+    list.append(createListeningRow(track, index));
+  });
+}
+
+function renderListeningTracks(state) {
+  const tracks = Array.isArray(state.tracks) && state.tracks.length
+    ? state.tracks
+    : state.track?.name
+      ? [{ ...state.track, plays: 1 }]
+      : [];
 
   listeningPanel.dataset.state = state.status;
-  listeningHasTrack = true;
-  if (kicker) kicker.textContent = playing
-    ? 'Listening now'
-    : 'Recently listened to';
-  if (title) title.textContent = state.track.name;
-  if (copy) copy.textContent = playing
-    ? (artist || 'Artist unavailable') + ' · playing now'
-    : (artist || 'Artist unavailable') + ' · last played ' + playedAt;
-  if (status) status.textContent = playing ? 'live' : playedAt;
-  if (album) album.textContent = state.track.album
-    ? 'From the album “' + state.track.album + '”.'
-    : 'Album details are unavailable for this track.';
+  listeningHasTracks = tracks.length > 0;
 
-  if (art && state.track.imageUrl) {
-    art.removeAttribute('data-fresh');
-    art.src = state.track.imageUrl;
-    art.alt = state.track.album
-      ? state.track.album + ' album artwork'
-      : 'Album artwork';
-    art.hidden = false;
-    art.addEventListener('load', () => {
-      if (art.src === state.track.imageUrl) art.setAttribute('data-fresh', '');
-    }, { once: true });
-  } else if (art) {
-    art.hidden = true;
+  if (listeningElements.kicker) {
+    listeningElements.kicker.textContent = 'Currently occupying my brain';
+  }
+  if (listeningElements.title) {
+    listeningElements.title.textContent = 'Top 5 lately.';
+  }
+  if (listeningElements.status) {
+    listeningElements.status.textContent = state.status === 'playing'
+      ? 'live'
+      : 'recent';
+  }
+  if (listeningElements.window) {
+    listeningElements.window.textContent = formatListeningWindow(state.listeningWindow);
+  }
+  if (listeningElements.note) {
+    const sampleSize = Number(state.listeningWindow?.sampleSize);
+    listeningElements.note.textContent = sampleSize
+      ? 'Counted from my last ' + sampleSize + ' plays.'
+      : 'Counted from recent listening.';
   }
 
-  if (trackLink && state.track.url) {
-    trackLink.href = state.track.url;
-    trackLink.hidden = false;
-  } else if (trackLink) {
-    trackLink.hidden = true;
-  }
+  renderListeningRows(
+    tracks,
+    'Nothing recent to show yet.',
+  );
 }
 
 function renderListeningService(statusName) {
-  const { kicker, title, copy, status, album } = listeningElements;
   const states = {
     offline: {
-      title: 'Nothing playing right now',
-      copy: 'I’m not playing anything right now. This corner will update when there is something recent to share.',
+      title: 'Nothing recent to show',
+      copy: 'I’m not playing anything right now. I’ll show this list when Spotify has something recent.',
       status: 'offline',
     },
     not_connected: {
       title: 'Spotify is resting',
-      copy: 'Nothing recent to share here right now.',
+      copy: 'Nothing recent to show here right now.',
       status: 'quiet',
     },
     needs_reconnect: {
@@ -341,18 +406,29 @@ function renderListeningService(statusName) {
   const state = states[statusName] || states.unavailable;
 
   listeningPanel.dataset.state = statusName;
-  listeningHasTrack = false;
-  resetListeningArtwork();
-  if (kicker) kicker.textContent = 'A small personal update';
-  if (title) title.textContent = state.title;
-  if (copy) copy.textContent = state.copy;
-  if (status) status.textContent = state.status;
-  if (album) album.textContent = 'Only the track, artist and album details are shared here.';
+  listeningHasTracks = false;
+  if (listeningElements.kicker) {
+    listeningElements.kicker.textContent = 'Currently occupying my brain';
+  }
+  if (listeningElements.title) {
+    listeningElements.title.textContent = state.title;
+  }
+  if (listeningElements.status) {
+    listeningElements.status.textContent = state.status;
+  }
+  if (listeningElements.window) {
+    listeningElements.window.textContent = 'Recent listening';
+  }
+  if (listeningElements.note) {
+    listeningElements.note.textContent = state.copy;
+  }
+
+  renderListeningRows([], state.copy);
 }
 
 function nextListeningDelay(state, response) {
-  if (state.status === 'playing') return 15_000;
-  if (state.status === 'recent') return 60_000;
+  if (state.status === 'playing') return 30_000;
+  if (state.status === 'recent') return 120_000;
   if (state.status === 'rate_limited') {
     const retryAfter = Number(state.retryAfter)
       || Number(response.headers.get('retry-after'))
@@ -386,19 +462,20 @@ async function loadListeningState() {
     }
 
     listeningFailures = 0;
+    const hasTracks = Array.isArray(state.tracks) && state.tracks.length > 0;
     if (
       (state.status === 'playing' || state.status === 'recent')
       && state.provider === 'Spotify'
-      && state.track?.name
+      && (hasTracks || state.track?.name)
     ) {
-      renderListeningTrack(state);
+      renderListeningTracks(state);
     } else {
       renderListeningService(state.status);
     }
     scheduleListeningUpdate(nextListeningDelay(state, response));
   } catch {
     listeningFailures += 1;
-    if (listeningHasTrack) {
+    if (listeningHasTracks) {
       if (listeningElements.status) listeningElements.status.textContent = 'update paused';
     } else {
       renderListeningService('unavailable');
@@ -426,10 +503,6 @@ if (listeningPanel && listeningEndpoint) {
   } else {
     startListeningUpdates();
   }
-
-  listeningPanel.addEventListener('toggle', () => {
-    if (listeningPanel.open) startListeningUpdates();
-  });
 
   listeningElements.refresh?.addEventListener('click', () => {
     listeningFailures = 0;
