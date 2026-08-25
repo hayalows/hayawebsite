@@ -6,6 +6,8 @@ const mobileMoreMenu = document.querySelector('#mobile-more-menu');
 const mobileMoreLinks = [...document.querySelectorAll('.mobile-nav__more-menu [data-section-link]')];
 const mobileMoreSectionIds = new Set(mobileMoreLinks.map((link) => link.dataset.sectionLink));
 const year = document.querySelector('[data-year]');
+const siteLoader = document.querySelector('[data-site-loader]');
+const mobileDisclosures = [...document.querySelectorAll('[data-mobile-disclosure]')];
 const listeningEndpoint = document.querySelector('meta[name="listening-endpoint"]')?.content;
 const listeningPanel = document.querySelector('[data-listening]');
 const listeningElements = {
@@ -28,19 +30,56 @@ const listeningElements = {
   refresh: document.querySelector('[data-listening-refresh]'),
 };
 
+const reducedMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+
+if (document.documentElement.classList.contains('show-loader') && siteLoader) {
+  const startedAt = Number(document.documentElement.dataset.loaderStarted) || performance.now();
+  const minimumDuration = reducedMotionQuery?.matches ? 80 : 620;
+  const remainingDuration = Math.max(0, minimumDuration - (performance.now() - startedAt));
+
+  window.setTimeout(() => {
+    document.documentElement.classList.add('loader-ready');
+    siteLoader.setAttribute('aria-hidden', 'true');
+
+    window.setTimeout(() => {
+      document.documentElement.classList.remove('show-loader', 'loader-ready');
+      delete document.documentElement.dataset.loaderStarted;
+      siteLoader.remove();
+    }, reducedMotionQuery?.matches ? 0 : 180);
+  }, remainingDuration);
+} else {
+  siteLoader?.remove();
+}
+
+if (mobileDisclosures.length && window.matchMedia) {
+  const mobileDisclosureQuery = window.matchMedia('(max-width: 35rem)');
+  const syncMobileDisclosures = ({ matches }) => {
+    mobileDisclosures.forEach((disclosure) => {
+      disclosure.open = !matches;
+    });
+  };
+
+  syncMobileDisclosures(mobileDisclosureQuery);
+  if (mobileDisclosureQuery.addEventListener) {
+    mobileDisclosureQuery.addEventListener('change', syncMobileDisclosures);
+  } else {
+    mobileDisclosureQuery.addListener(syncMobileDisclosures);
+  }
+}
+
 const localTimeElement = document.querySelector('[data-local-time]');
 if (localTimeElement) {
-  let accraFormatter = null;
+  let ghanaTimeFormatter = null;
 
   try {
-    accraFormatter = new Intl.DateTimeFormat('en-GB', {
+    ghanaTimeFormatter = new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-      timeZone: 'Africa/Accra',
+      timeZone: 'GMT',
     });
   } catch {
-    accraFormatter = new Intl.DateTimeFormat('en-GB', {
+    ghanaTimeFormatter = new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -48,7 +87,7 @@ if (localTimeElement) {
   }
 
   const renderLocalTime = () => {
-    localTimeElement.textContent = accraFormatter.format(new Date());
+    localTimeElement.textContent = ghanaTimeFormatter.format(new Date());
   };
 
   renderLocalTime();

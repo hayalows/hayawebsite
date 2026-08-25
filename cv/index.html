@@ -9,22 +9,38 @@
     <title>Papa Kojo Mensah — Operations &amp; Customer Experience</title>
     <link rel="canonical" href="https://pkm.hayalows.com/">
     <link rel="icon" href="assets/papa-kojo-portrait.webp" type="image/webp">
+    <link rel="preload" href="assets/papa-kojo-portrait.webp" as="image" type="image/webp" fetchpriority="high">
     <script>
       if ('IntersectionObserver' in window) { document.documentElement.classList.add('js'); }
       try {
-        if (sessionStorage.getItem('pkm-hero-played') !== '1') {
+        if (sessionStorage.getItem('pkm-loader-seen') !== '1') {
+          document.documentElement.classList.add('show-loader');
+          document.documentElement.dataset.loaderStarted = String(performance.now());
+          sessionStorage.setItem('pkm-loader-seen', '1');
+          sessionStorage.setItem('pkm-hero-played', '1');
+        } else if (sessionStorage.getItem('pkm-hero-played') !== '1') {
           document.documentElement.classList.add('hero-intro');
           sessionStorage.setItem('pkm-hero-played', '1');
         }
       } catch {
-        document.documentElement.classList.add('hero-intro');
+        document.documentElement.classList.add('show-loader');
+        document.documentElement.dataset.loaderStarted = String(performance.now());
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=spotify-live-1">
-    <script src="script.js?v=spotify-live-1" defer></script>
+    <link rel="stylesheet" href="styles.css?v=mobile-refine-1">
+    <script src="script.js?v=mobile-refine-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="site-loader" data-site-loader role="status" aria-live="polite">
+      <div class="site-loader__content">
+        <p class="site-loader__label">PKM · Curriculum vitae</p>
+        <span class="site-loader__pieces" aria-hidden="true"><i></i><i></i><i></i></span>
+        <p class="site-loader__message">Putting the pieces together…</p>
+        <small>Ghana · Working globally</small>
+      </div>
+    </div>
 
     <header class="mobile-nav" aria-label="Page navigation">
       <nav class="mobile-nav__primary" aria-label="Primary CV sections">
@@ -73,7 +89,7 @@
             <span>Curriculum vitae · 2026</span>
           </div>
           <div class="identity-row">
-            <img class="portrait" src="assets/papa-kojo-portrait.webp" width="88" height="88" alt="Portrait of Papa Kojo Mensah">
+            <img class="portrait" src="assets/papa-kojo-portrait.webp" width="88" height="88" alt="Portrait of Papa Kojo Mensah" loading="eager" decoding="async" fetchpriority="high">
             <div>
               <p class="eyebrow">Operations · Customer experience</p>
               <h1 id="name">Papa Kojo Mensah</h1>
@@ -89,24 +105,26 @@
             <a href="resume/"><span class="u-draw">View one-page CV</span> <span aria-hidden="true">↗</span></a>
           </nav>
 
-          <aside class="focus-panel" aria-labelledby="focus-title">
-            <div class="focus-panel__heading">
+          <details class="focus-panel" data-mobile-disclosure open>
+            <summary class="focus-panel__heading">
               <p class="eyebrow" id="focus-title">Where I add value</p>
-              <span class="live-dot" aria-hidden="true"></span>
+              <span class="focus-panel__toggle"><small>3 principles</small><i aria-hidden="true"></i></span>
+            </summary>
+            <div class="focus-panel__body">
+              <div class="focus-row">
+                <strong>Information people can trust</strong>
+                <span>I check the details, keep a clear record and make the next step easier to see.</span>
+              </div>
+              <div class="focus-row">
+                <strong>Service that feels clear</strong>
+                <span>I listen carefully, solve the real request and keep the process moving.</span>
+              </div>
+              <div class="focus-row">
+                <strong>Tools that earn their place</strong>
+                <span>I turn repeated work into a practical sheet, system or visual.</span>
+              </div>
             </div>
-            <div class="focus-row">
-              <strong>Information people can trust</strong>
-              <span>I check the details, keep a clear record and make the next step easier to see.</span>
-            </div>
-            <div class="focus-row">
-              <strong>Service that feels clear</strong>
-              <span>I listen carefully, solve the real request and keep the process moving.</span>
-            </div>
-            <div class="focus-row">
-              <strong>Tools that earn their place</strong>
-              <span>I turn repeated work into a practical sheet, system or visual.</span>
-            </div>
-          </aside>
+          </details>
         </section>
 
         <section class="content-section reveal-section" id="projects" data-section="projects" aria-labelledby="projects-title">
@@ -246,22 +264,22 @@
           </header>
 
           <div class="skill-list">
-            <div class="skill-row">
-              <h3>Operations &amp; service</h3>
+            <details class="skill-row" data-mobile-disclosure open>
+              <summary><span class="skill-row__heading"><h3>Operations &amp; service</h3><small>5 skills</small></span><i class="skill-row__control" aria-hidden="true"></i></summary>
               <ul><li>Customer support</li><li>Banking operations</li><li>Issue resolution</li><li>Process documentation</li><li>Workflow improvement</li></ul>
-            </div>
-            <div class="skill-row">
-              <h3>Data &amp; tools</h3>
+            </details>
+            <details class="skill-row" data-mobile-disclosure open>
+              <summary><span class="skill-row__heading"><h3>Data &amp; tools</h3><small>6 skills</small></span><i class="skill-row__control" aria-hidden="true"></i></summary>
               <ul><li>Data quality</li><li>Source verification</li><li>Excel</li><li>Google Sheets</li><li>Google Workspace</li><li>Microsoft Office</li></ul>
-            </div>
-            <div class="skill-row">
-              <h3>Brand &amp; design</h3>
+            </details>
+            <details class="skill-row" data-mobile-disclosure open>
+              <summary><span class="skill-row__heading"><h3>Brand &amp; design</h3><small>6 skills</small></span><i class="skill-row__control" aria-hidden="true"></i></summary>
               <ul><li>Brand identity</li><li>Graphic design</li><li>Social media design</li><li>Presentation design</li><li>Adobe Creative Suite</li><li>Canva</li></ul>
-            </div>
-            <div class="skill-row">
-              <h3>Working with people</h3>
+            </details>
+            <details class="skill-row" data-mobile-disclosure open>
+              <summary><span class="skill-row__heading"><h3>Working with people</h3><small>6 skills</small></span><i class="skill-row__control" aria-hidden="true"></i></summary>
               <ul><li>Project coordination</li><li>Requirements gathering</li><li>Client communication</li><li>Feedback management</li><li>Reporting</li><li>Remote collaboration</li></ul>
-            </div>
+            </details>
           </div>
         </section>
 
@@ -293,7 +311,8 @@
           </header>
           <p class="local-time-chip">
             <i aria-hidden="true"></i>
-            Accra · Kumasi · <time data-local-time>--:--</time> GMT
+            <span>6.700° N · 1.612° W</span>
+            <span>Ghana · <time data-local-time>--:--</time> GMT</span>
           </p>
           <div class="listening-panel" data-listening data-state="loading">
             <div class="listening-heading">
@@ -370,9 +389,13 @@
         <details class="changelog">
           <summary>
             <span class="changelog__label">Site changelog</span>
-            <span class="changelog__meta"><span>v3</span><i aria-hidden="true"></i></span>
+            <span class="changelog__meta"><span>v4</span><i aria-hidden="true"></i></span>
           </summary>
           <div class="changelog__list">
+            <article>
+              <strong>v4 — A quicker, calmer mobile read</strong>
+              <p>A first-visit opening moment, a quiet coordinates-and-GMT signal and less scrolling before the useful details.</p>
+            </article>
             <article>
               <strong>v3 — Motion layer</strong>
               <p>A choreographed entrance, gliding section navigation, softer accordions and a quicker way to copy my email.</p>
