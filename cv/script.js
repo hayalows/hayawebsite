@@ -511,6 +511,17 @@ function nextListeningDelay(state, response) {
   return 120_000;
 }
 
+function clearListeningTimer() {
+  window.clearTimeout(listeningTimer);
+  listeningTimer = undefined;
+}
+
+function scheduleListeningUpdate(delay) {
+  clearListeningTimer();
+  if (document.hidden) return;
+  listeningTimer = window.setTimeout(loadListeningState, delay);
+}
+
 async function loadListeningState() {
   if (!listeningEndpoint || !listeningPanel || listeningLoading) return;
 
@@ -564,8 +575,6 @@ function startListeningUpdates() {
 }
 
 if (listeningPanel && listeningEndpoint) {
-  startListeningUpdates();
-
   if ('IntersectionObserver' in window) {
     const listeningObserver = new IntersectionObserver((entries, observer) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;

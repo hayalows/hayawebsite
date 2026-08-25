@@ -37,7 +37,7 @@ https://pkm.hayalows.com/api/spotify/callback
 
 To authorise the account, open https://pkm.hayalows.com/api/spotify/login. Spotify returns a one-time refresh token page. Add that value to Vercel as SPOTIFY_REFRESH_TOKEN, then redeploy. Keep the value private.
 
-The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. The public page polls gently only while visible: every 30 seconds during playback, every 120 seconds for recent listening, and less often for offline or error states. Spotify `204`, expired access tokens, `401`, `403`, `429` with `Retry-After`, and temporary offline states are handled explicitly.
+The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. The public page waits until the listening panel is near the viewport, then polls gently only while visible: every 30 seconds during playback, every 120 seconds for recent listening, and less often for offline or error states. Spotify `204`, expired access tokens, `401`, `403`, `429` with `Retry-After`, and temporary offline states are handled explicitly.
 
 The public /api/listening route returns metadata only:
 
