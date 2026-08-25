@@ -227,14 +227,16 @@ sectionLinks.forEach((link) => {
 
     setActiveSection(sectionId);
     requestAnimationFrame(() => {
-      target?.scrollIntoView({
-        behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-          ? 'auto'
-          : 'smooth',
-        block: 'start',
-      });
-
       if (mobileMoreSectionIds.has(sectionId)) setMoreMenu(false);
+
+      requestAnimationFrame(() => {
+        target?.scrollIntoView({
+          behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth',
+          block: 'start',
+        });
+      });
     });
   });
 });

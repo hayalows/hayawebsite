@@ -1108,7 +1108,7 @@ footer a {
   .mobile-nav__more-menu a {
     display: flex;
     align-items: center;
-    min-height: 2.75rem;
+    min-height: 44px;
     padding-inline: .7rem;
     border-radius: 8px;
     color: var(--muted);
