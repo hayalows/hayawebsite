@@ -20,8 +20,8 @@
         document.documentElement.classList.add('hero-intro');
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=spotify-fix-3">
-    <script src="script.js?v=spotify-fix-7" defer></script>
+    <link rel="stylesheet" href="styles.css?v=spotify-live-1">
+    <script src="script.js?v=spotify-live-1" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -298,63 +298,57 @@
           <div class="listening-panel" data-listening data-state="loading">
             <div class="listening-heading">
               <div>
-                <p class="eyebrow" data-listening-kicker>Currently occupying my brain</p>
-                <h3 data-listening-title>Top 5 lately.</h3>
-                <p class="listening-now" data-listening-now hidden></p>
+                <p class="eyebrow" data-listening-kicker>A small personal signal</p>
+                <h3 data-listening-title>Listening, lately.</h3>
               </div>
               <span class="listening-live" data-listening-status role="status" aria-live="polite">checking</span>
             </div>
-            <ol class="listening-ranking" data-listening-list aria-live="polite">
-              <li class="listening-ranking__item">
-                <div class="listening-row listening-row--placeholder" aria-hidden="true">
-                  <span class="listening-rank">01</span>
-                  <span class="listening-art listening-art--fallback">♪</span>
-                  <span class="listening-row__copy">
-                    <strong>Loading recent listening</strong>
-                    <small>Spotify is checking what I’ve been playing.</small>
-                  </span>
-                  <span class="listening-count"><strong>—</strong><small>plays</small></span>
+            <a class="listening-current" data-listening-current aria-disabled="true">
+              <span class="listening-current__art">
+                <img data-listening-current-art alt="" width="72" height="72" hidden>
+                <span class="listening-current__fallback" data-listening-current-fallback aria-hidden="true">♪</span>
+                <span class="listening-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              </span>
+              <span class="listening-current__copy">
+                <small data-listening-current-label>Checking Spotify</small>
+                <strong data-listening-current-title>Finding the latest track…</strong>
+                <span data-listening-current-meta>Music will appear here when it is available.</span>
+                <span class="listening-progress" data-listening-progress-wrap hidden>
+                  <span class="listening-progress__fill" data-listening-progress></span>
+                </span>
+              </span>
+              <span class="listening-current__arrow" aria-hidden="true">↗</span>
+            </a>
+            <details class="listening-history" data-listening-history>
+              <summary>
+                <span class="listening-summary-copy">
+                  <strong>Top five lately</strong>
+                  <small data-listening-history-summary>Five songs, tucked away until you want them.</small>
+                </span>
+                <span class="listening-history__control" aria-hidden="true"><i></i></span>
+              </summary>
+              <div class="listening-history__body">
+                <ol class="listening-ranking" data-listening-list aria-live="polite">
+                  <li class="listening-ranking__item">
+                    <div class="listening-row listening-row--placeholder" aria-hidden="true">
+                      <span class="listening-rank">01</span>
+                      <span class="listening-art listening-art--fallback">♪</span>
+                      <span class="listening-row__copy">
+                        <strong>Loading recent listening</strong>
+                        <small>Spotify is checking what I’ve been playing.</small>
+                      </span>
+                      <span class="listening-count"><strong>—</strong><small>plays</small></span>
+                    </div>
+                  </li>
+                </ol>
+                <div class="listening-footnote">
+                  <span data-listening-window>Recent listening</span>
+                  <span aria-hidden="true">/</span>
+                  <em data-listening-note>Counting the songs I’ve played recently.</em>
+                  <button type="button" data-listening-refresh>Refresh</button>
                 </div>
-              </li>
-              <li class="listening-ranking__item listening-loading-row" aria-hidden="true">
-                <div class="listening-row listening-row--placeholder">
-                  <span class="listening-rank">02</span>
-                  <span class="listening-art listening-art--fallback">♪</span>
-                  <span class="listening-row__copy"><strong>Loading</strong><small>Recent listening</small></span>
-                  <span class="listening-count"><strong>—</strong><small>plays</small></span>
-                </div>
-              </li>
-              <li class="listening-ranking__item listening-loading-row" aria-hidden="true">
-                <div class="listening-row listening-row--placeholder">
-                  <span class="listening-rank">03</span>
-                  <span class="listening-art listening-art--fallback">♪</span>
-                  <span class="listening-row__copy"><strong>Loading</strong><small>Recent listening</small></span>
-                  <span class="listening-count"><strong>—</strong><small>plays</small></span>
-                </div>
-              </li>
-              <li class="listening-ranking__item listening-loading-row" aria-hidden="true">
-                <div class="listening-row listening-row--placeholder">
-                  <span class="listening-rank">04</span>
-                  <span class="listening-art listening-art--fallback">♪</span>
-                  <span class="listening-row__copy"><strong>Loading</strong><small>Recent listening</small></span>
-                  <span class="listening-count"><strong>—</strong><small>plays</small></span>
-                </div>
-              </li>
-              <li class="listening-ranking__item listening-loading-row" aria-hidden="true">
-                <div class="listening-row listening-row--placeholder">
-                  <span class="listening-rank">05</span>
-                  <span class="listening-art listening-art--fallback">♪</span>
-                  <span class="listening-row__copy"><strong>Loading</strong><small>Recent listening</small></span>
-                  <span class="listening-count"><strong>—</strong><small>plays</small></span>
-                </div>
-              </li>
-            </ol>
-            <div class="listening-footnote">
-              <span data-listening-window>Recent listening</span>
-              <span aria-hidden="true">/</span>
-              <em data-listening-note>Counting the songs I’ve played recently.</em>
-              <button type="button" data-listening-refresh>Refresh</button>
-            </div>
+              </div>
+            </details>
           </div>
         </section>
 

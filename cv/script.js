@@ -11,8 +11,17 @@ const listeningPanel = document.querySelector('[data-listening]');
 const listeningElements = {
   kicker: document.querySelector('[data-listening-kicker]'),
   title: document.querySelector('[data-listening-title]'),
-  now: document.querySelector('[data-listening-now]'),
   status: document.querySelector('[data-listening-status]'),
+  current: document.querySelector('[data-listening-current]'),
+  currentArt: document.querySelector('[data-listening-current-art]'),
+  currentFallback: document.querySelector('[data-listening-current-fallback]'),
+  currentLabel: document.querySelector('[data-listening-current-label]'),
+  currentTitle: document.querySelector('[data-listening-current-title]'),
+  currentMeta: document.querySelector('[data-listening-current-meta]'),
+  progressWrap: document.querySelector('[data-listening-progress-wrap]'),
+  progress: document.querySelector('[data-listening-progress]'),
+  history: document.querySelector('[data-listening-history]'),
+  historySummary: document.querySelector('[data-listening-history-summary]'),
   list: document.querySelector('[data-listening-list]'),
   window: document.querySelector('[data-listening-window]'),
   note: document.querySelector('[data-listening-note]'),
@@ -403,6 +412,77 @@ function renderListeningRows(tracks, emptyCopy) {
   });
 }
 
+function renderCurrentListeningTrack(state) {
+  const track = normaliseListeningTrack(state?.track);
+  const isPlaying = state?.status === 'playing';
+  const artistLabel = track?.artists.length
+    ? track.artists.join(', ')
+    : 'Unknown artist';
+  const albumLabel = track?.album ? ' · ' + track.album : '';
+
+  if (listeningElements.currentLabel) {
+    listeningElements.currentLabel.textContent = track
+      ? (isPlaying ? 'Now playing' : 'Last played')
+      : 'Spotify status';
+  }
+  if (listeningElements.currentTitle) {
+    listeningElements.currentTitle.textContent = track?.name || 'Nothing recent to show';
+  }
+  if (listeningElements.currentMeta) {
+    listeningElements.currentMeta.textContent = track
+      ? artistLabel + albumLabel
+      : 'Spotify will update this quietly when there is something to share.';
+  }
+
+  if (listeningElements.current) {
+    if (track?.url) {
+      listeningElements.current.href = track.url;
+      listeningElements.current.target = '_blank';
+      listeningElements.current.rel = 'noreferrer noopener';
+      listeningElements.current.removeAttribute('aria-disabled');
+      listeningElements.current.setAttribute(
+        'aria-label',
+        'Open ' + track.name + ' by ' + artistLabel + ' in Spotify',
+      );
+    } else {
+      listeningElements.current.removeAttribute('href');
+      listeningElements.current.removeAttribute('target');
+      listeningElements.current.removeAttribute('rel');
+      listeningElements.current.setAttribute('aria-disabled', 'true');
+      listeningElements.current.setAttribute('aria-label', 'No recent Spotify track available');
+    }
+  }
+
+  if (listeningElements.currentArt && listeningElements.currentFallback) {
+    if (track?.imageUrl) {
+      listeningElements.currentArt.src = track.imageUrl;
+      listeningElements.currentArt.hidden = false;
+      listeningElements.currentFallback.hidden = true;
+    } else {
+      listeningElements.currentArt.removeAttribute('src');
+      listeningElements.currentArt.hidden = true;
+      listeningElements.currentFallback.hidden = false;
+    }
+  }
+
+  const progressMs = Number(state?.progressMs);
+  const durationMs = Number(track?.durationMs);
+  const hasProgress = isPlaying
+    && Number.isFinite(progressMs)
+    && Number.isFinite(durationMs)
+    && durationMs > 0;
+
+  if (listeningElements.progressWrap) {
+    listeningElements.progressWrap.hidden = !hasProgress;
+  }
+  if (listeningElements.progress) {
+    const ratio = hasProgress
+      ? Math.min(1, Math.max(0, progressMs / durationMs))
+      : 0;
+    listeningElements.progress.style.transform = 'scaleX(' + ratio + ')';
+  }
+}
+
 function renderListeningTracks(state) {
   const recentTracks = Array.isArray(state?.tracks)
     ? state.tracks.map(normaliseListeningTrack).filter(Boolean)
@@ -419,20 +499,10 @@ function renderListeningTracks(state) {
   listeningHasTracks = tracks.length > 0;
 
   if (listeningElements.kicker) {
-    listeningElements.kicker.textContent = 'Currently occupying my brain';
+    listeningElements.kicker.textContent = 'A small personal signal';
   }
   if (listeningElements.title) {
-    listeningElements.title.textContent = 'Top 5 lately.';
-  }
-  if (listeningElements.now) {
-    const nowTrack = state.status === 'playing' ? state.track : null;
-    const nowArtist = Array.isArray(nowTrack?.artists)
-      ? nowTrack.artists.join(', ')
-      : '';
-    listeningElements.now.textContent = nowTrack?.name
-      ? 'Now playing · ' + nowTrack.name + (nowArtist ? ' · ' + nowArtist : '')
-      : '';
-    listeningElements.now.hidden = !nowTrack?.name;
+    listeningElements.title.textContent = 'Listening, lately.';
   }
   if (listeningElements.status) {
     listeningElements.status.textContent = state.status === 'playing'
@@ -448,7 +518,14 @@ function renderListeningTracks(state) {
       ? 'Counted from my last ' + sampleSize + ' plays.'
       : 'Counted from recent listening.';
   }
+  if (listeningElements.historySummary) {
+    const sampleSize = Number(state.listeningWindow?.sampleSize);
+    listeningElements.historySummary.textContent = tracks.length
+      + ' tracks'
+      + (sampleSize ? ' · from the last ' + sampleSize + ' plays' : ' · recent listening');
+  }
 
+  renderCurrentListeningTrack(state);
   renderListeningRows(
     tracks,
     'Nothing recent to show yet.',
@@ -488,14 +565,10 @@ function renderListeningService(statusName) {
   listeningPanel.dataset.state = statusName;
   listeningHasTracks = false;
   if (listeningElements.kicker) {
-    listeningElements.kicker.textContent = 'Currently occupying my brain';
+    listeningElements.kicker.textContent = 'A small personal signal';
   }
   if (listeningElements.title) {
     listeningElements.title.textContent = state.title;
-  }
-  if (listeningElements.now) {
-    listeningElements.now.textContent = '';
-    listeningElements.now.hidden = true;
   }
   if (listeningElements.status) {
     listeningElements.status.textContent = state.status;
@@ -506,7 +579,11 @@ function renderListeningService(statusName) {
   if (listeningElements.note) {
     listeningElements.note.textContent = state.copy;
   }
+  if (listeningElements.historySummary) {
+    listeningElements.historySummary.textContent = 'No listening history available right now.';
+  }
 
+  renderCurrentListeningTrack({ status: statusName, track: null });
   renderListeningRows([], state.copy);
 }
 
