@@ -23,6 +23,7 @@ const listeningElements = {
   progressWrap: document.querySelector('[data-listening-progress-wrap]'),
   progress: document.querySelector('[data-listening-progress]'),
   history: document.querySelector('[data-listening-history]'),
+  historyTitle: document.querySelector('[data-listening-history-title]'),
   historySummary: document.querySelector('[data-listening-history-summary]'),
   list: document.querySelector('[data-listening-list]'),
   window: document.querySelector('[data-listening-window]'),
@@ -34,7 +35,7 @@ const reducedMotionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)
 
 if (document.documentElement.classList.contains('show-loader') && siteLoader) {
   const startedAt = Number(document.documentElement.dataset.loaderStarted) || performance.now();
-  const minimumDuration = reducedMotionQuery?.matches ? 80 : 620;
+  const minimumDuration = reducedMotionQuery?.matches ? 120 : 1050;
   const remainingDuration = Math.max(0, minimumDuration - (performance.now() - startedAt));
 
   window.setTimeout(() => {
@@ -75,6 +76,7 @@ if (localTimeElement) {
     ghanaTimeFormatter = new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
       hour12: false,
       timeZone: 'GMT',
     });
@@ -82,16 +84,19 @@ if (localTimeElement) {
     ghanaTimeFormatter = new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
+      second: '2-digit',
       hour12: false,
     });
   }
 
   const renderLocalTime = () => {
-    localTimeElement.textContent = ghanaTimeFormatter.format(new Date());
+    const now = new Date();
+    localTimeElement.textContent = ghanaTimeFormatter.format(now);
+    localTimeElement.dateTime = now.toISOString();
   };
 
   renderLocalTime();
-  window.setInterval(renderLocalTime, 15000);
+  window.setInterval(renderLocalTime, 1000);
 }
 
 let listeningTimer;
@@ -306,27 +311,6 @@ document.addEventListener('keydown', (event) => {
 });
 
 if (year) year.textContent = String(new Date().getFullYear());
-
-function formatListeningWindow(range) {
-  const from = range?.from ? new Date(range.from) : null;
-  const to = range?.to ? new Date(range.to) : null;
-
-  if (
-    !from
-    || !to
-    || Number.isNaN(from.getTime())
-    || Number.isNaN(to.getTime())
-  ) {
-    return 'Recent listening';
-  }
-
-  const formatter = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-  });
-
-  return formatter.format(from) + ' — ' + formatter.format(to);
-}
 
 function clearListeningRows() {
   if (listeningElements.list) listeningElements.list.textContent = '';
@@ -549,19 +533,21 @@ function renderListeningTracks(state) {
       : 'recent';
   }
   if (listeningElements.window) {
-    listeningElements.window.textContent = formatListeningWindow(state.listeningWindow);
+    listeningElements.window.textContent = 'Spotify snapshot';
   }
   if (listeningElements.note) {
-    const sampleSize = Number(state.listeningWindow?.sampleSize);
-    listeningElements.note.textContent = sampleSize
-      ? 'Counted from my last ' + sampleSize + ' plays.'
-      : 'Counted from recent listening.';
+    listeningElements.note.textContent = 'A small snapshot of what I’ve returned to lately.';
+  }
+  if (listeningElements.historyTitle) {
+    let historyTitle = tracks.length + ' lately';
+    if (tracks.length >= 5) historyTitle = 'Five lately';
+    if (tracks.length === 1) historyTitle = 'One lately';
+    listeningElements.historyTitle.textContent = historyTitle;
   }
   if (listeningElements.historySummary) {
-    const sampleSize = Number(state.listeningWindow?.sampleSize);
     listeningElements.historySummary.textContent = tracks.length
-      + ' tracks'
-      + (sampleSize ? ' · from the last ' + sampleSize + ' plays' : ' · recent listening');
+      + (tracks.length === 1 ? ' song' : ' songs')
+      + ', tucked away until you want them.';
   }
 
   renderCurrentListeningTrack(state);
@@ -613,13 +599,16 @@ function renderListeningService(statusName) {
     listeningElements.status.textContent = state.status;
   }
   if (listeningElements.window) {
-    listeningElements.window.textContent = 'Recent listening';
+    listeningElements.window.textContent = 'Spotify snapshot';
   }
   if (listeningElements.note) {
     listeningElements.note.textContent = state.copy;
   }
   if (listeningElements.historySummary) {
     listeningElements.historySummary.textContent = 'No listening history available right now.';
+  }
+  if (listeningElements.historyTitle) {
+    listeningElements.historyTitle.textContent = 'Listening history';
   }
 
   renderCurrentListeningTrack({ status: statusName, track: null });
@@ -778,7 +767,15 @@ if (contactTitle) {
 const copyButton = document.querySelector('[data-copy-email]');
 if (copyButton) {
   const statusLabel = copyButton.querySelector('[data-copy-status]');
+  const visibleLabel = copyButton.querySelector('[data-copy-label]');
   let revertTimer;
+
+  copyButton.addEventListener('pointerdown', () => {
+    copyButton.classList.remove('copy-action--no-motion');
+  });
+  copyButton.addEventListener('keydown', () => {
+    copyButton.classList.add('copy-action--no-motion');
+  });
 
   copyButton.addEventListener('click', async () => {
     let copied = false;
@@ -804,9 +801,12 @@ if (copyButton) {
 
     window.clearTimeout(revertTimer);
     copyButton.classList.toggle('is-copied', copied);
+    if (visibleLabel) visibleLabel.textContent = copied ? 'Copied' : 'Try again';
     if (statusLabel) statusLabel.textContent = copied ? 'Email address copied.' : 'Copying did not work.';
     revertTimer = window.setTimeout(() => {
       copyButton.classList.remove('is-copied');
+      copyButton.classList.remove('copy-action--no-motion');
+      if (visibleLabel) visibleLabel.textContent = 'Copy';
       if (statusLabel) statusLabel.textContent = '';
     }, copied ? 1800 : 2400);
   });
