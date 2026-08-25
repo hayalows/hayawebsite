@@ -223,7 +223,9 @@ window.addEventListener('scroll', () => {
 sectionLinks.forEach((link) => {
   link.addEventListener('click', () => {
     setActiveSection(link.dataset.sectionLink);
-    if (mobileMoreSectionIds.has(link.dataset.sectionLink)) setMoreMenu(false);
+    if (mobileMoreSectionIds.has(link.dataset.sectionLink)) {
+      requestAnimationFrame(() => setMoreMenu(false));
+    }
   });
 });
 
