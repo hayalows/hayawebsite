@@ -1101,7 +1101,9 @@ a.listening-row:hover {
   vertical-align: .08em;
 }
 
-.personal-section .listening-panel { margin-block-start: 0; }
+.personal-section .listening-panel {
+  margin-block: 0 1.65rem;
+}
 
 .timeline {
   border-top: 1px solid var(--line-strong);
@@ -2048,7 +2050,7 @@ html.js .contact-section.is-revealed::before {
   display: grid;
   grid-template-columns: 1.35fr .8fr 1.15fr 1.45fr;
   gap: 0;
-  margin-block: -.35rem 1.5rem;
+  margin-block: 0 1.5rem;
   padding-block: 1rem;
   border-block: 1px solid var(--line);
 }
@@ -2181,7 +2183,7 @@ footer a {
   .local-context {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .85rem .9rem;
-    margin-block: -.2rem 1.45rem;
+    margin-block: 0 1.45rem;
     padding-block: .85rem;
   }
 
