@@ -4,11 +4,20 @@ const {
   spotifyRequest,
 } = require("../lib/spotify");
 
-function send(response, status, payload, cacheControl, retryAfter) {
+const CURRENT_EDGE_CACHE = "public, s-maxage=5, stale-while-revalidate=5";
+const RECENT_EDGE_CACHE = "public, s-maxage=45, stale-while-revalidate=90";
+
+function send(response, status, payload, edgeCacheControl, retryAfter) {
   response.status(status);
   response.setHeader("Content-Type", "application/json; charset=utf-8");
-  response.setHeader("Cache-Control", cacheControl);
   response.setHeader("X-Content-Type-Options", "nosniff");
+
+  if (edgeCacheControl === "no-store") {
+    response.setHeader("Cache-Control", "no-store");
+  } else {
+    response.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+    response.setHeader("Vercel-CDN-Cache-Control", edgeCacheControl);
+  }
 
   if (retryAfter) {
     response.setHeader("Retry-After", String(retryAfter));
@@ -111,7 +120,9 @@ function basePayload(status, track = null, details = {}) {
     track,
     tracks: Array.isArray(details.tracks) ? details.tracks : [],
     listeningWindow: details.listeningWindow || null,
-    progressMs: Number(details.progressMs) || null,
+    progressMs: Number.isFinite(Number(details.progressMs))
+      ? Number(details.progressMs)
+      : null,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -151,6 +162,42 @@ async function recentlyPlayed() {
     });
 }
 
+async function currentlyPlaying() {
+  const current = await requestWithFreshToken(
+    "/v1/me/player/currently-playing",
+    { allowNoContent: true },
+  );
+  const currentTrack = trackPayload(current?.data?.item);
+
+  if (current?.data?.is_playing && currentTrack) {
+    return basePayload("playing", currentTrack, {
+      source: "currently_playing",
+      progressMs: current.data.progress_ms,
+    });
+  }
+
+  return basePayload("offline", null, {
+    source: "currently_playing",
+  });
+}
+
+function requestedView(request) {
+  let rawView = Array.isArray(request.query?.view)
+    ? request.query.view[0]
+    : request.query?.view;
+
+  if (!rawView && request.url) {
+    try {
+      rawView = new URL(request.url, "https://pkm.hayalows.com").searchParams.get("view");
+    } catch {
+      rawView = null;
+    }
+  }
+
+  if (rawView === "current" || rawView === "recent") return rawView;
+  return "combined";
+}
+
 module.exports = async function handler(request, response) {
   if (request.method !== "GET") {
     response.setHeader("Allow", "GET");
@@ -159,6 +206,20 @@ module.exports = async function handler(request, response) {
   }
 
   try {
+    const view = requestedView(request);
+
+    if (view === "current") {
+      const current = await currentlyPlaying();
+      send(response, 200, current, CURRENT_EDGE_CACHE);
+      return;
+    }
+
+    if (view === "recent") {
+      const recent = await recentlyPlayed();
+      send(response, 200, recent, RECENT_EDGE_CACHE);
+      return;
+    }
+
     let current;
 
     try {
@@ -186,7 +247,7 @@ module.exports = async function handler(request, response) {
           tracks: recent.tracks,
           listeningWindow: recent.listeningWindow,
         }),
-        "public, s-maxage=20, stale-while-revalidate=60",
+        CURRENT_EDGE_CACHE,
       );
       return;
     }
@@ -195,9 +256,7 @@ module.exports = async function handler(request, response) {
       response,
       200,
       recent,
-      recent.status === "recent"
-        ? "public, s-maxage=60, stale-while-revalidate=180"
-        : "public, s-maxage=30, stale-while-revalidate=60",
+      recent.status === "recent" ? RECENT_EDGE_CACHE : CURRENT_EDGE_CACHE,
     );
   } catch (error) {
     if (
@@ -212,7 +271,7 @@ module.exports = async function handler(request, response) {
           provider: null,
           updatedAt: null,
         },
-        "public, max-age=30",
+        "public, s-maxage=30, stale-while-revalidate=30",
       );
       return;
     }
@@ -241,7 +300,7 @@ module.exports = async function handler(request, response) {
         response,
         200,
         basePayload("needs_reconnect"),
-        "public, max-age=30",
+        "public, s-maxage=30, stale-while-revalidate=30",
       );
       return;
     }

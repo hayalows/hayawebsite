@@ -245,6 +245,15 @@ let listeningStarted = false;
 let listeningLoading = false;
 let listeningFailures = 0;
 let listeningHasTracks = false;
+let listeningProgressAnimation;
+const listeningSnapshot = {
+  current: null,
+  recent: null,
+  historyUpdatedAt: 0,
+  historyRetryAt: 0,
+};
+
+const LISTENING_HISTORY_INTERVAL = 120_000;
 
 let activeSectionId = 'about';
 
@@ -576,6 +585,78 @@ function renderListeningRows(tracks, emptyCopy) {
   });
 }
 
+function relativeListeningTime(value) {
+  const playedAt = value ? new Date(value) : null;
+  if (!playedAt || Number.isNaN(playedAt.getTime())) return '';
+
+  const elapsedMinutes = Math.max(0, Math.floor((Date.now() - playedAt.getTime()) / 60_000));
+  if (elapsedMinutes < 1) return 'just now';
+  if (elapsedMinutes < 60) return elapsedMinutes + ' min ago';
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return elapsedHours + (elapsedHours === 1 ? ' hr ago' : ' hrs ago');
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  return elapsedDays + (elapsedDays === 1 ? ' day ago' : ' days ago');
+}
+
+function stopListeningProgress() {
+  listeningProgressAnimation?.cancel();
+  listeningProgressAnimation = undefined;
+}
+
+function renderListeningProgress(state, track) {
+  stopListeningProgress();
+
+  const isPlaying = state?.status === 'playing';
+  const hasReportedProgress = state?.progressMs !== null
+    && state?.progressMs !== undefined;
+  const progressMs = Number(state?.progressMs);
+  const durationMs = Number(track?.durationMs);
+  const responseTime = state?.updatedAt ? new Date(state.updatedAt).getTime() : NaN;
+  const responseAge = Number.isFinite(responseTime)
+    ? Math.max(0, Date.now() - responseTime)
+    : 0;
+  const liveProgress = progressMs + responseAge;
+  const hasProgress = isPlaying
+    && hasReportedProgress
+    && Number.isFinite(liveProgress)
+    && Number.isFinite(durationMs)
+    && durationMs > 0;
+
+  if (listeningElements.progressWrap) {
+    listeningElements.progressWrap.hidden = !hasProgress;
+  }
+  if (!listeningElements.progress) return;
+
+  if (!hasProgress) {
+    listeningElements.progress.style.transform = 'scaleX(0)';
+    return;
+  }
+
+  const safeProgress = Math.min(durationMs, Math.max(0, liveProgress));
+  const ratio = safeProgress / durationMs;
+  listeningElements.progress.style.transform = 'scaleX(' + ratio + ')';
+
+  if (
+    reducedMotionQuery?.matches
+    || typeof listeningElements.progress.animate !== 'function'
+    || safeProgress >= durationMs
+  ) return;
+
+  listeningProgressAnimation = listeningElements.progress.animate(
+    [
+      { transform: 'scaleX(' + ratio + ')' },
+      { transform: 'scaleX(1)' },
+    ],
+    {
+      duration: durationMs - safeProgress,
+      easing: 'linear',
+      fill: 'forwards',
+    },
+  );
+}
+
 function renderCurrentListeningTrack(state) {
   const track = normaliseListeningTrack(state?.track);
   const isPlaying = state?.status === 'playing';
@@ -585,8 +666,9 @@ function renderCurrentListeningTrack(state) {
   const albumLabel = track?.album ? ' · ' + track.album : '';
 
   if (listeningElements.currentLabel) {
+    const relativeTime = relativeListeningTime(track?.playedAt);
     listeningElements.currentLabel.textContent = track
-      ? (isPlaying ? 'Now playing' : 'Last played')
+      ? (isPlaying ? 'Now playing · live' : 'Last played' + (relativeTime ? ' · ' + relativeTime : ''))
       : 'Spotify status';
   }
   if (listeningElements.currentTitle) {
@@ -629,22 +711,7 @@ function renderCurrentListeningTrack(state) {
     }
   }
 
-  const progressMs = Number(state?.progressMs);
-  const durationMs = Number(track?.durationMs);
-  const hasProgress = isPlaying
-    && Number.isFinite(progressMs)
-    && Number.isFinite(durationMs)
-    && durationMs > 0;
-
-  if (listeningElements.progressWrap) {
-    listeningElements.progressWrap.hidden = !hasProgress;
-  }
-  if (listeningElements.progress) {
-    const ratio = hasProgress
-      ? Math.min(1, Math.max(0, progressMs / durationMs))
-      : 0;
-    listeningElements.progress.style.transform = 'scaleX(' + ratio + ')';
-  }
+  renderListeningProgress(state, track);
 }
 
 function renderListeningTracks(state) {
@@ -670,14 +737,18 @@ function renderListeningTracks(state) {
   }
   if (listeningElements.status) {
     listeningElements.status.textContent = state.status === 'playing'
-      ? 'live'
+      ? 'live now'
       : 'recent';
   }
   if (listeningElements.window) {
-    listeningElements.window.textContent = 'Spotify snapshot';
+    listeningElements.window.textContent = state.status === 'playing'
+      ? 'Live from Spotify'
+      : 'Spotify snapshot';
   }
   if (listeningElements.note) {
-    listeningElements.note.textContent = 'A small snapshot of what I’ve returned to lately.';
+    listeningElements.note.textContent = state.status === 'playing'
+      ? 'What I’m listening to right now.'
+      : 'A small snapshot of what I’ve returned to lately.';
   }
   if (listeningElements.historyTitle) {
     let historyTitle = tracks.length + ' lately';
@@ -756,19 +827,77 @@ function renderListeningService(statusName) {
   renderListeningRows([], state.copy);
 }
 
+function listeningViewUrl(view) {
+  const separator = listeningEndpoint.includes('?') ? '&' : '?';
+  return listeningEndpoint + separator + 'view=' + encodeURIComponent(view);
+}
+
+async function fetchListeningView(view, signal) {
+  const response = await fetch(listeningViewUrl(view), {
+    cache: 'no-store',
+    signal,
+  });
+  const state = await response.json().catch(() => ({ status: 'unavailable' }));
+
+  if (!response.ok && response.status !== 429) {
+    throw new Error('listening_unavailable');
+  }
+
+  return { response, state };
+}
+
+function hasListeningTrack(state) {
+  const hasTracks = Array.isArray(state?.tracks)
+    && state.tracks.some((track) => normaliseListeningTrack(track));
+  return hasTracks || Boolean(normaliseListeningTrack(state?.track));
+}
+
+function composedListeningState() {
+  const current = listeningSnapshot.current;
+  const recent = listeningSnapshot.recent;
+
+  if (current?.status === 'playing' && normaliseListeningTrack(current.track)) {
+    return {
+      ...current,
+      tracks: Array.isArray(recent?.tracks) ? recent.tracks : [],
+      listeningWindow: recent?.listeningWindow || null,
+    };
+  }
+
+  if (
+    (recent?.status === 'recent' || recent?.status === 'playing')
+    && hasListeningTrack(recent)
+  ) return recent;
+
+  return current || recent || { status: 'unavailable' };
+}
+
+function renderListeningSnapshot() {
+  const state = composedListeningState();
+
+  if (
+    (state?.status === 'playing' || state?.status === 'recent')
+    && state?.provider === 'Spotify'
+    && hasListeningTrack(state)
+  ) {
+    renderListeningTracks(state);
+  } else {
+    renderListeningService(state?.status || 'unavailable');
+  }
+}
+
 function nextListeningDelay(state, response) {
-  if (state.status === 'playing') return 30_000;
-  if (state.status === 'recent') return 120_000;
-  if (state.status === 'rate_limited') {
+  if (state?.status === 'playing') return 10_000;
+  if (state?.status === 'rate_limited') {
     const retryAfter = Number(state.retryAfter)
-      || Number(response.headers.get('retry-after'))
+      || Number(response?.headers?.get('retry-after'))
       || 30;
     return Math.max(30, retryAfter) * 1000;
   }
-  if (state.status === 'not_connected' || state.status === 'needs_reconnect') {
+  if (state?.status === 'not_connected' || state?.status === 'needs_reconnect') {
     return 300_000;
   }
-  return 120_000;
+  return 15_000;
 }
 
 function clearListeningTimer() {
@@ -779,10 +908,10 @@ function clearListeningTimer() {
 function scheduleListeningUpdate(delay) {
   clearListeningTimer();
   if (document.hidden) return;
-  listeningTimer = window.setTimeout(loadListeningState, delay);
+  listeningTimer = window.setTimeout(() => loadListeningState(), delay);
 }
 
-async function loadListeningState() {
+async function loadListeningState(forceHistory = false) {
   if (!listeningEndpoint || !listeningPanel || listeningLoading) return;
 
   listeningStarted = true;
@@ -790,31 +919,65 @@ async function loadListeningState() {
   clearListeningTimer();
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 20_000);
+  const historyIsStale = Date.now() - listeningSnapshot.historyUpdatedAt
+    >= LISTENING_HISTORY_INTERVAL;
+  const historyRetryReady = Date.now() >= listeningSnapshot.historyRetryAt;
+  const shouldRefreshHistory = historyRetryReady && (
+    forceHistory === true
+    || !listeningSnapshot.recent
+    || historyIsStale
+  );
 
   try {
-    const response = await fetch(listeningEndpoint, {
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    const state = await response.json().catch(() => ({ status: 'unavailable' }));
+    const requests = [fetchListeningView('current', controller.signal)];
+    if (shouldRefreshHistory) {
+      requests.push(fetchListeningView('recent', controller.signal));
+    }
 
-    if (!response.ok && response.status !== 429) {
+    const [currentResult, recentResult] = await Promise.allSettled(requests);
+    let currentState = listeningSnapshot.current || { status: 'unavailable' };
+    let currentResponse;
+    let updated = false;
+
+    if (currentResult.status === 'fulfilled') {
+      currentState = currentResult.value.state || currentState;
+      currentResponse = currentResult.value.response;
+
+      if (currentState.status !== 'rate_limited') {
+        listeningSnapshot.current = currentState;
+        updated = true;
+      }
+    }
+
+    if (shouldRefreshHistory && recentResult?.status === 'fulfilled') {
+      const recentState = recentResult.value.state;
+      if (recentState?.status === 'rate_limited') {
+        const retryAfter = Number(recentState.retryAfter)
+          || Number(recentResult.value.response.headers.get('retry-after'))
+          || 30;
+        listeningSnapshot.historyRetryAt = Date.now() + Math.max(30, retryAfter) * 1000;
+      } else {
+        listeningSnapshot.recent = recentState;
+        listeningSnapshot.historyUpdatedAt = Date.now();
+        listeningSnapshot.historyRetryAt = 0;
+        updated = true;
+      }
+    }
+
+    if (updated) {
+      listeningFailures = 0;
+      renderListeningSnapshot();
+    } else if (currentState.status === 'rate_limited') {
+      if (listeningSnapshot.recent) {
+        renderListeningSnapshot();
+      } else {
+        renderListeningService('rate_limited');
+      }
+    } else {
       throw new Error('listening_unavailable');
     }
 
-    listeningFailures = 0;
-    const hasTracks = Array.isArray(state?.tracks)
-      && state.tracks.some((track) => normaliseListeningTrack(track));
-    if (
-      (state?.status === 'playing' || state?.status === 'recent')
-      && state?.provider === 'Spotify'
-      && (hasTracks || normaliseListeningTrack(state?.track))
-    ) {
-      renderListeningTracks(state);
-    } else {
-      renderListeningService(state?.status || 'unavailable');
-    }
-    scheduleListeningUpdate(nextListeningDelay(state || {}, response));
+    scheduleListeningUpdate(nextListeningDelay(currentState, currentResponse));
   } catch {
     listeningFailures += 1;
     if (listeningHasTracks) {
@@ -835,6 +998,14 @@ function startListeningUpdates() {
 }
 
 if (listeningPanel && listeningEndpoint) {
+  reducedMotionQuery?.addEventListener?.('change', ({ matches }) => {
+    if (matches) {
+      stopListeningProgress();
+    } else if (listeningStarted) {
+      renderListeningSnapshot();
+    }
+  });
+
   if ('IntersectionObserver' in window) {
     const listeningObserver = new IntersectionObserver((entries, observer) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;
@@ -848,18 +1019,22 @@ if (listeningPanel && listeningEndpoint) {
 
   listeningElements.refresh?.addEventListener('click', () => {
     listeningFailures = 0;
-    loadListeningState();
+    loadListeningState(true);
   });
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       clearListeningTimer();
+      stopListeningProgress();
     } else if (listeningStarted) {
       loadListeningState();
     }
   });
 
-  window.addEventListener('pagehide', clearListeningTimer);
+  window.addEventListener('pagehide', () => {
+    clearListeningTimer();
+    stopListeningProgress();
+  });
 }
 
 const progressHairline = document.createElement('div');
@@ -947,7 +1122,7 @@ if (copyButton) {
     revertTimer = window.setTimeout(() => {
       copyButton.classList.remove('is-copied');
       copyButton.classList.remove('copy-action--no-motion');
-      if (visibleLabel) visibleLabel.textContent = 'Copy';
+      if (visibleLabel) visibleLabel.textContent = 'Copy email';
       if (statusLabel) statusLabel.textContent = '';
     }, copied ? 1800 : 2400);
   });

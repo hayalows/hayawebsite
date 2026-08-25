@@ -51,10 +51,12 @@ function createResponse() {
   };
 }
 
-async function runScenario(currentResponse) {
+async function runScenario(currentResponse, view = "combined") {
   spotify.clearAccessToken();
+  const requestedUrls = [];
   global.fetch = async (url) => {
     const href = String(url);
+    requestedUrls.push(href);
 
     if (href.includes("accounts.spotify.com/api/token")) {
       return jsonResponse({ access_token: "test-access", expires_in: 3600 });
@@ -76,7 +78,8 @@ async function runScenario(currentResponse) {
   };
 
   const response = createResponse();
-  await handler({ method: "GET" }, response);
+  await handler({ method: "GET", query: { view } }, response);
+  response.requestedUrls = requestedUrls;
   return response;
 }
 
@@ -94,6 +97,8 @@ async function runScenario(currentResponse) {
   assert.equal(playing.body.progressMs, 60000);
   assert.equal(playing.body.tracks.length, 2);
   assert.equal(playing.body.tracks[0].plays, 2);
+  assert.equal(playing.headers["cache-control"], "public, max-age=0, must-revalidate");
+  assert.match(playing.headers["vercel-cdn-cache-control"], /s-maxage=5/);
 
   const fallback = await runScenario(new Response(null, { status: 204 }));
 
@@ -103,7 +108,48 @@ async function runScenario(currentResponse) {
   assert.equal(fallback.body.track.name, "Recent One");
   assert.equal(fallback.body.tracks.length, 2);
 
-  process.stdout.write("Spotify live and recent fallback scenarios passed.\n");
+  const currentOnly = await runScenario(jsonResponse({
+    is_playing: true,
+    progress_ms: 90000,
+    item: track("current", "Live Song"),
+  }), "current");
+
+  assert.equal(currentOnly.body.status, "playing");
+  assert.equal(currentOnly.body.progressMs, 90000);
+  assert.equal(currentOnly.body.tracks.length, 0);
+  assert.equal(
+    currentOnly.requestedUrls.some((url) => url.includes("recently-played")),
+    false,
+  );
+
+  const currentOffline = await runScenario(new Response(null, { status: 204 }), "current");
+
+  assert.equal(currentOffline.statusCode, 200);
+  assert.equal(currentOffline.body.status, "offline");
+  assert.equal(currentOffline.body.source, "currently_playing");
+
+  const rateLimited = await runScenario(jsonResponse(
+    { error: { status: 429, message: "Too many requests" } },
+    429,
+    { "retry-after": "42" },
+  ), "current");
+
+  assert.equal(rateLimited.statusCode, 429);
+  assert.equal(rateLimited.body.status, "rate_limited");
+  assert.equal(rateLimited.headers["retry-after"], "42");
+  assert.equal(rateLimited.headers["cache-control"], "no-store");
+
+  const recentOnly = await runScenario(new Response(null, { status: 204 }), "recent");
+
+  assert.equal(recentOnly.body.status, "recent");
+  assert.equal(recentOnly.body.tracks.length, 2);
+  assert.equal(
+    recentOnly.requestedUrls.some((url) => url.endsWith("currently-playing")),
+    false,
+  );
+  assert.match(recentOnly.headers["vercel-cdn-cache-control"], /s-maxage=45/);
+
+  process.stdout.write("Spotify live, current-only and recent fallback scenarios passed.\n");
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;
