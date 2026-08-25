@@ -515,6 +515,28 @@ h2 {
   line-height: .96;
 }
 
+.listening-now {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-block-start: .7rem;
+  color: var(--accent);
+  font-size: .72rem;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listening-now::before {
+  flex: 0 0 auto;
+  width: .38rem;
+  height: .38rem;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
 .listening-live {
   flex: 0 0 auto;
   padding-block-end: .22rem;
@@ -1804,6 +1826,11 @@ footer a {
 
   .listening-heading h3 {
     font-size: 2rem;
+  }
+
+  .listening-now {
+    max-width: 15rem;
+    font-size: .64rem;
   }
 
   .listening-row {
