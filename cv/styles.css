@@ -701,6 +701,20 @@ a.listening-row:hover {
 .listening-footnote button:hover { color: var(--text); }
 .listening-footnote button:active { scale: .96; }
 
+
+.listening-panel[data-state="loading"] .listening-row--placeholder {
+  border-color: var(--line);
+  background: transparent;
+}
+
+.listening-panel[data-state="loading"] .listening-loading-row {
+  opacity: .34;
+}
+
+.listening-panel[data-state="loading"] .listening-art--fallback {
+  opacity: .65;
+}
+
 .listening-panel[data-state="playing"] .listening-live {
   color: var(--accent);
 }
