@@ -11,6 +11,7 @@ const listeningPanel = document.querySelector('[data-listening]');
 const listeningElements = {
   kicker: document.querySelector('[data-listening-kicker]'),
   title: document.querySelector('[data-listening-title]'),
+  now: document.querySelector('[data-listening-now]'),
   status: document.querySelector('[data-listening-status]'),
   list: document.querySelector('[data-listening-list]'),
   window: document.querySelector('[data-listening-window]'),
@@ -380,6 +381,16 @@ function renderListeningTracks(state) {
   if (listeningElements.title) {
     listeningElements.title.textContent = 'Top 5 lately.';
   }
+  if (listeningElements.now) {
+    const nowTrack = state.status === 'playing' ? state.track : null;
+    const nowArtist = Array.isArray(nowTrack?.artists)
+      ? nowTrack.artists.join(', ')
+      : '';
+    listeningElements.now.textContent = nowTrack?.name
+      ? 'Now playing · ' + nowTrack.name + (nowArtist ? ' · ' + nowArtist : '')
+      : '';
+    listeningElements.now.hidden = !nowTrack?.name;
+  }
   if (listeningElements.status) {
     listeningElements.status.textContent = state.status === 'playing'
       ? 'live'
@@ -438,6 +449,10 @@ function renderListeningService(statusName) {
   }
   if (listeningElements.title) {
     listeningElements.title.textContent = state.title;
+  }
+  if (listeningElements.now) {
+    listeningElements.now.textContent = '';
+    listeningElements.now.hidden = true;
   }
   if (listeningElements.status) {
     listeningElements.status.textContent = state.status;
