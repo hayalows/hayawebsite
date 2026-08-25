@@ -222,10 +222,20 @@ window.addEventListener('scroll', () => {
 
 sectionLinks.forEach((link) => {
   link.addEventListener('click', () => {
-    setActiveSection(link.dataset.sectionLink);
-    if (mobileMoreSectionIds.has(link.dataset.sectionLink)) {
-      requestAnimationFrame(() => setMoreMenu(false));
-    }
+    const sectionId = link.dataset.sectionLink;
+    const target = document.getElementById(sectionId);
+
+    setActiveSection(sectionId);
+    requestAnimationFrame(() => {
+      target?.scrollIntoView({
+        behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+        block: 'start',
+      });
+
+      if (mobileMoreSectionIds.has(sectionId)) setMoreMenu(false);
+    });
   });
 });
 
