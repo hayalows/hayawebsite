@@ -69,8 +69,136 @@ if (mobileDisclosures.length && window.matchMedia) {
 }
 
 const localTimeElement = document.querySelector('[data-local-time]');
+const localDateElement = document.querySelector('[data-local-date]');
+const nextHolidayElement = document.querySelector('[data-next-holiday]');
+const nextHolidayCountElement = document.querySelector('[data-next-holiday-count]');
+
+const GHANA_TIME_ZONE = 'Africa/Accra';
+
+function createGhanaDate(year, month, day) {
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function addDays(date, days) {
+  return new Date(date.getTime() + days * 86400000);
+}
+
+function getGhanaDateParts(date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: GHANA_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+
+  return parts.reduce((values, part) => {
+    if (part.type !== 'literal') values[part.type] = Number(part.value);
+    return values;
+  }, {});
+}
+
+function getEasterSunday(year) {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return createGhanaDate(year, month, day);
+}
+
+function getFirstFridayOfDecember(year) {
+  const first = createGhanaDate(year, 12, 1);
+  const offset = (5 - first.getUTCDay() + 7) % 7;
+  return createGhanaDate(year, 12, 1 + offset);
+}
+
+function getGhanaHolidays(year) {
+  if (year === 2026) {
+    return [
+      ['New Year’s Day', 1, 1],
+      ['Constitution Day', 1, 9],
+      ['Independence Day', 3, 6],
+      ['Eid-ul-Fitr', 3, 20],
+      ['Shaqq Day', 3, 23],
+      ['Good Friday', 4, 3],
+      ['Easter Monday', 4, 6],
+      ['Labour Day', 5, 1],
+      ['Republic Day', 7, 3],
+      ['Founder’s Day', 9, 21],
+      ['Farmer’s Day', 12, 4],
+      ['Christmas Day', 12, 25],
+      ['Boxing Day', 12, 28],
+    ].map(([name, month, day]) => ({ name, date: createGhanaDate(year, month, day) }));
+  }
+
+  const easter = getEasterSunday(year);
+  return [
+    ['New Year’s Day', createGhanaDate(year, 1, 1)],
+    ['Constitution Day', createGhanaDate(year, 1, 7)],
+    ['Independence Day', createGhanaDate(year, 3, 6)],
+    ['Good Friday', addDays(easter, -2)],
+    ['Easter Monday', addDays(easter, 1)],
+    ['Labour Day', createGhanaDate(year, 5, 1)],
+    ['Republic Day', createGhanaDate(year, 7, 1)],
+    ['Founder’s Day', createGhanaDate(year, 9, 21)],
+    ['Farmer’s Day', getFirstFridayOfDecember(year)],
+    ['Christmas Day', createGhanaDate(year, 12, 25)],
+    ['Boxing Day', createGhanaDate(year, 12, 26)],
+  ].map(([name, date]) => ({ name, date }));
+}
+
+function formatGhanaHolidayDate(date) {
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    timeZone: GHANA_TIME_ZONE,
+  }).format(date);
+}
+
+function renderNextGhanaHoliday(now) {
+  if (!nextHolidayElement) return;
+
+  const parts = getGhanaDateParts(now);
+  const today = createGhanaDate(parts.year, parts.month, parts.day);
+  let holidays = getGhanaHolidays(parts.year).filter((holiday) => holiday.date >= today);
+
+  if (!holidays.length) {
+    holidays = getGhanaHolidays(parts.year + 1);
+  }
+
+  holidays.sort((a, b) => a.date - b.date);
+  const nextHoliday = holidays[0];
+
+  if (!nextHoliday) {
+    nextHolidayElement.textContent = 'Calendar unavailable';
+    if (nextHolidayCountElement) nextHolidayCountElement.textContent = 'Ghana public holidays';
+    return;
+  }
+
+  const daysAway = Math.round((nextHoliday.date - today) / 86400000);
+  nextHolidayElement.textContent = nextHoliday.name;
+  if (nextHolidayCountElement) {
+    const timing = daysAway === 0
+      ? 'Today'
+      : daysAway === 1
+        ? 'Tomorrow'
+        : 'in ' + daysAway + ' days';
+    nextHolidayCountElement.textContent = formatGhanaHolidayDate(nextHoliday.date) + ' · ' + timing;
+  }
+}
+
 if (localTimeElement) {
   let ghanaTimeFormatter = null;
+  let ghanaDateFormatter = null;
 
   try {
     ghanaTimeFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -78,7 +206,13 @@ if (localTimeElement) {
       minute: '2-digit',
       second: '2-digit',
       hour12: false,
-      timeZone: 'GMT',
+      timeZone: GHANA_TIME_ZONE,
+    });
+    ghanaDateFormatter = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      timeZone: GHANA_TIME_ZONE,
     });
   } catch {
     ghanaTimeFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -87,16 +221,23 @@ if (localTimeElement) {
       second: '2-digit',
       hour12: false,
     });
+    ghanaDateFormatter = new Intl.DateTimeFormat('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
   }
 
-  const renderLocalTime = () => {
+  const renderLocalContext = () => {
     const now = new Date();
     localTimeElement.textContent = ghanaTimeFormatter.format(now);
     localTimeElement.dateTime = now.toISOString();
+    if (localDateElement) localDateElement.textContent = ghanaDateFormatter.format(now);
+    renderNextGhanaHoliday(now);
   };
 
-  renderLocalTime();
-  window.setInterval(renderLocalTime, 1000);
+  renderLocalContext();
+  window.setInterval(renderLocalContext, 1000);
 }
 
 let listeningTimer;
