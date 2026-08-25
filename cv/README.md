@@ -18,7 +18,7 @@ Open `http://localhost:4173`.
 
 ## Spotify connection
 
-The expandable personal listening panel reads public track metadata from a server-side Vercel function. It asks Spotify for the currently playing track first, then falls back to the most recently played track when playback is paused, private, unavailable or returns no content. It stays quiet when Spotify is not connected and never exposes OAuth tokens to browser JavaScript.
+The personal listening panel reads public track metadata from a server-side Vercel function. It shows the five tracks that repeat most within Spotify’s latest 50 recently played entries, while still checking whether something is playing now. Spotify does not provide lifetime play counts through this feed, so the page labels these as recent plays and shows the listening window. It stays quiet when Spotify is not connected and never exposes OAuth tokens to browser JavaScript.
 
 The production project needs these Vercel environment variables:
 
@@ -37,7 +37,7 @@ https://pkm.hayalows.com/api/spotify/callback
 
 To authorise the account, open https://pkm.hayalows.com/api/spotify/login. Spotify returns a one-time refresh token page. Add that value to Vercel as SPOTIFY_REFRESH_TOKEN, then redeploy. Keep the value private.
 
-The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. The public page polls gently only while visible: every 15 seconds during playback, every 60 seconds for a recent track, and less often for offline or error states. Spotify `204`, expired access tokens, `401`, `403`, `429` with `Retry-After`, and temporary offline states are handled explicitly.
+The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. The public page polls gently only while visible: every 30 seconds during playback, every 120 seconds for recent listening, and less often for offline or error states. Spotify `204`, expired access tokens, `401`, `403`, `429` with `Retry-After`, and temporary offline states are handled explicitly.
 
 The public /api/listening route returns metadata only:
 
