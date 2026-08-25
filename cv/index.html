@@ -88,8 +88,8 @@
         document.documentElement.dataset.loaderStarted = String(performance.now());
       }
     </script>
-    <link rel="stylesheet" href="styles.css?v=refine-5">
-    <script src="script.js?v=refine-5" defer></script>
+    <link rel="stylesheet" href="styles.css?v=refine-6">
+    <script src="script.js?v=refine-6" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -370,10 +370,25 @@
               <p>When I’m not working, music is one of the ways I reset.</p>
             </div>
           </header>
-          <dl class="local-context" aria-label="Location and local time" data-nosnippet>
-            <div><dt>Coordinates</dt><dd>6.700° N · 1.612° W</dd></div>
-            <div><dt>Based</dt><dd>Ghana</dd></div>
-            <div><dt>Local time</dt><dd><time data-local-time datetime="">--:--:--</time> GMT</dd></div>
+          <dl class="local-context" aria-label="Ghana time and public holiday" data-nosnippet>
+            <div class="local-context__coordinates">
+              <dt>Coordinates</dt>
+              <dd>6.700° N · 1.612° W</dd>
+            </div>
+            <div>
+              <dt>Based</dt>
+              <dd>Ghana</dd>
+            </div>
+            <div class="local-context__time">
+              <dt>Local time</dt>
+              <dd><time data-local-time datetime="">--:--:--</time> <span class="local-context__zone">GMT</span></dd>
+              <small data-local-date>Checking the date</small>
+            </div>
+            <div class="local-context__holiday">
+              <dt>Next public holiday</dt>
+              <dd><span data-next-holiday>Checking the calendar</span></dd>
+              <small data-next-holiday-count>Ghana public holidays</small>
+            </div>
           </dl>
           <div class="listening-panel" data-listening data-state="loading" data-nosnippet>
             <div class="listening-heading">
@@ -438,7 +453,7 @@
           <p>If you need someone who can understand the details, keep the human side in view and turn scattered work into a clear next step, I’d be glad to hear from you.</p>
           <div class="contact-actions">
             <div class="email-action">
-              <a class="primary-action" href="mailto:mpapakojo@gmail.com?subject=Hello%20Papa%20Kojo" aria-label="Email Papa Kojo Mensah at mpapakojo@gmail.com">mpapakojo@gmail.com</a>
+              <a class="primary-action" href="mailto:mpapakojo@gmail.com?subject=Hello%20Papa%20Kojo" aria-label="Send me a note by email"><span class="u-draw">Send me a note</span></a>
               <button class="copy-action" type="button" data-copy-email aria-label="Copy mpapakojo@gmail.com" title="Copy email address">
                 <span class="copy-action__icons" aria-hidden="true">
                   <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -453,34 +468,6 @@
           </div>
         </section>
 
-        <details class="changelog" data-nosnippet>
-          <summary>
-            <span class="changelog__label">Site changelog</span>
-            <span class="changelog__meta"><span>v5</span><i aria-hidden="true"></i></span>
-          </summary>
-          <div class="changelog__list">
-            <article>
-              <strong>v5 — Clearer at every size</strong>
-              <p>A calmer laptop navigation, clearer contact actions, local time with seconds and stronger public profile metadata.</p>
-            </article>
-            <article>
-              <strong>v4 — A quicker, calmer mobile read</strong>
-              <p>A first-visit opening moment, a quiet coordinates-and-GMT signal and less scrolling before the useful details.</p>
-            </article>
-            <article>
-              <strong>v3 — Motion layer</strong>
-              <p>A choreographed entrance, gliding section navigation, softer accordions and a quicker way to copy my email.</p>
-            </article>
-            <article>
-              <strong>v2 — Personal signals</strong>
-              <p>Reworded this page in my own voice and added the live Spotify listening corner.</p>
-            </article>
-            <article>
-              <strong>v1 — First public CV</strong>
-              <p>The original one-page CV with projects, experience, skills and a printable resume route.</p>
-            </article>
-          </div>
-        </details>
 
         <footer>
           <span>© <span data-year></span> Papa Kojo Mensah</span>
