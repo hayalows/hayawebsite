@@ -270,23 +270,48 @@ function clearListeningRows() {
   if (listeningElements.list) listeningElements.list.textContent = '';
 }
 
+function normaliseListeningTrack(track) {
+  if (!track || typeof track !== 'object') return null;
+
+  const name = String(track.name || '').trim();
+  if (!name) return null;
+
+  const artists = Array.isArray(track.artists)
+    ? track.artists.map((artist) => String(artist || '').trim()).filter(Boolean)
+    : [];
+
+  return {
+    ...track,
+    name,
+    artists,
+    url: typeof track.url === 'string' ? track.url : '',
+    imageUrl: typeof track.imageUrl === 'string' ? track.imageUrl : '',
+  };
+}
+
 function createListeningRow(track, index) {
+  const safeTrack = normaliseListeningTrack(track);
+  if (!safeTrack) return null;
+
+  const artistLabel = safeTrack.artists.length
+    ? safeTrack.artists.join(', ')
+    : 'Unknown artist';
   const item = document.createElement('li');
   item.className = 'listening-ranking__item';
 
-  const row = track.url
+  const row = safeTrack.url
     ? document.createElement('a')
     : document.createElement('div');
   row.className = 'listening-row' + (index === 0 ? ' listening-row--top' : '');
   row.style.setProperty('--row-i', String(index));
 
-  if (track.url) {
-    row.href = track.url;
+  if (safeTrack.url) {
+    row.href = safeTrack.url;
     row.target = '_blank';
     row.rel = 'noreferrer noopener';
     row.setAttribute(
       'aria-label',
-      'Open ' + track.name + ' by ' + (track.artists?.join(', ') || 'unknown artist') + ' in Spotify',
+      'Open ' + safeTrack.name + ' by ' + artistLabel + ' in Spotify',
     );
   }
 
@@ -297,9 +322,9 @@ function createListeningRow(track, index) {
   const art = document.createElement('span');
   art.className = 'listening-art';
 
-  if (track.imageUrl) {
+  if (safeTrack.imageUrl) {
     const image = document.createElement('img');
-    image.src = track.imageUrl;
+    image.src = safeTrack.imageUrl;
     image.alt = '';
     image.width = 52;
     image.height = 52;
@@ -314,12 +339,10 @@ function createListeningRow(track, index) {
   copy.className = 'listening-row__copy';
 
   const title = document.createElement('strong');
-  title.textContent = track.name || 'Untitled track';
+  title.textContent = safeTrack.name;
 
   const artist = document.createElement('small');
-  artist.textContent = Array.isArray(track.artists) && track.artists.length
-    ? track.artists.join(', ')
-    : 'Unknown artist';
+  artist.textContent = artistLabel;
 
   copy.append(title, artist);
 
@@ -327,7 +350,7 @@ function createListeningRow(track, index) {
   count.className = 'listening-count';
 
   const countValue = document.createElement('strong');
-  countValue.textContent = String(Number(track.plays) || 1);
+  countValue.textContent = String(Number(safeTrack.plays) || 1);
 
   const countLabel = document.createElement('small');
   countLabel.textContent = 'plays';
@@ -361,18 +384,24 @@ function renderListeningRows(tracks, emptyCopy) {
   }
 
   tracks.slice(0, 5).forEach((track, index) => {
-    list.append(createListeningRow(track, index));
+    const row = createListeningRow(track, index);
+    if (row) list.append(row);
   });
 }
 
 function renderListeningTracks(state) {
-  const tracks = Array.isArray(state.tracks) && state.tracks.length
-    ? state.tracks
-    : state.track?.name
-      ? [{ ...state.track, plays: 1 }]
-      : [];
+  const recentTracks = Array.isArray(state?.tracks)
+    ? state.tracks.map(normaliseListeningTrack).filter(Boolean)
+    : [];
+  const tracks = recentTracks.length
+    ? recentTracks.slice(0, 5)
+    : (() => {
+      const currentTrack = normaliseListeningTrack(state?.track);
+      return currentTrack ? [{ ...currentTrack, plays: 1 }] : [];
+    })();
 
-  listeningPanel.dataset.state = state.status;
+  if (!listeningPanel) return;
+  listeningPanel.dataset.state = state?.status || 'recent';
   listeningHasTracks = tracks.length > 0;
 
   if (listeningElements.kicker) {
@@ -489,7 +518,7 @@ async function loadListeningState() {
   listeningLoading = true;
   clearListeningTimer();
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 8_000);
+  const timeout = window.setTimeout(() => controller.abort(), 20_000);
 
   try {
     const response = await fetch(listeningEndpoint, {
@@ -503,17 +532,18 @@ async function loadListeningState() {
     }
 
     listeningFailures = 0;
-    const hasTracks = Array.isArray(state.tracks) && state.tracks.length > 0;
+    const hasTracks = Array.isArray(state?.tracks)
+      && state.tracks.some((track) => normaliseListeningTrack(track));
     if (
-      (state.status === 'playing' || state.status === 'recent')
-      && state.provider === 'Spotify'
-      && (hasTracks || state.track?.name)
+      (state?.status === 'playing' || state?.status === 'recent')
+      && state?.provider === 'Spotify'
+      && (hasTracks || normaliseListeningTrack(state?.track))
     ) {
       renderListeningTracks(state);
     } else {
-      renderListeningService(state.status);
+      renderListeningService(state?.status || 'unavailable');
     }
-    scheduleListeningUpdate(nextListeningDelay(state, response));
+    scheduleListeningUpdate(nextListeningDelay(state || {}, response));
   } catch {
     listeningFailures += 1;
     if (listeningHasTracks) {
