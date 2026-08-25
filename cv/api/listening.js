@@ -29,6 +29,7 @@ function trackPayload(track, playedAt = null) {
   if (!track?.name || track.type !== "track") return null;
 
   return {
+    id: track.id || track.uri || null,
     name: track.name,
     artists: track.artists?.map((artist) => artist.name).filter(Boolean) || [],
     album: track.album?.name || null,
@@ -40,6 +41,67 @@ function trackPayload(track, playedAt = null) {
   };
 }
 
+function rankedRecentTracks(items) {
+  const grouped = new Map();
+  const playedDates = [];
+
+  for (const item of Array.isArray(items) ? items : []) {
+    const track = trackPayload(item?.track, item?.played_at || null);
+    if (!track) continue;
+
+    const playedAt = track.playedAt ? new Date(track.playedAt) : null;
+    if (playedAt && !Number.isNaN(playedAt.getTime())) {
+      playedDates.push(playedAt);
+    }
+
+    const key = track.id || track.url || track.name + "|" + track.artists.join(",");
+    const current = grouped.get(key);
+
+    if (!current) {
+      grouped.set(key, {
+        ...track,
+        plays: 1,
+        firstPlayedAt: track.playedAt,
+        lastPlayedAt: track.playedAt,
+      });
+      continue;
+    }
+
+    current.plays += 1;
+    if (
+      track.playedAt
+      && (!current.firstPlayedAt || new Date(track.playedAt) < new Date(current.firstPlayedAt))
+    ) {
+      current.firstPlayedAt = track.playedAt;
+    }
+    if (
+      track.playedAt
+      && (!current.lastPlayedAt || new Date(track.playedAt) > new Date(current.lastPlayedAt))
+    ) {
+      current.lastPlayedAt = track.playedAt;
+      current.playedAt = track.playedAt;
+    }
+  }
+
+  const tracks = Array.from(grouped.values())
+    .sort((a, b) => {
+      if (b.plays !== a.plays) return b.plays - a.plays;
+      return new Date(b.lastPlayedAt || 0) - new Date(a.lastPlayedAt || 0);
+    })
+    .slice(0, 5);
+
+  playedDates.sort((a, b) => a - b);
+
+  return {
+    tracks,
+    listeningWindow: {
+      from: playedDates[0]?.toISOString() || null,
+      to: playedDates.at(-1)?.toISOString() || null,
+      sampleSize: Array.isArray(items) ? items.length : 0,
+    },
+  };
+}
+
 function basePayload(status, track = null, details = {}) {
   return {
     status,
@@ -47,6 +109,8 @@ function basePayload(status, track = null, details = {}) {
     isPlaying: status === "playing",
     source: details.source || null,
     track,
+    tracks: Array.isArray(details.tracks) ? details.tracks : [],
+    listeningWindow: details.listeningWindow || null,
     progressMs: Number(details.progressMs) || null,
     updatedAt: new Date().toISOString(),
   };
@@ -68,14 +132,23 @@ async function requestWithFreshToken(path, options = {}) {
 
 async function recentlyPlayed() {
   const response = await requestWithFreshToken(
-    "/v1/me/player/recently-played?limit=1",
+    "/v1/me/player/recently-played?limit=50",
   );
-  const item = response.data?.items?.[0];
-  const track = trackPayload(item?.track, item?.played_at || null);
+  const items = response.data?.items || [];
+  const ranked = rankedRecentTracks(items);
+  const latest = trackPayload(items[0]?.track, items[0]?.played_at || null);
 
-  return track
-    ? basePayload("recent", track, { source: "recently_played" })
-    : basePayload("offline", null, { source: "recently_played" });
+  return latest
+    ? basePayload("recent", latest, {
+      source: "recently_played",
+      tracks: ranked.tracks,
+      listeningWindow: ranked.listeningWindow,
+    })
+    : basePayload("offline", null, {
+      source: "recently_played",
+      tracks: ranked.tracks,
+      listeningWindow: ranked.listeningWindow,
+    });
 }
 
 module.exports = async function handler(request, response) {
@@ -94,13 +167,13 @@ module.exports = async function handler(request, response) {
         { allowNoContent: true },
       );
     } catch (error) {
-      // Existing authorisations may not yet include the new current-track scope.
-      // Keep the already-working recent-track experience intact if Spotify
-      // rejects only this newer endpoint after the access-token retry.
+      // Existing authorisations may not yet include the current-track scope.
+      // Keep the recent-history experience working if Spotify rejects this endpoint.
       if (error.status !== 401 && error.status !== 403) throw error;
       current = null;
     }
 
+    const recent = await recentlyPlayed();
     const currentTrack = trackPayload(current?.data?.item);
 
     if (current?.data?.is_playing && currentTrack) {
@@ -110,19 +183,20 @@ module.exports = async function handler(request, response) {
         basePayload("playing", currentTrack, {
           source: "currently_playing",
           progressMs: current.data.progress_ms,
+          tracks: recent.tracks,
+          listeningWindow: recent.listeningWindow,
         }),
-        "public, s-maxage=12, stale-while-revalidate=24",
+        "public, s-maxage=20, stale-while-revalidate=60",
       );
       return;
     }
 
-    const recent = await recentlyPlayed();
     send(
       response,
       200,
       recent,
       recent.status === "recent"
-        ? "public, s-maxage=45, stale-while-revalidate=120"
+        ? "public, s-maxage=60, stale-while-revalidate=180"
         : "public, s-maxage=30, stale-while-revalidate=60",
     );
   } catch (error) {
