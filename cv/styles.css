@@ -640,6 +640,11 @@ h2 {
   font-weight: 620;
 }
 
+.project-detail .project-link {
+  gap: .35rem;
+  text-decoration: none;
+}
+
 .listening-panel {
   min-width: 0;
   margin-block-start: 1.8rem;
