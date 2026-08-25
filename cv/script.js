@@ -18,18 +18,6 @@ const listeningElements = {
   refresh: document.querySelector('[data-listening-refresh]'),
 };
 
-let listeningTimer;
-let listeningStarted = false;
-let listeningLoading = false;
-let listeningFailures = 0;
-let listeningHasTracks = false;
-
-let activeSectionId = 'about';
-
-const EMAIL_ADDRESS = 'mpapakojo@gmail.com';
-const sideNavElement = document.querySelector('.section-nav');
-const mobilePrimaryElement = document.querySelector('.mobile-nav__primary');
-
 const localTimeElement = document.querySelector('[data-local-time]');
 if (localTimeElement) {
   let accraFormatter = null;
@@ -56,6 +44,18 @@ if (localTimeElement) {
   renderLocalTime();
   window.setInterval(renderLocalTime, 15000);
 }
+
+let listeningTimer;
+let listeningStarted = false;
+let listeningLoading = false;
+let listeningFailures = 0;
+let listeningHasTracks = false;
+
+let activeSectionId = 'about';
+
+const EMAIL_ADDRESS = 'mpapakojo@gmail.com';
+const sideNavElement = document.querySelector('.section-nav');
+const mobilePrimaryElement = document.querySelector('.mobile-nav__primary');
 
 function createGlide(container) {
   if (!container) return null;
