@@ -42,8 +42,8 @@
         <nav aria-label="Additional CV sections">
           <a href="#skills" data-section-link="skills">Skills</a>
           <a href="#education" data-section-link="education">Education</a>
-          <a href="#contact" data-section-link="contact">Contact</a>
           <a href="#personal" data-section-link="personal">Personal</a>
+          <a href="#contact" data-section-link="contact">Contact</a>
         </nav>
       </div>
     </header>
@@ -59,8 +59,8 @@
             <a href="#experience" data-section-link="experience"><span>Experience</span></a>
             <a href="#skills" data-section-link="skills"><span>Skills</span></a>
             <a href="#education" data-section-link="education"><span>Education</span></a>
-            <a href="#contact" data-section-link="contact"><span>Contact</span></a>
             <a href="#personal" data-section-link="personal"><span>Personal</span></a>
+            <a href="#contact" data-section-link="contact"><span>Contact</span></a>
           </nav>
         </div>
         <p class="side-rail__meta">Based in Ghana<br><span>Working globally.</span></p>
@@ -283,6 +283,48 @@
           </div>
         </section>
 
+        <section class="content-section personal-section reveal-section" id="personal" data-section="personal" aria-labelledby="personal-title">
+          <header class="section-heading">
+            <p class="section-index">05</p>
+            <div>
+              <h2 id="personal-title">Personal</h2>
+              <p>When I’m not working, music is one of the ways I reset.</p>
+            </div>
+          </header>
+          <p class="local-time-chip">
+            <i aria-hidden="true"></i>
+            Accra · Kumasi · <time data-local-time>--:--</time> GMT
+          </p>
+          <div class="listening-panel" data-listening data-state="loading">
+            <div class="listening-heading">
+              <div>
+                <p class="eyebrow" data-listening-kicker>Currently occupying my brain</p>
+                <h3 data-listening-title>Top 5 lately.</h3>
+              </div>
+              <span class="listening-live" data-listening-status role="status" aria-live="polite">checking</span>
+            </div>
+            <ol class="listening-ranking" data-listening-list aria-live="polite">
+              <li class="listening-ranking__item">
+                <div class="listening-row listening-row--placeholder" aria-hidden="true">
+                  <span class="listening-rank">01</span>
+                  <span class="listening-art listening-art--fallback">♪</span>
+                  <span class="listening-row__copy">
+                    <strong>Checking Spotify</strong>
+                    <small>Recent listening will appear here.</small>
+                  </span>
+                  <span class="listening-count"><strong>—</strong><small>plays</small></span>
+                </div>
+              </li>
+            </ol>
+            <div class="listening-footnote">
+              <span data-listening-window>Recent listening</span>
+              <span aria-hidden="true">/</span>
+              <em data-listening-note>Counting the songs I’ve played recently.</em>
+              <button type="button" data-listening-refresh>Refresh</button>
+            </div>
+          </div>
+        </section>
+
         <section class="contact-section reveal-section" id="contact" data-section="contact" aria-labelledby="contact-title">
           <p class="eyebrow">Based in Ghana · Open to thoughtful work anywhere</p>
           <h2 id="contact-title">Let’s make the next step clearer.</h2>
@@ -296,46 +338,6 @@
             </button>
             <a href="https://www.linkedin.com/in/papakojomensah" rel="me">LinkedIn profile</a>
           </div>
-        </section>
-
-
-
-        <section class="content-section personal-section reveal-section" id="personal" data-section="personal" aria-labelledby="personal-title">
-          <header class="section-heading">
-            <p class="section-index">05</p>
-            <div>
-              <h2 id="personal-title">Personal</h2>
-              <p>When I’m not working, music is one of the ways I reset. I keep this small Spotify corner for what I’m listening to now or what I played recently.</p>
-            </div>
-          </header>
-          <p class="local-time-chip">
-            <i aria-hidden="true"></i>
-            Accra · Kumasi · <time data-local-time>--:--</time> GMT
-          </p>
-          <details class="listening-panel" data-listening data-state="loading">
-            <summary class="listening-summary">
-              <span class="listening-visual" aria-hidden="true">
-                <img class="listening-art" data-listening-art width="52" height="52" alt="" hidden>
-                <span class="listening-mark" data-listening-mark><i></i><i></i><i></i><i></i></span>
-              </span>
-              <span class="listening-summary-copy">
-                <span class="eyebrow" data-listening-kicker>Listening now or recently</span>
-                <strong id="listening-title" data-listening-title>Checking what I’m listening to…</strong>
-                <small data-listening-copy>I’ll show the track if Spotify has something recent to share.</small>
-              </span>
-              <span class="listening-summary-status">
-                <small data-listening-status role="status" aria-live="polite">checking</small>
-                <i aria-hidden="true"></i>
-              </span>
-            </summary>
-            <div class="listening-detail">
-              <p data-listening-album>If there is something recent, Spotify will show it here.</p>
-              <div class="listening-actions">
-                <a class="track-link" data-listening-track-link target="_blank" rel="noreferrer noopener" hidden>Open in Spotify <span aria-hidden="true">↗</span></a>
-                <button type="button" data-listening-refresh>Refresh</button>
-              </div>
-            </div>
-          </details>
         </section>
 
         <details class="changelog">
