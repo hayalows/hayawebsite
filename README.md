@@ -15,7 +15,7 @@ The official website for Hayalows Ventures. It is a dependency-free static site 
 - `_redirects` - compatibility redirects for earlier routes
 - `_headers` - browser security headers for Cloudflare Pages
 - `robots.txt`, `sitemap.xml` and `llms.txt` - discovery files
-- `webmcp/` and `vendor/webmcp-sdk-0.5.0.js` - WebMCP browser tools, versioned result contracts and the pinned local SDK
+- `webmcp/` and `vendor/webmcp-sdk-0.5.0-output-schema.js` - WebMCP browser tools, versioned result contracts and the pinned SDK compatibility asset
 - `assets/` - brand, icon and social-sharing artwork
 
 ## Contact form behaviour
@@ -43,7 +43,7 @@ npx.cmd serve .
 Run the package-free WebMCP checks with:
 
 ```powershell
-node --experimental-loader ./tests/webmcp-loader.mjs --test ./tests/webmcp-tools.test.mjs
+node --import ./tests/register-webmcp-loader.mjs --test ./tests/webmcp-tools.test.mjs
 ```
 
 ## Cloudflare Pages deployment
@@ -58,7 +58,7 @@ Every push to `main` publishes automatically. Do not change the domain DNS or re
 
 ## Maintenance
 
-The WebMCP registration uses the local pinned `@nekuda/webmcp-sdk` browser asset and passes `telemetry: false`. Hayalows content, tool inputs and tool outputs are not sent to the SDK telemetry endpoint. Because the current WebMCP browser dictionary does not define `outputSchema`, every tool returns a stable `schemaVersion` and `schemaUrl`; the canonical JSON Schema contracts live in `webmcp/results.schema.json`.
+The WebMCP registration uses a documented compatibility build based on pinned `@nekuda/webmcp-sdk@0.5.0` and passes `telemetry: false`. The compatibility change validates and forwards `outputSchema`, and mirrors JSON object results into `structuredContent` while preserving the SDK text fallback. Hayalows content, tool inputs and tool outputs are not sent to the SDK telemetry endpoint. Every tool also returns a stable `schemaVersion` and `schemaUrl`; the canonical JSON Schema contracts live in `webmcp/results.schema.json`.
 
 - Keep verified business details in `site.config.js`.
 - Keep matching visible details, metadata and JSON-LD accurate on every public page.

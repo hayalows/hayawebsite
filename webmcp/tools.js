@@ -1,8 +1,52 @@
 import { defineTool } from "@nekuda/webmcp-sdk";
 
 const RESULT_SCHEMA_URL = "https://hayalows.com/webmcp/results.schema.json";
-const RESULT_SCHEMA_VERSION = "1.0.0";
+const RESULT_SCHEMA_VERSION = "1.1.0";
 const PENDING_ENQUIRY_KEY = "hayalows.webmcp.pending_enquiry.v1";
+
+const RESULT_METADATA_PROPERTIES = {
+  schemaVersion: { const: RESULT_SCHEMA_VERSION },
+  schemaUrl: { const: RESULT_SCHEMA_URL },
+};
+
+const PUBLISHED_SECTION_SCHEMA = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    title: { type: "string" },
+    text: { type: "string" },
+    tags: { type: "array", items: { type: "string" } },
+    url: { type: "string", format: "uri" },
+  },
+  required: ["id", "title", "text", "tags", "url"],
+  additionalProperties: false,
+};
+
+const ASK_HAYALOWS_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    query: { type: "string" },
+    matches: { type: "array", maxItems: 4, items: PUBLISHED_SECTION_SCHEMA },
+    note: { type: "string" },
+    contact: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "object",
+          properties: {
+            url: { type: "string", format: "uri" },
+            email: { type: "string", format: "email" },
+          },
+          required: ["url", "email"],
+          additionalProperties: false,
+        },
+      ],
+    },
+  },
+  required: ["schemaVersion", "schemaUrl", "query", "matches", "note", "contact"],
+  additionalProperties: false,
+};
 
 const CONTENT = [
   {
@@ -129,6 +173,7 @@ export const askHayalows = defineTool({
     required: ["query"],
     additionalProperties: false,
   },
+  outputSchema: ASK_HAYALOWS_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: true },
   source: "merchant_authored",
   intent: "answer",
@@ -171,6 +216,34 @@ const OFFERINGS = [
   },
 ];
 
+const BROWSE_SERVICES_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    offerings: {
+      type: "array",
+      minItems: 3,
+      maxItems: 3,
+      items: {
+        type: "object",
+        properties: {
+          key: { enum: OFFERINGS.map((offering) => offering.key) },
+          name: { type: "string" },
+          bestFor: { type: "string" },
+        },
+        required: ["key", "name", "bestFor"],
+        additionalProperties: false,
+      },
+    },
+    selected: { enum: ["all", ...OFFERINGS.map((offering) => offering.key)] },
+    sourceUrl: { const: "https://hayalows.com/#what-we-do" },
+    pageEffect: { type: "string" },
+    navigationStarted: { type: "boolean" },
+  },
+  required: ["schemaVersion", "schemaUrl", "offerings", "selected", "sourceUrl", "pageEffect", "navigationStarted"],
+  additionalProperties: false,
+};
+
 export const browseHayalowsServices = defineTool({
   stableKey: "hayalows.browse_services",
   name: "browse_hayalows_services",
@@ -186,8 +259,10 @@ export const browseHayalowsServices = defineTool({
         description: "The service area to highlight, or all to show the complete offering.",
       },
     },
+    required: [],
     additionalProperties: false,
   },
+  outputSchema: BROWSE_SERVICES_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: false },
   source: "merchant_authored",
   intent: "act",
@@ -316,6 +391,23 @@ function fillEnquiryForm(form, draft) {
   form.elements.namedItem("message")?.focus({ preventScroll: true });
 }
 
+const PREPARE_ENQUIRY_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    status: { enum: ["draft_saved", "draft_ready"] },
+    helpType: { enum: Object.values(HELP_TYPES) },
+    message: { type: "string" },
+    contactDetailsIncluded: { type: "boolean" },
+    sent: { const: false },
+    navigationStarted: { type: "boolean" },
+    nextStep: { type: "string" },
+    sourceUrl: { const: "https://hayalows.com/#contact-form" },
+  },
+  required: ["schemaVersion", "schemaUrl", "status", "helpType", "message", "contactDetailsIncluded", "sent", "navigationStarted", "nextStep", "sourceUrl"],
+  additionalProperties: false,
+};
+
 export function restorePendingEnquiryDraft() {
   const form = document.querySelector("#contact-form");
   if (!form) return false;
@@ -364,6 +456,7 @@ export const prepareHayalowsEnquiry = defineTool({
     required: ["help_type", "message"],
     additionalProperties: false,
   },
+  outputSchema: PREPARE_ENQUIRY_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: false },
   source: "merchant_authored",
   intent: "act",
@@ -381,5 +474,67 @@ export const prepareHayalowsEnquiry = defineTool({
     }
     fillEnquiryForm(form, draft);
     return enquiryResult(draft, false);
+  },
+});
+
+const HAYALOWS_DESTINATIONS = {
+  home: { label: "Hayalows homepage", path: "/", url: "https://hayalows.com/" },
+  services: { label: "Services", path: "/#what-we-do", url: "https://hayalows.com/#what-we-do" },
+  approach: { label: "How Hayalows works", path: "/#how-we-work", url: "https://hayalows.com/#how-we-work" },
+  enquiry: { label: "Guided enquiry", path: "/#contact-form", url: "https://hayalows.com/#contact-form" },
+  payments: { label: "Payments", path: "/pay/", url: "https://hayalows.com/pay/" },
+  payments_refunds: { label: "Payments and refunds policy", path: "/payments-and-refunds/", url: "https://hayalows.com/payments-and-refunds/" },
+  privacy: { label: "Privacy policy", path: "/privacy/", url: "https://hayalows.com/privacy/" },
+  terms: { label: "Terms of use", path: "/terms/", url: "https://hayalows.com/terms/" },
+};
+
+const NAVIGATE_HAYALOWS_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    destination: { enum: Object.keys(HAYALOWS_DESTINATIONS) },
+    label: { type: "string" },
+    url: { type: "string", format: "uri" },
+    navigationStarted: { const: true },
+    nextStep: { type: "string" },
+  },
+  required: ["schemaVersion", "schemaUrl", "destination", "label", "url", "navigationStarted", "nextStep"],
+  additionalProperties: false,
+};
+
+export const navigateHayalows = defineTool({
+  stableKey: "hayalows.navigate",
+  name: "navigate_hayalows",
+  title: "Navigate Hayalows",
+  description: "Navigate directly to a public Hayalows destination when a visitor wants to view services, the working approach, the guided enquiry, payments, refunds, privacy or terms. Reversible navigation only; it never submits an enquiry or starts a payment. Returns destination, label, canonical url, navigationStarted and nextStep as structured content enforced by outputSchema.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      destination: {
+        type: "string",
+        enum: Object.keys(HAYALOWS_DESTINATIONS),
+        description: "The exact Hayalows page or section to open.",
+      },
+    },
+    required: ["destination"],
+    additionalProperties: false,
+  },
+  outputSchema: NAVIGATE_HAYALOWS_OUTPUT_SCHEMA,
+  annotations: { readOnlyHint: false },
+  source: "merchant_authored",
+  intent: "act",
+  execute({ destination }) {
+    const target = HAYALOWS_DESTINATIONS[destination];
+    if (!target) throw new Error("Choose a supported public Hayalows destination.");
+    setTimeout(() => location.assign(target.path), 0);
+    return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
+      destination,
+      label: target.label,
+      url: target.url,
+      navigationStarted: true,
+      nextStep: `The browser is opening ${target.label}.`,
+    };
   },
 });

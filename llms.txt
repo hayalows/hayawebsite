@@ -52,6 +52,8 @@ WebMCP browser tools:
 - `ask_hayalows` is available across the public site and retrieves relevant published sections with canonical source URLs.
 - `browse_hayalows_services` is available across the public site. It visibly opens the selected homepage service area or navigates there from a subpage.
 - `prepare_hayalows_enquiry` is available across the public site and fills a reversible guided-enquiry draft. It never sends a message; the visitor reviews and submits it.
+- `navigate_hayalows` opens an exact public destination: services, approach, enquiry, payments, refunds, privacy or terms. It never submits an enquiry or starts a payment.
 - Stable, versioned result contracts: https://hayalows.com/webmcp/results.schema.json
+- Every tool registers an `outputSchema` and returns matching `structuredContent`.
 
 Last updated: 2026-08-26.

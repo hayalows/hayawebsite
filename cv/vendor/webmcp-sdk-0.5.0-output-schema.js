@@ -19,7 +19,7 @@ function isPlainObject(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function defineTool(definition) {
-  const { stableKey, description, inputSchema, execute } = definition;
+  const { stableKey, description, inputSchema, outputSchema, execute } = definition;
   if (typeof stableKey !== "string" || stableKey.trim() === "") {
     fail("stableKey", "must be a non-empty string (the durable identity the platform keys on)");
   }
@@ -41,6 +41,9 @@ function defineTool(definition) {
   }
   if (inputSchema !== undefined && !isPlainObject(inputSchema)) {
     fail("inputSchema", "must be a plain JSON Schema object when present");
+  }
+  if (outputSchema !== undefined && !isPlainObject(outputSchema)) {
+    fail("outputSchema", "must be a plain JSON Schema object when present");
   }
   if (definition.version !== undefined && (typeof definition.version !== "string" || definition.version.trim() === "")) {
     fail("version", "must be a non-empty string when present");
@@ -1433,7 +1436,10 @@ function normalizeResult(value) {
   if (isContentResult(value))
     return value;
   const text = typeof value === "string" ? value : JSON.stringify(value ?? null);
-  return { content: [{ type: "text", text }] };
+  const structuredContent = typeof value === "object" && value !== null && !Array.isArray(value)
+    ? { structuredContent: value }
+    : {};
+  return { content: [{ type: "text", text }], ...structuredContent };
 }
 function elapsedMs(end, start) {
   if (typeof end !== "number" || typeof start !== "number")
@@ -1475,6 +1481,7 @@ function toSpecTool(tool, channels) {
     ...tool.title !== undefined ? { title: tool.title } : {},
     description: tool.description,
     ...tool.inputSchema !== undefined ? { inputSchema: tool.inputSchema } : {},
+    ...tool.outputSchema !== undefined ? { outputSchema: tool.outputSchema } : {},
     ...tool.annotations !== undefined ? { annotations: tool.annotations } : {},
     async execute(input) {
       const trackCall = trackerFor(tool, tracking);
