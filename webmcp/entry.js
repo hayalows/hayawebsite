@@ -1,10 +1,15 @@
 import { registerTools } from "@nekuda/webmcp-sdk";
-import { askHayalows, browseHayalowsServices, prepareHayalowsEnquiry } from "./tools.js";
+import {
+  askHayalows,
+  browseHayalowsServices,
+  prepareHayalowsEnquiry,
+  restorePendingEnquiryDraft,
+} from "./tools.js";
 
-const homepage = location.pathname === "/" || location.pathname === "/index.html";
-const tools = homepage
-  ? [askHayalows, browseHayalowsServices, prepareHayalowsEnquiry]
-  : [askHayalows];
+restorePendingEnquiryDraft();
 
-const registration = registerTools(tools, { telemetry: false });
+const registration = registerTools(
+  [askHayalows, browseHayalowsServices, prepareHayalowsEnquiry],
+  { telemetry: false },
+);
 addEventListener("pagehide", () => registration.unregister(), { once: true });

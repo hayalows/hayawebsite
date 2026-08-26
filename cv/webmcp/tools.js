@@ -1,5 +1,8 @@
 import { defineTool } from "@nekuda/webmcp-sdk";
 
+const RESULT_SCHEMA_URL = "https://pkm.hayalows.com/webmcp/results.schema.json";
+const RESULT_SCHEMA_VERSION = "1.0.0";
+
 const CONTENT = [
   {
     title: "Professional profile",
@@ -91,7 +94,7 @@ export const askPapaKojo = defineTool({
   stableKey: "pkm.ask_profile",
   name: "ask_papa_kojo",
   title: "Ask Papa Kojo's profile",
-  description: "Find authoritative public information about Papa Kojo Mensah when a visitor asks about his operations, customer experience, data, design, experience, projects, education, skills, availability or contact details. Returns relevant profile sections and canonical source URLs for the agent to answer from; it does not expose private source material or generate an answer.",
+  description: "Find authoritative public information about Papa Kojo Mensah when a visitor asks about his operations, customer experience, data, design, experience, projects, education, skills, availability or contact details. Read-only and limited to published material. Returns a stable JSON object with schemaVersion, schemaUrl, query, matches (each with title, text, tags and url), note and canonicalProfile. The machine-readable AskPapaKojoResult contract is published at https://pkm.hayalows.com/webmcp/results.schema.json.",
   inputSchema: {
     type: "object",
     properties: {
@@ -111,14 +114,73 @@ export const askPapaKojo = defineTool({
   execute({ query }) {
     const cleanQuery = String(query || "").trim();
     if (cleanQuery.length < 2) throw new Error("Ask Papa Kojo's profile requires a question of at least two characters.");
+    if (cleanQuery.length > 300) throw new Error("Ask Papa Kojo's profile accepts questions up to 300 characters.");
     const matches = searchProfileContent(cleanQuery);
     return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
       query: cleanQuery,
       matches,
       note: matches.length
         ? "Use these public profile sections to answer the visitor and cite the supplied source URLs."
         : "The public profile has no directly matching published section. Do not infer private or unpublished information.",
       canonicalProfile: "https://pkm.hayalows.com/",
+    };
+  },
+});
+
+export const preparePapaKojoEmail = defineTool({
+  stableKey: "pkm.prepare_email",
+  name: "prepare_papa_kojo_email",
+  title: "Prepare an email to Papa Kojo",
+  description: "Prepare a reversible email draft link when a visitor wants to contact Papa Kojo Mensah about a role, project or professional conversation. It updates and focuses the public email link, but never opens the mail app, sends a message, books time or makes a commitment. Returns a stable JSON object with schemaVersion, schemaUrl, status, recipient, subject, message, sent (always false), nextStep and sourceUrl. The machine-readable PreparePapaKojoEmailResult contract is published at https://pkm.hayalows.com/webmcp/results.schema.json.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      subject: {
+        type: "string",
+        minLength: 3,
+        maxLength: 160,
+        description: "A concise email subject describing the role, project or reason for contacting Papa Kojo.",
+      },
+      message: {
+        type: "string",
+        minLength: 10,
+        maxLength: 3000,
+        description: "The email body for the visitor to review and edit before choosing to send it.",
+      },
+    },
+    required: ["subject", "message"],
+    additionalProperties: false,
+  },
+  annotations: { readOnlyHint: false },
+  source: "merchant_authored",
+  intent: "act",
+  execute({ subject, message }) {
+    const cleanSubject = String(subject || "").trim();
+    const cleanMessage = String(message || "").trim();
+    if (cleanSubject.length < 3) throw new Error("The email subject must contain at least three characters.");
+    if (cleanSubject.length > 160) throw new Error("The email subject must not exceed 160 characters.");
+    if (cleanMessage.length < 10) throw new Error("The email message must contain at least ten characters.");
+    if (cleanMessage.length > 3000) throw new Error("The email message must not exceed 3,000 characters.");
+
+    const emailLink = document.querySelector('a[href^="mailto:mpapakojo@gmail.com"]');
+    if (!emailLink) throw new Error("Papa Kojo's public email link is unavailable on this page.");
+    const draftUrl = `mailto:mpapakojo@gmail.com?${new URLSearchParams({ subject: cleanSubject, body: cleanMessage })}`;
+    emailLink.href = draftUrl;
+    emailLink.scrollIntoView({ behavior: "smooth", block: "center" });
+    emailLink.focus({ preventScroll: true });
+
+    return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
+      status: "draft_ready",
+      recipient: "mpapakojo@gmail.com",
+      subject: cleanSubject,
+      message: cleanMessage,
+      sent: false,
+      nextStep: "The visitor must activate the focused email link, review the draft in their mail app and choose whether to send it.",
+      sourceUrl: "https://pkm.hayalows.com/#contact",
     };
   },
 });

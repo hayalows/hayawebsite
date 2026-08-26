@@ -15,7 +15,7 @@ The official website for Hayalows Ventures. It is a dependency-free static site 
 - `_redirects` - compatibility redirects for earlier routes
 - `_headers` - browser security headers for Cloudflare Pages
 - `robots.txt`, `sitemap.xml` and `llms.txt` - discovery files
-- `webmcp/` and `vendor/webmcp-sdk-0.5.0.js` - WebMCP browser tools and the pinned local SDK
+- `webmcp/` and `vendor/webmcp-sdk-0.5.0.js` - WebMCP browser tools, versioned result contracts and the pinned local SDK
 - `assets/` - brand, icon and social-sharing artwork
 
 ## Contact form behaviour
@@ -26,7 +26,7 @@ The form does not pretend to send data to a server. It validates in the browser 
 2. Open the same message in their email app.
 3. Copy the message as a fallback.
 
-No form content is stored after the page closes.
+No form content is stored after the page closes. When a WebMCP action starts on a subpage, its draft is held in `sessionStorage` only until the homepage form is filled, then removed.
 
 ## Payment behaviour
 
@@ -38,6 +38,12 @@ Keep public payment URLs and USSD codes in `site.config.js`. Never add Paystack 
 
 ```powershell
 npx.cmd serve .
+```
+
+Run the package-free WebMCP checks with:
+
+```powershell
+node --experimental-loader ./tests/webmcp-loader.mjs --test ./tests/webmcp-tools.test.mjs
 ```
 
 ## Cloudflare Pages deployment
@@ -52,7 +58,7 @@ Every push to `main` publishes automatically. Do not change the domain DNS or re
 
 ## Maintenance
 
-The WebMCP registration uses the local pinned `@nekuda/webmcp-sdk` browser asset and passes `telemetry: false`. Hayalows content, tool inputs and tool outputs are not sent to the SDK telemetry endpoint.
+The WebMCP registration uses the local pinned `@nekuda/webmcp-sdk` browser asset and passes `telemetry: false`. Hayalows content, tool inputs and tool outputs are not sent to the SDK telemetry endpoint. Because the current WebMCP browser dictionary does not define `outputSchema`, every tool returns a stable `schemaVersion` and `schemaUrl`; the canonical JSON Schema contracts live in `webmcp/results.schema.json`.
 
 - Keep verified business details in `site.config.js`.
 - Keep matching visible details, metadata and JSON-LD accurate on every public page.

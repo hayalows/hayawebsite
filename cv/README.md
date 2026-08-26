@@ -2,7 +2,7 @@
 
 This folder is the standalone static site deployed to the existing Vercel project `papa-kojo-cv`.
 
-The profile and one-page CV register the read-only `ask_papa_kojo` WebMCP browser tool from the pinned local SDK asset in `vendor/`. Registration passes `telemetry: false`, and the tool returns only facts already published on the public profile.
+The profile and one-page CV register the read-only `ask_papa_kojo` retrieval tool and the reversible `prepare_papa_kojo_email` contact-draft action from the pinned local SDK asset in `vendor/`. Registration passes `telemetry: false`; neither tool exposes private source material or sends a message. Stable JSON Schema result contracts live in `webmcp/results.schema.json` because the current WebMCP browser dictionary does not define `outputSchema`.
 
 ## Local preview
 

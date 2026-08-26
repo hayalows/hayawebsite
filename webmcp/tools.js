@@ -1,5 +1,9 @@
 import { defineTool } from "@nekuda/webmcp-sdk";
 
+const RESULT_SCHEMA_URL = "https://hayalows.com/webmcp/results.schema.json";
+const RESULT_SCHEMA_VERSION = "1.0.0";
+const PENDING_ENQUIRY_KEY = "hayalows.webmcp.pending_enquiry.v1";
+
 const CONTENT = [
   {
     id: "overview",
@@ -111,7 +115,7 @@ export const askHayalows = defineTool({
   stableKey: "hayalows.ask_site",
   name: "ask_hayalows",
   title: "Ask Hayalows",
-  description: "Find authoritative Hayalows information when a visitor asks about services, business fit, approach, enquiries, payments, refunds, privacy or terms. Returns relevant published sections and canonical source URLs for the agent to answer from; it does not generate an answer or change the page.",
+  description: "Find authoritative Hayalows information when a visitor asks about services, business fit, approach, enquiries, payments, refunds, privacy or terms. Read-only. Returns a stable JSON object with schemaVersion, schemaUrl, query, matches (each with id, title, text, tags and url), note, and contact (an object or null). The machine-readable AskHayalowsResult contract is published at https://hayalows.com/webmcp/results.schema.json.",
   inputSchema: {
     type: "object",
     properties: {
@@ -131,14 +135,17 @@ export const askHayalows = defineTool({
   execute({ query }) {
     const cleanQuery = String(query || "").trim();
     if (cleanQuery.length < 2) throw new Error("Ask Hayalows requires a question of at least two characters.");
+    if (cleanQuery.length > 300) throw new Error("Ask Hayalows accepts questions up to 300 characters.");
     const matches = searchHayalowsContent(cleanQuery);
     return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
       query: cleanQuery,
       matches,
       note: matches.length
         ? "Use these published sections to answer the visitor and cite the supplied source URLs."
         : "The site has no directly matching published section. Do not infer an answer; invite the visitor to start a general enquiry.",
-      contact: matches.length ? undefined : { url: "https://hayalows.com/#contact-form", email: "info@hayalows.com" },
+      contact: matches.length ? null : { url: "https://hayalows.com/#contact-form", email: "info@hayalows.com" },
     };
   },
 });
@@ -168,7 +175,7 @@ export const browseHayalowsServices = defineTool({
   stableKey: "hayalows.browse_services",
   name: "browse_hayalows_services",
   title: "Browse Hayalows services",
-  description: "Show Hayalows service areas when a visitor wants to understand the available work or identify a likely fit. Returns all three offerings, highlights the selected area on the visible page and opens its examples; it does not submit an enquiry.",
+  description: "Browse Hayalows service areas when a visitor wants to compare the available work or identify a likely fit. Reversible page action; never submits an enquiry. Returns a stable JSON object with schemaVersion, schemaUrl, offerings (key, name and bestFor), selected, sourceUrl, pageEffect and navigationStarted. The machine-readable BrowseHayalowsServicesResult contract is published at https://hayalows.com/webmcp/results.schema.json.",
   inputSchema: {
     type: "object",
     properties: {
@@ -181,14 +188,30 @@ export const browseHayalowsServices = defineTool({
     },
     additionalProperties: false,
   },
-  annotations: { readOnlyHint: true },
+  annotations: { readOnlyHint: false },
   source: "merchant_authored",
-  intent: "answer",
+  intent: "act",
   execute({ service = "all" }) {
-    const section = document.querySelector("#what-we-do");
-    if (!section) throw new Error("The Hayalows services section is unavailable on this page.");
-
+    if (!["all", ...OFFERINGS.map((offering) => offering.key)].includes(service)) {
+      throw new Error("Choose all or a supported Hayalows service area.");
+    }
     const selected = OFFERINGS.find((offering) => offering.key === service);
+    const section = document.querySelector("#what-we-do");
+    if (!section) {
+      setTimeout(() => location.assign("/#what-we-do"), 0);
+      return {
+        schemaVersion: RESULT_SCHEMA_VERSION,
+        schemaUrl: RESULT_SCHEMA_URL,
+        offerings: OFFERINGS.map(({ selector, ...offering }) => offering),
+        selected: selected?.key || "all",
+        sourceUrl: "https://hayalows.com/#what-we-do",
+        pageEffect: selected
+          ? `Opening the services page for ${selected.name}.`
+          : "Opening the complete Hayalows services section.",
+        navigationStarted: true,
+      };
+    }
+
     if (selected) {
       const card = document.querySelector(selected.selector);
       if (!card) throw new Error(`The ${selected.name} service card is unavailable.`);
@@ -201,10 +224,13 @@ export const browseHayalowsServices = defineTool({
     }
 
     return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
       offerings: OFFERINGS.map(({ selector, ...offering }) => offering),
       selected: selected?.key || "all",
       sourceUrl: "https://hayalows.com/#what-we-do",
       pageEffect: selected ? `Opened ${selected.name} examples.` : "Moved the page to all Hayalows service areas.",
+      navigationStarted: false,
     };
   },
 });
@@ -212,7 +238,7 @@ export const browseHayalowsServices = defineTool({
 const HELP_TYPES = {
   business_clarity: "Business clarity or systems",
   brand_communication: "Brand and communication",
-  website_tool: "Website or digital tool",
+  websites_tools: "Website or digital tool",
   product_venture: "Product or venture discussion",
   partnership: "Partnership",
   general: "General enquiry",
@@ -226,11 +252,96 @@ function setFormValue(form, name, value) {
   field.dispatchEvent(new Event(field.tagName === "SELECT" ? "change" : "input", { bubbles: true }));
 }
 
+function normaliseEnquiryDraft({ help_type, message, name, business, email, phone }) {
+  const cleanMessage = String(message || "").trim();
+  if (cleanMessage.length < 10) throw new Error("The enquiry message must contain at least ten characters.");
+  if (cleanMessage.length > 2000) throw new Error("The enquiry message must not exceed 2,000 characters.");
+  const helpType = HELP_TYPES[help_type];
+  if (!helpType) throw new Error("Choose a supported Hayalows enquiry category.");
+  const cleanName = String(name || "").trim();
+  const cleanBusiness = String(business || "").trim();
+  const cleanEmail = String(email || "").trim();
+  const cleanPhone = String(phone || "").trim();
+  if (cleanName.length > 120) throw new Error("The visitor name must not exceed 120 characters.");
+  if (cleanBusiness.length > 160) throw new Error("The business name must not exceed 160 characters.");
+  if (cleanEmail.length > 254) throw new Error("The email address must not exceed 254 characters.");
+  if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error("Enter a valid email address.");
+  if (cleanPhone.length > 40) throw new Error("The phone number must not exceed 40 characters.");
+  return {
+    help_type,
+    helpType,
+    message: cleanMessage,
+    name: cleanName,
+    business: cleanBusiness,
+    email: cleanEmail,
+    phone: cleanPhone,
+  };
+}
+
+function enquiryResult(draft, navigationStarted) {
+  const contactDetailsIncluded = [draft.name, draft.business, draft.email, draft.phone].some(Boolean);
+  return {
+    schemaVersion: RESULT_SCHEMA_VERSION,
+    schemaUrl: RESULT_SCHEMA_URL,
+    status: navigationStarted ? "draft_saved" : "draft_ready",
+    helpType: draft.helpType,
+    message: draft.message,
+    contactDetailsIncluded,
+    sent: false,
+    navigationStarted,
+    nextStep: navigationStarted
+      ? "The homepage is opening with the draft. The visitor must review it and choose WhatsApp, email or copy message."
+      : "The visitor must review the visible draft and choose WhatsApp, email or copy message.",
+    sourceUrl: "https://hayalows.com/#contact-form",
+  };
+}
+
+function fillEnquiryForm(form, draft) {
+  setFormValue(form, "helpType", draft.helpType);
+  setFormValue(form, "message", draft.message);
+  setFormValue(form, "name", draft.name);
+  setFormValue(form, "business", draft.business);
+  setFormValue(form, "email", draft.email);
+  setFormValue(form, "phone", draft.phone);
+
+  const hasContactDetails = [draft.name, draft.business, draft.email, draft.phone].some(Boolean);
+  const contactDetails = form.querySelector(".form-contact-details");
+  if (hasContactDetails && contactDetails) contactDetails.open = true;
+  const status = form.querySelector("[data-form-status]");
+  if (status) {
+    status.textContent = "Your draft is ready. Review it, then choose WhatsApp, email or copy the message yourself.";
+    status.dataset.state = "success";
+  }
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+  form.elements.namedItem("message")?.focus({ preventScroll: true });
+}
+
+export function restorePendingEnquiryDraft() {
+  const form = document.querySelector("#contact-form");
+  if (!form) return false;
+  let stored;
+  try {
+    stored = sessionStorage.getItem(PENDING_ENQUIRY_KEY);
+  } catch {
+    return false;
+  }
+  if (!stored) return false;
+  try {
+    const draft = normaliseEnquiryDraft(JSON.parse(stored));
+    fillEnquiryForm(form, draft);
+    sessionStorage.removeItem(PENDING_ENQUIRY_KEY);
+    return true;
+  } catch {
+    sessionStorage.removeItem(PENDING_ENQUIRY_KEY);
+    return false;
+  }
+}
+
 export const prepareHayalowsEnquiry = defineTool({
   stableKey: "hayalows.prepare_enquiry",
   name: "prepare_hayalows_enquiry",
   title: "Prepare a Hayalows enquiry",
-  description: "Prepare the visible Hayalows guided-enquiry form when a visitor is ready to discuss a business problem. Fills a reversible draft, scrolls to it and leaves review plus WhatsApp or email submission entirely to the visitor; nothing is sent automatically.",
+  description: "Prepare the Hayalows guided-enquiry form when a visitor is ready to discuss a business problem. Reversible draft-only action: it fills the visible form or opens the homepage with the draft, but never sends, submits or opens a payment. Returns a stable JSON object with schemaVersion, schemaUrl, status, helpType, message, contactDetailsIncluded, sent (always false), navigationStarted, nextStep and sourceUrl. The machine-readable PrepareHayalowsEnquiryResult contract is published at https://hayalows.com/webmcp/results.schema.json.",
   inputSchema: {
     type: "object",
     properties: {
@@ -256,40 +367,19 @@ export const prepareHayalowsEnquiry = defineTool({
   annotations: { readOnlyHint: false },
   source: "merchant_authored",
   intent: "act",
-  execute({ help_type, message, name, business, email, phone }) {
+  execute(input) {
+    const draft = normaliseEnquiryDraft(input);
     const form = document.querySelector("#contact-form");
-    if (!form) throw new Error("The Hayalows guided-enquiry form is unavailable on this page.");
-    const cleanMessage = String(message || "").trim();
-    if (cleanMessage.length < 10) throw new Error("The enquiry message must contain at least ten characters.");
-    const helpType = HELP_TYPES[help_type];
-    if (!helpType) throw new Error("Choose a supported Hayalows enquiry category.");
-
-    setFormValue(form, "helpType", helpType);
-    setFormValue(form, "message", cleanMessage);
-    setFormValue(form, "name", String(name || "").trim());
-    setFormValue(form, "business", String(business || "").trim());
-    setFormValue(form, "email", String(email || "").trim());
-    setFormValue(form, "phone", String(phone || "").trim());
-
-    const hasContactDetails = [name, business, email, phone].some((value) => String(value || "").trim());
-    const contactDetails = form.querySelector(".form-contact-details");
-    if (hasContactDetails && contactDetails) contactDetails.open = true;
-    const status = form.querySelector("[data-form-status]");
-    if (status) {
-      status.textContent = "Your draft is ready. Review it, then choose WhatsApp, email or copy the message yourself.";
-      status.dataset.state = "success";
+    if (!form) {
+      try {
+        sessionStorage.setItem(PENDING_ENQUIRY_KEY, JSON.stringify(draft));
+      } catch {
+        throw new Error("The enquiry draft cannot be carried to the homepage in this browser session.");
+      }
+      setTimeout(() => location.assign("/#contact-form"), 0);
+      return enquiryResult(draft, true);
     }
-    form.scrollIntoView({ behavior: "smooth", block: "start" });
-    form.elements.namedItem("message")?.focus({ preventScroll: true });
-
-    return {
-      status: "draft_ready",
-      helpType,
-      message: cleanMessage,
-      contactDetailsIncluded: hasContactDetails,
-      sent: false,
-      nextStep: "The visitor must review the visible draft and choose WhatsApp, email or copy message.",
-      sourceUrl: "https://hayalows.com/#contact-form",
-    };
+    fillEnquiryForm(form, draft);
+    return enquiryResult(draft, false);
   },
 });
