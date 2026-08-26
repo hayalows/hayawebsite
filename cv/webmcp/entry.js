@@ -1,13 +1,22 @@
 import { registerTools } from "@nekuda/webmcp-sdk";
 import {
-  askPapaKojo,
+  getPapaKojoEducation,
+  getPapaKojoExperience,
+  getPapaKojoProfile,
   getPapaKojoProjects,
-  navigatePapaKojoProfile,
+  getPapaKojoSkills,
   preparePapaKojoEmail,
 } from "./tools.js";
 
 const registration = registerTools(
-  [askPapaKojo, getPapaKojoProjects, navigatePapaKojoProfile, preparePapaKojoEmail],
+  [
+    getPapaKojoProfile,
+    getPapaKojoSkills,
+    getPapaKojoExperience,
+    getPapaKojoEducation,
+    getPapaKojoProjects,
+    preparePapaKojoEmail,
+  ],
   { telemetry: false },
 );
 addEventListener("pagehide", () => registration.unregister(), { once: true });

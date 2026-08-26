@@ -2,53 +2,105 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pkm.hayalows.com/webmcp/results.schema.json",
   "title": "Papa Kojo Mensah WebMCP result contracts",
-  "description": "Versioned result contracts for the WebMCP tools exposed by pkm.hayalows.com. Each contract is also registered as outputSchema and every object result is returned as structuredContent.",
+  "description": "Versioned result contracts for the six distinct WebMCP jobs exposed by pkm.hayalows.com. Each contract is registered as outputSchema and returned as structuredContent.",
   "oneOf": [
-    { "$ref": "#/$defs/AskPapaKojoResult" },
-    { "$ref": "#/$defs/PreparePapaKojoEmailResult" },
-    { "$ref": "#/$defs/GetPapaKojoProjectsResult" },
-    { "$ref": "#/$defs/NavigatePapaKojoProfileResult" }
+    { "$ref": "#/$defs/ProfileResult" },
+    { "$ref": "#/$defs/SkillsResult" },
+    { "$ref": "#/$defs/ExperienceResult" },
+    { "$ref": "#/$defs/EducationResult" },
+    { "$ref": "#/$defs/ProjectsResult" },
+    { "$ref": "#/$defs/EmailDraftResult" }
   ],
   "$defs": {
-    "ProfileSection": {
+    "ProfileResult": {
       "type": "object",
       "properties": {
+        "schemaVersion": { "const": "2.0.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "fullName": { "const": "Papa Kojo Mensah" },
+        "headline": { "const": "Operations and Customer Experience Professional" },
+        "location": { "const": "Ghana" },
+        "availability": { "const": "Open to thoughtful work globally" },
+        "summary": { "type": "string" },
+        "canonicalProfileUrl": { "const": "https://pkm.hayalows.com/" },
+        "resumeUrl": { "const": "https://pkm.hayalows.com/resume/" },
+        "linkedInUrl": { "const": "https://www.linkedin.com/in/papakojomensah" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "fullName", "headline", "location", "availability", "summary", "canonicalProfileUrl", "resumeUrl", "linkedInUrl"],
+      "additionalProperties": false
+    },
+    "SkillGroup": {
+      "type": "object",
+      "properties": {
+        "key": { "enum": ["operations_service", "data_tools", "brand_delivery"] },
         "title": { "type": "string" },
-        "text": { "type": "string" },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "url": { "type": "string", "format": "uri" }
+        "skills": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "evidence": { "type": "string" }
       },
-      "required": ["title", "text", "tags", "url"],
+      "required": ["key", "title", "skills", "evidence"],
       "additionalProperties": false
     },
-    "AskPapaKojoResult": {
+    "SkillsResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.1.0" },
+        "schemaVersion": { "const": "2.0.0" },
         "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
-        "topic": { "enum": ["all", "profile", "skills", "experience", "projects", "education", "contact"] },
-        "query": { "type": "string" },
-        "matches": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/ProfileSection" } },
-        "note": { "type": "string" },
-        "canonicalProfile": { "const": "https://pkm.hayalows.com/" }
+        "category": { "enum": ["all", "operations_service", "data_tools", "brand_delivery"] },
+        "groups": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/$defs/SkillGroup" } },
+        "sourceUrl": { "const": "https://pkm.hayalows.com/#skills" }
       },
-      "required": ["schemaVersion", "schemaUrl", "topic", "query", "matches", "note", "canonicalProfile"],
+      "required": ["schemaVersion", "schemaUrl", "category", "groups", "sourceUrl"],
       "additionalProperties": false
     },
-    "PreparePapaKojoEmailResult": {
+    "Experience": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.1.0" },
-        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
-        "status": { "const": "draft_ready" },
-        "recipient": { "const": "mpapakojo@gmail.com" },
-        "subject": { "type": "string" },
-        "message": { "type": "string" },
-        "sent": { "const": false },
-        "nextStep": { "type": "string" },
-        "sourceUrl": { "const": "https://pkm.hayalows.com/#contact" }
+        "key": { "enum": ["springboard", "absa_bank_ghana", "iconka_designs"] },
+        "organization": { "type": "string" },
+        "title": { "type": "string" },
+        "location": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "summary": { "type": "string" },
+        "highlights": { "type": "array", "minItems": 1, "items": { "type": "string" } }
       },
-      "required": ["schemaVersion", "schemaUrl", "status", "recipient", "subject", "message", "sent", "nextStep", "sourceUrl"],
+      "required": ["key", "organization", "title", "location", "startDate", "endDate", "summary", "highlights"],
+      "additionalProperties": false
+    },
+    "ExperienceResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "2.0.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "organization": { "enum": ["all", "springboard", "absa_bank_ghana", "iconka_designs"] },
+        "roles": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/$defs/Experience" } },
+        "sourceUrl": { "const": "https://pkm.hayalows.com/#experience" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "organization", "roles", "sourceUrl"],
+      "additionalProperties": false
+    },
+    "Education": {
+      "type": "object",
+      "properties": {
+        "key": { "enum": ["hospitality_tourism", "professional_training", "actuarial_science", "social_media_marketing", "google_project_management"] },
+        "qualification": { "type": "string" },
+        "institution": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+        "year": { "type": "string" },
+        "detail": { "type": "string" }
+      },
+      "required": ["key", "qualification", "institution", "year", "detail"],
+      "additionalProperties": false
+    },
+    "EducationResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "2.0.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "credential": { "enum": ["all", "hospitality_tourism", "professional_training", "actuarial_science", "social_media_marketing", "google_project_management"] },
+        "credentials": { "type": "array", "minItems": 1, "maxItems": 5, "items": { "$ref": "#/$defs/Education" } },
+        "sourceUrl": { "const": "https://pkm.hayalows.com/#education" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "credential", "credentials", "sourceUrl"],
       "additionalProperties": false
     },
     "Project": {
@@ -63,31 +115,32 @@
       "required": ["key", "name", "kind", "summary", "url"],
       "additionalProperties": false
     },
-    "GetPapaKojoProjectsResult": {
+    "ProjectsResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.1.0" },
+        "schemaVersion": { "const": "2.0.0" },
         "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
         "project": { "enum": ["all", "routelab", "hayalows_ventures", "english_chat_finder"] },
         "projects": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/$defs/Project" } },
-        "note": { "type": "string" },
-        "sourceUrl": { "const": "https://pkm.hayalows.com/#projects" }
+        "sourceUrl": { "const": "https://pkm.hayalows.com/projects/" }
       },
-      "required": ["schemaVersion", "schemaUrl", "project", "projects", "note", "sourceUrl"],
+      "required": ["schemaVersion", "schemaUrl", "project", "projects", "sourceUrl"],
       "additionalProperties": false
     },
-    "NavigatePapaKojoProfileResult": {
+    "EmailDraftResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.1.0" },
+        "schemaVersion": { "const": "2.0.0" },
         "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
-        "destination": { "enum": ["about", "projects", "experience", "skills", "education", "contact", "resume"] },
-        "label": { "type": "string" },
-        "url": { "type": "string", "format": "uri" },
-        "navigationStarted": { "const": true },
-        "nextStep": { "type": "string" }
+        "status": { "const": "draft_ready" },
+        "recipient": { "const": "mpapakojo@gmail.com" },
+        "subject": { "type": "string", "minLength": 3, "maxLength": 160 },
+        "message": { "type": "string", "minLength": 10, "maxLength": 3000 },
+        "sent": { "const": false },
+        "nextStep": { "type": "string" },
+        "sourceUrl": { "const": "https://pkm.hayalows.com/#contact" }
       },
-      "required": ["schemaVersion", "schemaUrl", "destination", "label", "url", "navigationStarted", "nextStep"],
+      "required": ["schemaVersion", "schemaUrl", "status", "recipient", "subject", "message", "sent", "nextStep", "sourceUrl"],
       "additionalProperties": false
     }
   }

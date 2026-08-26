@@ -645,6 +645,20 @@ h2 {
   text-decoration: none;
 }
 
+.project-index-link {
+  margin: 1.2rem 0 0;
+}
+
+.project-index-link a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 650;
+  text-underline-offset: .25em;
+}
+
 .listening-panel {
   min-width: 0;
   margin-block-start: 1.8rem;
