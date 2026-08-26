@@ -25,8 +25,10 @@
 
 - Email: mpapakojo@gmail.com
 
-## WebMCP browser tool
+## WebMCP browser tools
 
 - `ask_papa_kojo` is available on the profile and one-page CV. It retrieves relevant public profile sections with canonical source URLs and does not expose private source material.
+- `prepare_papa_kojo_email` is available on the profile and one-page CV. It prepares and focuses a reversible email draft link but never opens the mail app, sends a message or books time.
+- Stable, versioned result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
 
 Last updated: 2026-08-26. This file summarises facts already published on the canonical profile.

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pkm.hayalows.com/webmcp/results.schema.json",
+  "title": "Papa Kojo Mensah WebMCP result contracts",
+  "description": "Versioned result contracts for the WebMCP tools exposed by pkm.hayalows.com. WebMCP does not yet define a browser-level outputSchema field, so each tool description and result links to this canonical contract.",
+  "oneOf": [
+    { "$ref": "#/$defs/AskPapaKojoResult" },
+    { "$ref": "#/$defs/PreparePapaKojoEmailResult" }
+  ],
+  "$defs": {
+    "ProfileSection": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "text": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "required": ["title", "text", "tags", "url"],
+      "additionalProperties": false
+    },
+    "AskPapaKojoResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "query": { "type": "string" },
+        "matches": { "type": "array", "items": { "$ref": "#/$defs/ProfileSection" } },
+        "note": { "type": "string" },
+        "canonicalProfile": { "const": "https://pkm.hayalows.com/" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "query", "matches", "note", "canonicalProfile"],
+      "additionalProperties": false
+    },
+    "PreparePapaKojoEmailResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "status": { "const": "draft_ready" },
+        "recipient": { "const": "mpapakojo@gmail.com" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "sent": { "const": false },
+        "nextStep": { "type": "string" },
+        "sourceUrl": { "const": "https://pkm.hayalows.com/#contact" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "status", "recipient", "subject", "message", "sent", "nextStep", "sourceUrl"],
+      "additionalProperties": false
+    }
+  }
+}
