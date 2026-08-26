@@ -47,3 +47,10 @@ Important notes:
 - Hayalows.com does not collect card details or claim payment success
 
 Hayalows does not publish invented testimonials, client claims or venture links. Individual products and ventures receive public destinations only when they are ready.
+
+WebMCP browser tools:
+- `ask_hayalows` is available across the public site and retrieves relevant published sections with canonical source URLs.
+- `browse_hayalows_services` is available on the homepage and visibly opens the selected service area.
+- `prepare_hayalows_enquiry` is available on the homepage and fills a reversible guided-enquiry draft. It never sends a message; the visitor reviews and submits it.
+
+Last updated: 2026-08-26.

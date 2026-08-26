@@ -1,0 +1,32 @@
+# Papa Kojo Mensah
+
+> Papa Kojo Mensah is an operations and customer experience professional based in Ghana and open to thoughtful work globally. He uses trusted data, practical digital tools and clear design to make complex work easier to understand and use.
+
+## Canonical profile
+
+- [Professional profile](https://pkm.hayalows.com/): About, projects, experience, skills, education, contact information and a personal Spotify listening panel.
+- [One-page CV](https://pkm.hayalows.com/resume/): Concise, printable curriculum vitae.
+- [LinkedIn](https://www.linkedin.com/in/papakojomensah): Public professional profile.
+
+## Current positioning
+
+- Primary focus: operations and customer experience.
+- Supporting strengths: data quality, record review, Excel, Google Sheets, process documentation, project coordination, brand identity and graphic design.
+- Current role: Data Entry Specialist at Springboard, remote, from April 2026.
+- Education: BSc Actuarial Science, Kwame Nkrumah University of Science and Technology, 2024.
+
+## Selected projects
+
+- [RouteLab](https://maps.hayalows.com/): A map-first tool for planning, remembering and exploring everyday movement.
+- [Hayalows Ventures](https://hayalows.com/): Brand, customer-journey, operations and practical-systems work.
+- [English Chat Finder](https://englishchatsession.vercel.app/): A search tool across more than 200 conversation calendars.
+
+## Contact
+
+- Email: mpapakojo@gmail.com
+
+## WebMCP browser tool
+
+- `ask_papa_kojo` is available on the profile and one-page CV. It retrieves relevant public profile sections with canonical source URLs and does not expose private source material.
+
+Last updated: 2026-08-26. This file summarises facts already published on the canonical profile.
