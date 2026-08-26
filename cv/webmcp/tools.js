@@ -52,6 +52,12 @@ const CONTENT = [
 ];
 
 const STOP_WORDS = new Set(["a", "an", "and", "are", "can", "did", "do", "for", "how", "i", "in", "is", "it", "kojo", "mensah", "of", "on", "or", "papa", "the", "to", "what", "with", "work", "you"]);
+const TOKEN_ALIASES = {
+  experienced: "experience",
+  experiences: "experience",
+  projects: "project",
+  skills: "skill",
+};
 
 function tokens(value) {
   return String(value)
@@ -59,7 +65,8 @@ function tokens(value) {
     .normalize("NFKD")
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
-    .filter((token) => token.length > 1 && !STOP_WORDS.has(token));
+    .filter((token) => token.length > 1 && !STOP_WORDS.has(token))
+    .map((token) => TOKEN_ALIASES[token] || token);
 }
 
 export function searchProfileContent(query, limit = 4) {
