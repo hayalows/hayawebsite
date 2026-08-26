@@ -25,4 +25,8 @@
 
 - Email: mpapakojo@gmail.com
 
-Last updated: 2026-08-25. This file summarises facts already published on the canonical profile.
+## WebMCP browser tool
+
+- `ask_papa_kojo` is available on the profile and one-page CV. It retrieves relevant public profile sections with canonical source URLs and does not expose private source material.
+
+Last updated: 2026-08-26. This file summarises facts already published on the canonical profile.

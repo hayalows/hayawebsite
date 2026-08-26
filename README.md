@@ -15,6 +15,7 @@ The official website for Hayalows Ventures. It is a dependency-free static site 
 - `_redirects` - compatibility redirects for earlier routes
 - `_headers` - browser security headers for Cloudflare Pages
 - `robots.txt`, `sitemap.xml` and `llms.txt` - discovery files
+- `webmcp/` and `vendor/webmcp-sdk-0.5.0.js` - WebMCP browser tools and the pinned local SDK
 - `assets/` - brand, icon and social-sharing artwork
 
 ## Contact form behaviour
@@ -50,6 +51,8 @@ npx.cmd serve .
 Every push to `main` publishes automatically. Do not change the domain DNS or remove the existing email records.
 
 ## Maintenance
+
+The WebMCP registration uses the local pinned `@nekuda/webmcp-sdk` browser asset and passes `telemetry: false`. Hayalows content, tool inputs and tool outputs are not sent to the SDK telemetry endpoint.
 
 - Keep verified business details in `site.config.js`.
 - Keep matching visible details, metadata and JSON-LD accurate on every public page.

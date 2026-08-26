@@ -2,6 +2,8 @@
 
 This folder is the standalone static site deployed to the existing Vercel project `papa-kojo-cv`.
 
+The profile and one-page CV register the read-only `ask_papa_kojo` WebMCP browser tool from the pinned local SDK asset in `vendor/`. Registration passes `telemetry: false`, and the tool returns only facts already published on the public profile.
+
 ## Local preview
 
 From the repository root:
