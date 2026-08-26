@@ -5,7 +5,7 @@ const CONTENT = [
     id: "overview",
     title: "What Hayalows does",
     text: "Hayalows is a Ghanaian business that helps small and medium-sized businesses become easier to choose, trust and grow. The work combines business clarity, brand communication, customer experience, operations, follow-up systems, websites and practical digital tools.",
-    tags: ["hayalows", "ghana", "ghanaian", "sme", "small business", "growth", "customer experience"],
+    tags: ["hayalows", "ghana", "ghanaian", "sme", "small business", "growth", "customer experience", "service"],
     url: "https://hayalows.com/",
   },
   {
@@ -19,21 +19,21 @@ const CONTENT = [
     id: "business-systems",
     title: "Business clarity and systems",
     text: "Clarify what the business sells, how customers buy, and how enquiries, orders, records and follow-up should move. Example work includes offer and process clarity, customer and order flows, basic records, trackers and practical working systems.",
-    tags: ["offer", "operations", "process", "records", "tracker", "follow up", "systems"],
+    tags: ["offer", "operations", "process", "records", "tracker", "follow up", "systems", "service"],
     url: "https://hayalows.com/#what-we-do",
   },
   {
     id: "brand-communication",
     title: "Brand and communication",
     text: "Align words and presentation across flyers, WhatsApp, social pages and customer messages so the business feels consistent. Example work includes brand direction, service descriptions, customer messages, content and visual structure.",
-    tags: ["brand", "branding", "communication", "flyer", "whatsapp", "content", "visual"],
+    tags: ["brand", "branding", "communication", "flyer", "whatsapp", "content", "visual", "service"],
     url: "https://hayalows.com/#what-we-do",
   },
   {
     id: "websites-tools",
     title: "Websites and digital tools",
     text: "Build clear pages and simple tools that help customers understand, enquire, order and receive a useful next step. Example work includes business websites, landing and enquiry pages, dashboards and simple internal tools.",
-    tags: ["website", "web design", "landing page", "dashboard", "digital tool", "technology"],
+    tags: ["website", "web design", "landing page", "dashboard", "digital tool", "technology", "service"],
     url: "https://hayalows.com/#what-we-do",
   },
   {
@@ -67,6 +67,13 @@ const CONTENT = [
 ];
 
 const STOP_WORDS = new Set(["a", "an", "and", "are", "can", "do", "for", "hayalows", "help", "how", "i", "in", "is", "it", "me", "my", "of", "on", "or", "the", "to", "we", "what", "with", "work", "you"]);
+const TOKEN_ALIASES = {
+  enquiries: "enquiry",
+  payments: "payment",
+  refunds: "refund",
+  services: "service",
+  websites: "website",
+};
 
 function tokens(value) {
   return String(value)
@@ -74,7 +81,8 @@ function tokens(value) {
     .normalize("NFKD")
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
-    .filter((token) => token.length > 1 && !STOP_WORDS.has(token));
+    .filter((token) => token.length > 1 && !STOP_WORDS.has(token))
+    .map((token) => TOKEN_ALIASES[token] || token);
 }
 
 export function searchHayalowsContent(query, limit = 4) {

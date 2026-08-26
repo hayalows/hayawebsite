@@ -30,6 +30,14 @@ test("Hayalows retrieval fails closed when nothing is published", () => {
   assert.equal(response.contact.url, "https://hayalows.com/#contact-form");
 });
 
+test("Hayalows retrieval understands plural service intent", () => {
+  const response = askHayalows.execute({ query: "What services do you offer?" });
+  assert.ok(response.matches.length >= 3);
+  assert.ok(response.matches.some((match) => match.id === "business-systems"));
+  assert.ok(response.matches.some((match) => match.id === "brand-communication"));
+  assert.ok(response.matches.some((match) => match.id === "websites-tools"));
+});
+
 test("CV retrieval returns only public profile material", () => {
   const matches = searchProfileContent("banking Excel treasury bill experience");
   assert.equal(matches[0].title, "Banking and customer service experience");
@@ -39,6 +47,13 @@ test("CV retrieval returns only public profile material", () => {
   assert.equal(response.matches[0].title, "Education");
   assert.equal(response.matches.length, 1);
   assert.match(response.matches[0].text, /Actuarial Science/);
+});
+
+test("CV retrieval normalizes common experience wording", () => {
+  const response = askPapaKojo.execute({ query: "What is Papa Kojo experienced in?" });
+  assert.ok(response.matches.length >= 2);
+  assert.ok(response.matches.some((match) => match.title === "Current experience"));
+  assert.ok(response.matches.some((match) => match.title === "Banking and customer service experience"));
 });
 
 test("service browsing visibly opens the selected offering", () => {
