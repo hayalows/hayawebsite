@@ -10,11 +10,12 @@ import {
   searchHayalowsContent,
 } from "../webmcp/tools.js";
 import {
-  askPapaKojo,
+  getPapaKojoEducation,
+  getPapaKojoExperience,
+  getPapaKojoProfile,
   getPapaKojoProjects,
-  navigatePapaKojoProfile,
+  getPapaKojoSkills,
   preparePapaKojoEmail,
-  searchProfileContent,
 } from "../cv/webmcp/tools.js";
 
 test("Hayalows retrieval returns focused published sources", () => {
@@ -48,34 +49,39 @@ test("Hayalows retrieval understands plural service intent", () => {
   assert.ok(response.matches.some((match) => match.id === "websites-tools"));
 });
 
-test("CV retrieval returns only public profile material", () => {
-  const matches = searchProfileContent("banking Excel treasury bill experience");
-  assert.equal(matches[0].title, "Banking and customer service experience");
-  assert.ok(matches.every((match) => match.url.startsWith("https://pkm.hayalows.com/")));
-
-  const response = askPapaKojo.execute({ query: "What degree did Papa Kojo earn?" });
-  assert.equal(response.matches[0].title, "Education");
-  assert.equal(response.matches.length, 1);
-  assert.match(response.matches[0].text, /Actuarial Science/);
+test("CV profile tool returns one bounded professional overview", () => {
+  const response = getPapaKojoProfile.execute({});
+  assert.equal(response.fullName, "Papa Kojo Mensah");
+  assert.equal(response.location, "Ghana");
+  assert.equal(response.resumeUrl, "https://pkm.hayalows.com/resume/");
+  assert.equal(response.schemaVersion, "2.0.0");
   assert.equal(response.schemaUrl, "https://pkm.hayalows.com/webmcp/results.schema.json");
+  assert.deepEqual(getPapaKojoProfile.inputSchema.required, []);
 });
 
-test("CV retrieval normalizes common experience wording", () => {
-  const response = askPapaKojo.execute({ query: "What is Papa Kojo experienced in?" });
-  assert.ok(response.matches.length >= 2);
-  assert.ok(response.matches.some((match) => match.title === "Current experience"));
-  assert.ok(response.matches.some((match) => match.title === "Banking and customer service experience"));
+test("CV skills tool returns only the requested capability group", () => {
+  const response = getPapaKojoSkills.execute({ category: "data_tools" });
+  assert.equal(response.category, "data_tools");
+  assert.equal(response.groups.length, 1);
+  assert.equal(response.groups[0].title, "Data and practical tools");
+  assert.ok(response.groups[0].skills.includes("Excel"));
 });
 
-test("CV retrieval can constrain matching to one precise topic", () => {
-  const response = askPapaKojo.execute({
-    query: "customer service experience",
-    topic: "experience",
-  });
-  assert.equal(response.topic, "experience");
-  assert.ok(response.matches.length >= 1);
-  assert.ok(response.matches.every((match) => /experience|design work/i.test(match.title)));
-  assert.ok(!response.matches.some((match) => match.title === "Education"));
+test("CV experience tool returns exact published organization records", () => {
+  const response = getPapaKojoExperience.execute({ organization: "absa_bank_ghana" });
+  assert.equal(response.organization, "absa_bank_ghana");
+  assert.equal(response.roles.length, 1);
+  assert.equal(response.roles[0].organization, "Absa Bank Ghana");
+  assert.equal(response.roles[0].endDate, "2025-10");
+  assert.ok(response.roles[0].highlights.some((highlight) => /treasury-bill/i.test(highlight)));
+});
+
+test("CV education tool returns one exact published credential", () => {
+  const response = getPapaKojoEducation.execute({ credential: "actuarial_science" });
+  assert.equal(response.credential, "actuarial_science");
+  assert.equal(response.credentials.length, 1);
+  assert.equal(response.credentials[0].qualification, "Bachelor of Science in Actuarial Science");
+  assert.equal(response.credentials[0].institution, "Kwame Nkrumah University of Science and Technology");
 });
 
 test("service browsing visibly opens the selected offering", () => {
@@ -198,20 +204,16 @@ test("CV project tool returns precise published portfolio records", () => {
   assert.equal(getPapaKojoProjects.annotations.readOnlyHint, true);
 });
 
-test("direct navigation tools cover Hayalows pages and CV projects or resume", () => {
+test("Hayalows navigation tool covers exact public destinations", () => {
   const navigations = [];
   const originalSetTimeout = globalThis.setTimeout;
   globalThis.location = { assign(url) { navigations.push(url); } };
   globalThis.setTimeout = (callback) => { callback(); return 1; };
   try {
     const policy = navigateHayalows.execute({ destination: "privacy" });
-    const projects = navigatePapaKojoProfile.execute({ destination: "projects" });
-    const resume = navigatePapaKojoProfile.execute({ destination: "resume" });
-    assert.deepEqual(navigations, ["/privacy/", "/#projects", "/resume/"]);
+    assert.deepEqual(navigations, ["/privacy/"]);
     assert.equal(policy.url, "https://hayalows.com/privacy/");
-    assert.equal(projects.url, "https://pkm.hayalows.com/#projects");
-    assert.equal(resume.url, "https://pkm.hayalows.com/resume/");
-    assert.ok([policy, projects, resume].every((result) => result.navigationStarted === true));
+    assert.equal(policy.navigationStarted, true);
   } finally {
     globalThis.setTimeout = originalSetTimeout;
   }
@@ -277,7 +279,7 @@ test("Hayalows registration exposes four schema-enforced tools with telemetry di
   assert.deepEqual(JSON.parse(normalized.content[0].text), normalized.structuredContent);
 });
 
-test("CV registration exposes four schema-enforced discovery and action tools", async () => {
+test("CV registration exposes six non-overlapping schema-enforced jobs", async () => {
   const registered = [];
   globalThis.document = {
     modelContext: {
@@ -291,12 +293,13 @@ test("CV registration exposes four schema-enforced discovery and action tools", 
 
   assert.deepEqual(
     registered.map((tool) => tool.name),
-    ["ask_papa_kojo", "get_papa_kojo_projects", "navigate_papa_kojo_profile", "prepare_papa_kojo_email"],
+    ["get_papa_kojo_profile", "get_papa_kojo_skills", "get_papa_kojo_experience", "get_papa_kojo_education", "get_papa_kojo_projects", "prepare_papa_kojo_email"],
   );
   assert.ok(registered.every((tool) => tool.outputSchema?.type === "object"));
-  assert.deepEqual(registered.map((tool) => tool.annotations.readOnlyHint), [true, true, false, false]);
-  const normalized = await registered[1].execute({ project: "routelab" });
+  assert.deepEqual(registered.map((tool) => tool.annotations.readOnlyHint), [true, true, true, true, true, false]);
+  const normalized = await registered[4].execute({ project: "routelab" });
   assert.equal(normalized.structuredContent.projects[0].name, "RouteLab");
+  assert.equal(normalized.structuredContent.schemaVersion, "2.0.0");
   assert.deepEqual(JSON.parse(normalized.content[0].text), normalized.structuredContent);
 });
 
@@ -310,6 +313,7 @@ test("HTML entry points declare the pinned local SDK and agent-readable alternat
     "../404.html",
     "../cv/index.html",
     "../cv/resume/index.html",
+    "../cv/projects/index.html",
   ];
   for (const file of files) {
     const html = await readFile(new URL(file, import.meta.url), "utf8");

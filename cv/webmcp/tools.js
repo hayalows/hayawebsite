@@ -1,187 +1,378 @@
 import { defineTool } from "@nekuda/webmcp-sdk";
 
 const RESULT_SCHEMA_URL = "https://pkm.hayalows.com/webmcp/results.schema.json";
-const RESULT_SCHEMA_VERSION = "1.1.0";
+const RESULT_SCHEMA_VERSION = "2.0.0";
 
 const RESULT_METADATA_PROPERTIES = {
   schemaVersion: { const: RESULT_SCHEMA_VERSION },
   schemaUrl: { const: RESULT_SCHEMA_URL },
 };
 
-const PROFILE_SECTION_SCHEMA = {
-  type: "object",
-  properties: {
-    title: { type: "string" },
-    text: { type: "string" },
-    tags: { type: "array", items: { type: "string" } },
-    url: { type: "string", format: "uri" },
-  },
-  required: ["title", "text", "tags", "url"],
-  additionalProperties: false,
+const PROFILE = {
+  fullName: "Papa Kojo Mensah",
+  headline: "Operations and Customer Experience Professional",
+  location: "Ghana",
+  availability: "Open to thoughtful work globally",
+  summary: "Papa Kojo Mensah makes complex work easier to understand and use through accurate records, clear communication, practical tools and thoughtful customer experiences.",
+  canonicalProfileUrl: "https://pkm.hayalows.com/",
+  resumeUrl: "https://pkm.hayalows.com/resume/",
+  linkedInUrl: "https://www.linkedin.com/in/papakojomensah",
 };
 
-const PROFILE_TOPICS = {
-  all: null,
-  profile: ["Professional profile"],
-  skills: ["Where Papa Kojo adds value"],
-  experience: ["Current experience", "Banking and customer service experience", "Independent design work"],
-  projects: ["Selected projects"],
-  education: ["Education"],
-  contact: ["Contact and CV"],
-};
-
-const ASK_PAPA_KOJO_OUTPUT_SCHEMA = {
+const PROFILE_OUTPUT_SCHEMA = {
   type: "object",
   properties: {
     ...RESULT_METADATA_PROPERTIES,
-    topic: { enum: Object.keys(PROFILE_TOPICS) },
-    query: { type: "string" },
-    matches: { type: "array", maxItems: 4, items: PROFILE_SECTION_SCHEMA },
-    note: { type: "string" },
-    canonicalProfile: { const: "https://pkm.hayalows.com/" },
+    fullName: { const: PROFILE.fullName },
+    headline: { const: PROFILE.headline },
+    location: { const: PROFILE.location },
+    availability: { const: PROFILE.availability },
+    summary: { type: "string" },
+    canonicalProfileUrl: { const: PROFILE.canonicalProfileUrl },
+    resumeUrl: { const: PROFILE.resumeUrl },
+    linkedInUrl: { const: PROFILE.linkedInUrl },
   },
-  required: ["schemaVersion", "schemaUrl", "topic", "query", "matches", "note", "canonicalProfile"],
+  required: ["schemaVersion", "schemaUrl", "fullName", "headline", "location", "availability", "summary", "canonicalProfileUrl", "resumeUrl", "linkedInUrl"],
   additionalProperties: false,
 };
 
-const CONTENT = [
-  {
-    title: "Professional profile",
-    text: "Papa Kojo Mensah is an operations and customer experience professional based in Ghana and open to thoughtful work globally. He makes complex work easier to understand and use through accurate records, clear communication, practical tools and thoughtful customer experiences.",
-    tags: ["about", "profile", "operations", "customer experience", "ghana", "professional"],
-    url: "https://pkm.hayalows.com/#about",
-  },
-  {
-    title: "Where Papa Kojo adds value",
-    text: "His work centres on information people can trust, service that feels clear, and tools that earn their place. Supporting strengths include data quality, Excel, Google Sheets, process documentation, project coordination, brand identity and graphic design.",
-    tags: ["skills", "strengths", "data", "excel", "google sheets", "process", "design"],
-    url: "https://pkm.hayalows.com/#skills",
-  },
-  {
-    title: "Current experience",
-    text: "Papa Kojo is a Data Entry Specialist at Springboard, remote, from April 2026. He checks historical records against original sources, corrects incomplete or mismatched information, protects sensitive data, and records work and revisions clearly for review.",
-    tags: ["experience", "springboard", "data entry", "records", "quality", "current role"],
-    url: "https://pkm.hayalows.com/#experience",
-  },
-  {
-    title: "Banking and customer service experience",
-    text: "At Absa Bank Ghana, Papa Kojo worked in customer service and sales support from November 2024 to October 2025. He processed customer and account requests, built an Excel treasury-bill quotation tool, and supported youth-account and wholesale-investment work through careful tracking and follow-up.",
-    tags: ["absa", "banking", "customer service", "treasury bill", "sales", "excel"],
-    url: "https://pkm.hayalows.com/#experience",
-  },
-  {
-    title: "Independent design work",
-    text: "Through Iconka Designs, Papa Kojo has worked as a freelance graphic designer since 2022, creating brand identities and visual communication alongside his operations work.",
-    tags: ["iconka", "graphic design", "brand", "freelance", "creative"],
-    url: "https://pkm.hayalows.com/#experience",
-  },
-  {
-    title: "Selected projects",
-    text: "Selected projects include RouteLab, a map-first tool for planning and remembering everyday movement; Hayalows Ventures, combining brand, customer journeys, operations and practical systems; and English Chat Finder, which searches availability across more than 200 conversation calendars.",
-    tags: ["projects", "portfolio", "routelab", "hayalows", "english chat finder", "products"],
-    url: "https://pkm.hayalows.com/#projects",
-  },
-  {
-    title: "Education",
-    text: "Papa Kojo earned a Bachelor of Science in Actuarial Science from Kwame Nkrumah University of Science and Technology in 2024.",
-    tags: ["education", "degree", "actuarial science", "knust", "university"],
-    url: "https://pkm.hayalows.com/#education",
-  },
-  {
-    title: "Contact and CV",
-    text: "Papa Kojo can be contacted at mpapakojo@gmail.com or through LinkedIn. A concise printable one-page CV is published at pkm.hayalows.com/resume/. The private source document and private phone number are not public.",
-    tags: ["contact", "email", "linkedin", "resume", "cv", "hire"],
-    url: "https://pkm.hayalows.com/#contact",
-  },
-];
-
-const STOP_WORDS = new Set(["a", "an", "and", "are", "can", "did", "do", "for", "how", "i", "in", "is", "it", "kojo", "mensah", "of", "on", "or", "papa", "the", "to", "what", "with", "work", "you"]);
-const TOKEN_ALIASES = {
-  experienced: "experience",
-  experiences: "experience",
-  projects: "project",
-  skills: "skill",
-};
-
-function tokens(value) {
-  return String(value)
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length > 1 && !STOP_WORDS.has(token))
-    .map((token) => TOKEN_ALIASES[token] || token);
-}
-
-export function searchProfileContent(query, limit = 4, topic = "all") {
-  const queryTokens = [...new Set(tokens(query))];
-  if (!queryTokens.length) return [];
-  const allowedTitles = PROFILE_TOPICS[topic];
-  if (allowedTitles === undefined) throw new Error("Choose a supported public profile topic.");
-  const candidates = allowedTitles ? CONTENT.filter((section) => allowedTitles.includes(section.title)) : CONTENT;
-  return candidates.map((section, index) => {
-    const title = section.title.toLowerCase();
-    const tags = section.tags.join(" ").toLowerCase();
-    const text = section.text.toLowerCase();
-    const score = queryTokens.reduce((total, token) => (
-      total + (title.includes(token) ? 5 : 0) + (tags.includes(token) ? 3 : 0) + (text.includes(token) ? 1 : 0)
-    ), 0);
-    return { section, score, index };
-  })
-    .filter(({ score }) => score >= 3)
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .slice(0, limit)
-    .map(({ section }) => section);
-}
-
-export const askPapaKojo = defineTool({
-  stableKey: "pkm.ask_profile",
-  name: "ask_papa_kojo",
-  title: "Ask Papa Kojo's profile",
-  description: "Find authoritative public information about Papa Kojo Mensah, optionally constrained to profile, skills, experience, projects, education or contact. Read-only and limited to published material. Returns topic, query, matching public sections, a usage note and canonicalProfile as structured content enforced by outputSchema.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      query: {
-        type: "string",
-        minLength: 2,
-        maxLength: 300,
-        description: "The visitor's question or the profile topic to find.",
-      },
-      topic: {
-        type: "string",
-        enum: Object.keys(PROFILE_TOPICS),
-        default: "all",
-        description: "Optional profile area used to constrain matching and avoid vague cross-topic results.",
-      },
-    },
-    required: ["query"],
-    additionalProperties: false,
-  },
-  outputSchema: ASK_PAPA_KOJO_OUTPUT_SCHEMA,
+export const getPapaKojoProfile = defineTool({
+  stableKey: "pkm.get_profile",
+  name: "get_papa_kojo_profile",
+  title: "Get Papa Kojo's professional profile",
+  description: "Return Papa Kojo Mensah's public identity, professional positioning, location, work availability and canonical profile, résumé and LinkedIn URLs. Read-only. Use this for a profile overview only; use the dedicated skills, experience, education or projects tool for those records. Returns exactly one structured object containing those fields.",
+  inputSchema: { type: "object", properties: {}, required: [], additionalProperties: false },
+  outputSchema: PROFILE_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: true },
   source: "merchant_authored",
   intent: "answer",
-  execute({ query, topic = "all" }) {
-    const cleanQuery = String(query || "").trim();
-    if (cleanQuery.length < 2) throw new Error("Ask Papa Kojo's profile requires a question of at least two characters.");
-    if (cleanQuery.length > 300) throw new Error("Ask Papa Kojo's profile accepts questions up to 300 characters.");
-    const matches = searchProfileContent(cleanQuery, 4, topic);
+  execute() {
+    return { schemaVersion: RESULT_SCHEMA_VERSION, schemaUrl: RESULT_SCHEMA_URL, ...PROFILE };
+  },
+});
+
+const SKILL_GROUPS = [
+  {
+    key: "operations_service",
+    title: "Operations and service",
+    skills: ["Customer support", "Banking operations", "Issue resolution", "Process documentation", "Workflow improvement"],
+    evidence: "Experience handling customer and account requests, maintaining clear records and improving repeatable service work.",
+  },
+  {
+    key: "data_tools",
+    title: "Data and practical tools",
+    skills: ["Data quality", "Source verification", "Excel", "Google Sheets", "Google Workspace", "Microsoft Office"],
+    evidence: "Current record-review work and an Excel treasury-bill quotation tool built to reduce manual effort and calculation errors.",
+  },
+  {
+    key: "brand_delivery",
+    title: "Brand and delivery",
+    skills: ["Brand identity", "Graphic design", "Social media design", "Adobe Creative Suite", "Canva", "Project coordination", "Client communication", "Remote collaboration"],
+    evidence: "Independent design work taken from brief through revisions and final delivery alongside operations-focused projects.",
+  },
+];
+
+const SKILL_GROUP_SCHEMA = {
+  type: "object",
+  properties: {
+    key: { enum: SKILL_GROUPS.map((group) => group.key) },
+    title: { type: "string" },
+    skills: { type: "array", minItems: 1, items: { type: "string" } },
+    evidence: { type: "string" },
+  },
+  required: ["key", "title", "skills", "evidence"],
+  additionalProperties: false,
+};
+
+const SKILLS_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    category: { enum: ["all", ...SKILL_GROUPS.map((group) => group.key)] },
+    groups: { type: "array", minItems: 1, maxItems: 3, items: SKILL_GROUP_SCHEMA },
+    sourceUrl: { const: "https://pkm.hayalows.com/#skills" },
+  },
+  required: ["schemaVersion", "schemaUrl", "category", "groups", "sourceUrl"],
+  additionalProperties: false,
+};
+
+export const getPapaKojoSkills = defineTool({
+  stableKey: "pkm.get_skills",
+  name: "get_papa_kojo_skills",
+  title: "Get Papa Kojo's skills",
+  description: "Return Papa Kojo Mensah's published capabilities grouped into operations and service, data and practical tools, or brand and delivery. Read-only. Use this for skills and capability evidence only, not employment history or portfolio projects. Returns the selected category and one to three exact skill groups.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      category: {
+        type: "string",
+        enum: ["all", ...SKILL_GROUPS.map((group) => group.key)],
+        default: "all",
+        description: "The exact capability group to return, or all for the complete published skills set.",
+      },
+    },
+    required: [],
+    additionalProperties: false,
+  },
+  outputSchema: SKILLS_OUTPUT_SCHEMA,
+  annotations: { readOnlyHint: true },
+  source: "merchant_authored",
+  intent: "answer",
+  execute({ category = "all" }) {
+    const supported = ["all", ...SKILL_GROUPS.map((group) => group.key)];
+    if (!supported.includes(category)) throw new Error("Choose all or a supported published skill category.");
     return {
       schemaVersion: RESULT_SCHEMA_VERSION,
       schemaUrl: RESULT_SCHEMA_URL,
-      topic,
-      query: cleanQuery,
-      matches,
-      note: matches.length
-        ? "Use these public profile sections to answer the visitor and cite the supplied source URLs."
-        : "The public profile has no directly matching published section. Do not infer private or unpublished information.",
-      canonicalProfile: "https://pkm.hayalows.com/",
+      category,
+      groups: category === "all" ? SKILL_GROUPS : SKILL_GROUPS.filter((group) => group.key === category),
+      sourceUrl: "https://pkm.hayalows.com/#skills",
     };
   },
 });
 
-const PREPARE_EMAIL_OUTPUT_SCHEMA = {
+const EXPERIENCE = [
+  {
+    key: "springboard",
+    organization: "Springboard",
+    title: "Data Entry Specialist",
+    location: "Remote",
+    startDate: "2026-04",
+    endDate: null,
+    summary: "Checks historical records against original sources and leaves a clear review trail.",
+    highlights: [
+      "Checks historical records against original sources and corrects incomplete or mismatched information.",
+      "Protects sensitive personal data and records completed work, errors, corrections and revision notes in Google Sheets.",
+      "Follows detailed quality procedures and daily targets while keeping names, dates, relationships and sources accurate.",
+    ],
+  },
+  {
+    key: "absa_bank_ghana",
+    organization: "Absa Bank Ghana",
+    title: "Customer Service and Sales Support",
+    location: "Ghana",
+    startDate: "2024-11",
+    endDate: "2025-10",
+    summary: "Supported customers and financial work while improving treasury-bill quotation workflow in Excel.",
+    highlights: [
+      "Processed and reviewed more than 50 customer and account requests on busy days while following banking controls.",
+      "Built an Excel tool that made treasury-bill quotations faster and reduced manual calculation errors.",
+      "Supported more than 125 youth accounts in a campaign and a GHS 1 million wholesale investment placement through tracking and follow-up.",
+    ],
+  },
+  {
+    key: "iconka_designs",
+    organization: "Iconka Designs",
+    title: "Freelance Graphic Designer",
+    location: "Independent",
+    startDate: "2022",
+    endDate: null,
+    summary: "Creates brand identities and visual communication alongside operations work.",
+    highlights: [
+      "Creates brand identities, social media graphics, presentations, print designs and campaign materials.",
+      "Takes work from brief to final delivery while organizing requirements, timelines, feedback, revisions and files.",
+    ],
+  },
+];
+
+const EXPERIENCE_SCHEMA = {
+  type: "object",
+  properties: {
+    key: { enum: EXPERIENCE.map((role) => role.key) },
+    organization: { type: "string" },
+    title: { type: "string" },
+    location: { type: "string" },
+    startDate: { type: "string" },
+    endDate: { oneOf: [{ type: "string" }, { type: "null" }] },
+    summary: { type: "string" },
+    highlights: { type: "array", minItems: 1, items: { type: "string" } },
+  },
+  required: ["key", "organization", "title", "location", "startDate", "endDate", "summary", "highlights"],
+  additionalProperties: false,
+};
+
+const EXPERIENCE_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    organization: { enum: ["all", ...EXPERIENCE.map((role) => role.key)] },
+    roles: { type: "array", minItems: 1, maxItems: 3, items: EXPERIENCE_SCHEMA },
+    sourceUrl: { const: "https://pkm.hayalows.com/#experience" },
+  },
+  required: ["schemaVersion", "schemaUrl", "organization", "roles", "sourceUrl"],
+  additionalProperties: false,
+};
+
+export const getPapaKojoExperience = defineTool({
+  stableKey: "pkm.get_experience",
+  name: "get_papa_kojo_experience",
+  title: "Get Papa Kojo's work experience",
+  description: "Return Papa Kojo Mensah's published employment history with organization, title, dates, location, summary and factual highlights. Read-only. Use this for work history only; use the dedicated skills or projects tool for capabilities and portfolio work. Returns one selected role or all three roles.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      organization: {
+        type: "string",
+        enum: ["all", ...EXPERIENCE.map((role) => role.key)],
+        default: "all",
+        description: "A specific published organization record, or all for the complete work history.",
+      },
+    },
+    required: [],
+    additionalProperties: false,
+  },
+  outputSchema: EXPERIENCE_OUTPUT_SCHEMA,
+  annotations: { readOnlyHint: true },
+  source: "merchant_authored",
+  intent: "answer",
+  execute({ organization = "all" }) {
+    const supported = ["all", ...EXPERIENCE.map((role) => role.key)];
+    if (!supported.includes(organization)) throw new Error("Choose all or a supported published organization.");
+    return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
+      organization,
+      roles: organization === "all" ? EXPERIENCE : EXPERIENCE.filter((role) => role.key === organization),
+      sourceUrl: "https://pkm.hayalows.com/#experience",
+    };
+  },
+});
+
+const EDUCATION = [
+  { key: "hospitality_tourism", qualification: "Hospitality and Tourism Management Certificate", institution: "Ensign College through BYU-Pathway Worldwide", year: "2026", detail: "Published completion date: May 2026." },
+  { key: "professional_training", qualification: "Selected professional training", institution: null, year: "2025", detail: "Excel, Customer Experience, Digital Payments and Enterprise Risk Management." },
+  { key: "actuarial_science", qualification: "Bachelor of Science in Actuarial Science", institution: "Kwame Nkrumah University of Science and Technology", year: "2024", detail: "Undergraduate degree." },
+  { key: "social_media_marketing", qualification: "Social Media Marketing Certificate", institution: "Ensign College", year: "2023", detail: "Published certificate." },
+  { key: "google_project_management", qualification: "Google Project Management Certificate", institution: "Coursera", year: "2023", detail: "Published professional certificate." },
+];
+
+const EDUCATION_SCHEMA = {
+  type: "object",
+  properties: {
+    key: { enum: EDUCATION.map((credential) => credential.key) },
+    qualification: { type: "string" },
+    institution: { oneOf: [{ type: "string" }, { type: "null" }] },
+    year: { type: "string" },
+    detail: { type: "string" },
+  },
+  required: ["key", "qualification", "institution", "year", "detail"],
+  additionalProperties: false,
+};
+
+const EDUCATION_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    credential: { enum: ["all", ...EDUCATION.map((item) => item.key)] },
+    credentials: { type: "array", minItems: 1, maxItems: 5, items: EDUCATION_SCHEMA },
+    sourceUrl: { const: "https://pkm.hayalows.com/#education" },
+  },
+  required: ["schemaVersion", "schemaUrl", "credential", "credentials", "sourceUrl"],
+  additionalProperties: false,
+};
+
+export const getPapaKojoEducation = defineTool({
+  stableKey: "pkm.get_education",
+  name: "get_papa_kojo_education",
+  title: "Get Papa Kojo's education",
+  description: "Return Papa Kojo Mensah's published education and professional certificates with exact qualification, year, public detail and institution when stated. Read-only. Use this for education and training only, not skills, employment history or projects. Returns one selected credential or all five credentials.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      credential: {
+        type: "string",
+        enum: ["all", ...EDUCATION.map((item) => item.key)],
+        default: "all",
+        description: "A specific published qualification or certificate, or all for the complete education record.",
+      },
+    },
+    required: [],
+    additionalProperties: false,
+  },
+  outputSchema: EDUCATION_OUTPUT_SCHEMA,
+  annotations: { readOnlyHint: true },
+  source: "merchant_authored",
+  intent: "answer",
+  execute({ credential = "all" }) {
+    const supported = ["all", ...EDUCATION.map((item) => item.key)];
+    if (!supported.includes(credential)) throw new Error("Choose all or a supported published credential.");
+    return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
+      credential,
+      credentials: credential === "all" ? EDUCATION : EDUCATION.filter((item) => item.key === credential),
+      sourceUrl: "https://pkm.hayalows.com/#education",
+    };
+  },
+});
+
+const PROJECTS = [
+  { key: "routelab", name: "RouteLab", kind: "Live product", summary: "A map-first tool for planning routes and remembering everyday movement in one calm flow.", url: "https://maps.hayalows.com/" },
+  { key: "hayalows_ventures", name: "Hayalows Ventures", kind: "Venture", summary: "Business clarity, brand communication, customer journeys, operations and practical digital systems from Ghana.", url: "https://hayalows.com/" },
+  { key: "english_chat_finder", name: "English Chat Finder", kind: "Live tool", summary: "A single search across availability from more than 200 English-conversation calendars.", url: "https://englishchatsession.vercel.app/" },
+];
+
+const PROJECT_SCHEMA = {
+  type: "object",
+  properties: {
+    key: { enum: PROJECTS.map((project) => project.key) },
+    name: { type: "string" },
+    kind: { type: "string" },
+    summary: { type: "string" },
+    url: { type: "string", format: "uri" },
+  },
+  required: ["key", "name", "kind", "summary", "url"],
+  additionalProperties: false,
+};
+
+const PROJECTS_OUTPUT_SCHEMA = {
+  type: "object",
+  properties: {
+    ...RESULT_METADATA_PROPERTIES,
+    project: { enum: ["all", ...PROJECTS.map((project) => project.key)] },
+    projects: { type: "array", minItems: 1, maxItems: 3, items: PROJECT_SCHEMA },
+    sourceUrl: { const: "https://pkm.hayalows.com/projects/" },
+  },
+  required: ["schemaVersion", "schemaUrl", "project", "projects", "sourceUrl"],
+  additionalProperties: false,
+};
+
+export const getPapaKojoProjects = defineTool({
+  stableKey: "pkm.get_projects",
+  name: "get_papa_kojo_projects",
+  title: "Get Papa Kojo's projects",
+  description: "Return Papa Kojo Mensah's published portfolio projects with exact name, type, summary and canonical live URL. Read-only. Use this for portfolio evidence only, not general profile information, skills or employment history. Returns one selected project or all three projects.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      project: {
+        type: "string",
+        enum: ["all", ...PROJECTS.map((project) => project.key)],
+        default: "all",
+        description: "A specific published project, or all for the complete portfolio selection.",
+      },
+    },
+    required: [],
+    additionalProperties: false,
+  },
+  outputSchema: PROJECTS_OUTPUT_SCHEMA,
+  annotations: { readOnlyHint: true },
+  source: "merchant_authored",
+  intent: "answer",
+  execute({ project = "all" }) {
+    const supported = ["all", ...PROJECTS.map((item) => item.key)];
+    if (!supported.includes(project)) throw new Error("Choose all or a supported published project.");
+    return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
+      project,
+      projects: project === "all" ? PROJECTS : PROJECTS.filter((item) => item.key === project),
+      sourceUrl: "https://pkm.hayalows.com/projects/",
+    };
+  },
+});
+
+const EMAIL_OUTPUT_SCHEMA = {
   type: "object",
   properties: {
     ...RESULT_METADATA_PROPERTIES,
@@ -201,27 +392,17 @@ export const preparePapaKojoEmail = defineTool({
   stableKey: "pkm.prepare_email",
   name: "prepare_papa_kojo_email",
   title: "Prepare an email to Papa Kojo",
-  description: "Prepare a reversible email draft to the fixed public recipient mpapakojo@gmail.com for a role, project or professional conversation. It updates and focuses the public email link, but never opens the mail app, sends, books time or commits the visitor. Returns the enforced recipient, bounded subject and message, sent=false, nextStep and sourceUrl as structured content enforced by outputSchema.",
+  description: "Prepare a reversible email draft to Papa Kojo Mensah's fixed public address after a visitor has decided to make professional contact. This action only updates and focuses the site's email link. It never opens the mail app, sends a message, books time or creates a commitment. Returns the recipient, bounded subject and message, sent=false and the required human next step.",
   inputSchema: {
     type: "object",
     properties: {
-      subject: {
-        type: "string",
-        minLength: 3,
-        maxLength: 160,
-        description: "A concise email subject describing the role, project or reason for contacting Papa Kojo.",
-      },
-      message: {
-        type: "string",
-        minLength: 10,
-        maxLength: 3000,
-        description: "The email body for the visitor to review and edit before choosing to send it.",
-      },
+      subject: { type: "string", minLength: 3, maxLength: 160, description: "A concise subject describing the role, project or professional reason for contact." },
+      message: { type: "string", minLength: 10, maxLength: 3000, description: "The email body for the visitor to review and edit before choosing whether to send it." },
     },
     required: ["subject", "message"],
     additionalProperties: false,
   },
-  outputSchema: PREPARE_EMAIL_OUTPUT_SCHEMA,
+  outputSchema: EMAIL_OUTPUT_SCHEMA,
   annotations: { readOnlyHint: false },
   source: "merchant_authored",
   intent: "act",
@@ -235,8 +416,7 @@ export const preparePapaKojoEmail = defineTool({
 
     const emailLink = document.querySelector('a[href^="mailto:mpapakojo@gmail.com"]');
     if (!emailLink) throw new Error("Papa Kojo's public email link is unavailable on this page.");
-    const draftUrl = `mailto:mpapakojo@gmail.com?${new URLSearchParams({ subject: cleanSubject, body: cleanMessage })}`;
-    emailLink.href = draftUrl;
+    emailLink.href = `mailto:mpapakojo@gmail.com?${new URLSearchParams({ subject: cleanSubject, body: cleanMessage })}`;
     emailLink.scrollIntoView({ behavior: "smooth", block: "center" });
     emailLink.focus({ preventScroll: true });
 
@@ -250,155 +430,6 @@ export const preparePapaKojoEmail = defineTool({
       sent: false,
       nextStep: "The visitor must activate the focused email link, review the draft in their mail app and choose whether to send it.",
       sourceUrl: "https://pkm.hayalows.com/#contact",
-    };
-  },
-});
-
-const PROJECTS = [
-  {
-    key: "routelab",
-    name: "RouteLab",
-    kind: "Live product",
-    summary: "A map-first tool for planning routes and remembering everyday movement in one calm flow.",
-    url: "https://maps.hayalows.com/",
-  },
-  {
-    key: "hayalows_ventures",
-    name: "Hayalows Ventures",
-    kind: "Venture",
-    summary: "Business clarity, brand communication, customer journeys, operations and practical digital systems from Ghana.",
-    url: "https://hayalows.com/",
-  },
-  {
-    key: "english_chat_finder",
-    name: "English Chat Finder",
-    kind: "Live tool",
-    summary: "A single search across availability from more than 200 English-conversation calendars.",
-    url: "https://englishchatsession.vercel.app/",
-  },
-];
-
-const PROJECT_SCHEMA = {
-  type: "object",
-  properties: {
-    key: { enum: PROJECTS.map((project) => project.key) },
-    name: { type: "string" },
-    kind: { type: "string" },
-    summary: { type: "string" },
-    url: { type: "string", format: "uri" },
-  },
-  required: ["key", "name", "kind", "summary", "url"],
-  additionalProperties: false,
-};
-
-const GET_PROJECTS_OUTPUT_SCHEMA = {
-  type: "object",
-  properties: {
-    ...RESULT_METADATA_PROPERTIES,
-    project: { enum: ["all", ...PROJECTS.map((item) => item.key)] },
-    projects: { type: "array", minItems: 1, maxItems: 3, items: PROJECT_SCHEMA },
-    note: { type: "string" },
-    sourceUrl: { const: "https://pkm.hayalows.com/#projects" },
-  },
-  required: ["schemaVersion", "schemaUrl", "project", "projects", "note", "sourceUrl"],
-  additionalProperties: false,
-};
-
-export const getPapaKojoProjects = defineTool({
-  stableKey: "pkm.get_projects",
-  name: "get_papa_kojo_projects",
-  title: "Get Papa Kojo's projects",
-  description: "Return Papa Kojo Mensah's published projects when a visitor wants portfolio evidence, a specific project, or canonical project links. Read-only. Returns project, a precise projects array (key, name, kind, summary and url), note and sourceUrl as structured content enforced by outputSchema.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      project: {
-        type: "string",
-        enum: ["all", ...PROJECTS.map((item) => item.key)],
-        default: "all",
-        description: "A specific published project, or all for the complete selection.",
-      },
-    },
-    required: [],
-    additionalProperties: false,
-  },
-  outputSchema: GET_PROJECTS_OUTPUT_SCHEMA,
-  annotations: { readOnlyHint: true },
-  source: "merchant_authored",
-  intent: "answer",
-  execute({ project = "all" }) {
-    if (!["all", ...PROJECTS.map((item) => item.key)].includes(project)) {
-      throw new Error("Choose all or a supported published project.");
-    }
-    const projects = project === "all" ? PROJECTS : PROJECTS.filter((item) => item.key === project);
-    return {
-      schemaVersion: RESULT_SCHEMA_VERSION,
-      schemaUrl: RESULT_SCHEMA_URL,
-      project,
-      projects,
-      note: project === "all" ? "Three published projects are available." : `One published project matched ${project}.`,
-      sourceUrl: "https://pkm.hayalows.com/#projects",
-    };
-  },
-});
-
-const PROFILE_DESTINATIONS = {
-  about: { label: "Profile overview", path: "/#about", url: "https://pkm.hayalows.com/#about" },
-  projects: { label: "Selected projects", path: "/#projects", url: "https://pkm.hayalows.com/#projects" },
-  experience: { label: "Professional experience", path: "/#experience", url: "https://pkm.hayalows.com/#experience" },
-  skills: { label: "Skills", path: "/#skills", url: "https://pkm.hayalows.com/#skills" },
-  education: { label: "Education", path: "/#education", url: "https://pkm.hayalows.com/#education" },
-  contact: { label: "Contact", path: "/#contact", url: "https://pkm.hayalows.com/#contact" },
-  resume: { label: "One-page résumé", path: "/resume/", url: "https://pkm.hayalows.com/resume/" },
-};
-
-const NAVIGATE_PROFILE_OUTPUT_SCHEMA = {
-  type: "object",
-  properties: {
-    ...RESULT_METADATA_PROPERTIES,
-    destination: { enum: Object.keys(PROFILE_DESTINATIONS) },
-    label: { type: "string" },
-    url: { type: "string", format: "uri" },
-    navigationStarted: { const: true },
-    nextStep: { type: "string" },
-  },
-  required: ["schemaVersion", "schemaUrl", "destination", "label", "url", "navigationStarted", "nextStep"],
-  additionalProperties: false,
-};
-
-export const navigatePapaKojoProfile = defineTool({
-  stableKey: "pkm.navigate_profile",
-  name: "navigate_papa_kojo_profile",
-  title: "Navigate Papa Kojo's profile",
-  description: "Navigate directly to Papa Kojo Mensah's profile overview, projects, experience, skills, education, contact section or one-page résumé. Reversible page navigation only; it never contacts anyone or makes a commitment. Returns destination, label, canonical url, navigationStarted and nextStep as structured content enforced by outputSchema.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      destination: {
-        type: "string",
-        enum: Object.keys(PROFILE_DESTINATIONS),
-        description: "The exact public profile section or résumé page to open.",
-      },
-    },
-    required: ["destination"],
-    additionalProperties: false,
-  },
-  outputSchema: NAVIGATE_PROFILE_OUTPUT_SCHEMA,
-  annotations: { readOnlyHint: false },
-  source: "merchant_authored",
-  intent: "act",
-  execute({ destination }) {
-    const target = PROFILE_DESTINATIONS[destination];
-    if (!target) throw new Error("Choose a supported public profile destination.");
-    setTimeout(() => location.assign(target.path), 0);
-    return {
-      schemaVersion: RESULT_SCHEMA_VERSION,
-      schemaUrl: RESULT_SCHEMA_URL,
-      destination,
-      label: target.label,
-      url: target.url,
-      navigationStarted: true,
-      nextStep: `The browser is opening ${target.label}.`,
     };
   },
 });

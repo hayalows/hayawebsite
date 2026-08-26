@@ -2,7 +2,7 @@
 
 This folder is the standalone static site deployed to the existing Vercel project `papa-kojo-cv`.
 
-The profile and one-page CV register four focused WebMCP tools: public-profile retrieval, structured project discovery, direct profile/résumé navigation and a reversible email draft. They use the documented output-schema compatibility asset in `vendor/`. Registration passes `telemetry: false`; no tool exposes private source material, sends a message or books time. Every registered tool has an `outputSchema`, returns matching `structuredContent`, and links to the stable contracts in `webmcp/results.schema.json`.
+The professional profile, project index and one-page CV register six non-overlapping WebMCP tools: bounded profile retrieval, skills by category, experience by organization, education by credential, projects by exact key and a reversible email draft. The tool descriptions explicitly route agents away from adjacent tools, input schemas use tight enums, and every result has an inline `outputSchema` plus matching `structuredContent`. Registration passes `telemetry: false`; no tool exposes private source material, sends a message or books time. Stable contracts are also published in `webmcp/results.schema.json`.
 
 ## Local preview
 

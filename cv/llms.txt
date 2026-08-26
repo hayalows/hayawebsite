@@ -6,6 +6,7 @@
 
 - [Professional profile](https://pkm.hayalows.com/): About, projects, experience, skills, education, contact information and a personal Spotify listening panel.
 - [One-page CV](https://pkm.hayalows.com/resume/): Concise, printable curriculum vitae.
+- [Project index](https://pkm.hayalows.com/projects/): Focused summaries and canonical links for three published projects.
 - [LinkedIn](https://www.linkedin.com/in/papakojomensah): Public professional profile.
 
 ## Current positioning
@@ -27,10 +28,13 @@
 
 ## WebMCP browser tools
 
-- `ask_papa_kojo` is available on the profile and one-page CV. It retrieves relevant public profile sections with canonical source URLs and does not expose private source material.
-- `get_papa_kojo_projects` returns the three published projects or one exact project with its canonical link.
-- `navigate_papa_kojo_profile` opens an exact profile section or the one-page résumé.
-- `prepare_papa_kojo_email` is available on the profile and one-page CV. It prepares and focuses a reversible email draft link but never opens the mail app, sends a message or books time.
+- `get_papa_kojo_profile` returns only public identity, positioning, location, availability and canonical profile links.
+- `get_papa_kojo_skills` returns one exact capability group or all three published groups.
+- `get_papa_kojo_experience` returns one exact organization record or all three published roles.
+- `get_papa_kojo_education` returns one exact qualification or all published education and training records.
+- `get_papa_kojo_projects` returns one exact published project or all three projects with canonical live links.
+- `prepare_papa_kojo_email` prepares and focuses a reversible email draft link but never opens the mail app, sends a message or books time.
+- These tools are available across the professional profile, project index and one-page CV so an agent can complete the same bounded journey from each public context.
 - Stable, versioned result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
 - Every tool registers an `outputSchema` and returns matching `structuredContent`.
 
