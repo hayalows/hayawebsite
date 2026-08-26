@@ -2,11 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://hayalows.com/webmcp/results.schema.json",
   "title": "Hayalows WebMCP result contracts",
-  "description": "Versioned result contracts for the WebMCP tools exposed by hayalows.com. WebMCP does not yet define a browser-level outputSchema field, so each tool description and result links to this canonical contract.",
+  "description": "Versioned result contracts for the WebMCP tools exposed by hayalows.com. Each contract is also registered as outputSchema and every object result is returned as structuredContent.",
   "oneOf": [
     { "$ref": "#/$defs/AskHayalowsResult" },
     { "$ref": "#/$defs/BrowseHayalowsServicesResult" },
-    { "$ref": "#/$defs/PrepareHayalowsEnquiryResult" }
+    { "$ref": "#/$defs/PrepareHayalowsEnquiryResult" },
+    { "$ref": "#/$defs/NavigateHayalowsResult" }
   ],
   "$defs": {
     "PublishedSection": {
@@ -24,10 +25,10 @@
     "AskHayalowsResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.0.0" },
+        "schemaVersion": { "const": "1.1.0" },
         "schemaUrl": { "const": "https://hayalows.com/webmcp/results.schema.json" },
         "query": { "type": "string" },
-        "matches": { "type": "array", "items": { "$ref": "#/$defs/PublishedSection" } },
+        "matches": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/PublishedSection" } },
         "note": { "type": "string" },
         "contact": {
           "oneOf": [
@@ -60,7 +61,7 @@
     "BrowseHayalowsServicesResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.0.0" },
+        "schemaVersion": { "const": "1.1.0" },
         "schemaUrl": { "const": "https://hayalows.com/webmcp/results.schema.json" },
         "offerings": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "$ref": "#/$defs/Offering" } },
         "selected": { "enum": ["all", "business_clarity", "brand_communication", "websites_tools"] },
@@ -74,10 +75,10 @@
     "PrepareHayalowsEnquiryResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.0.0" },
+        "schemaVersion": { "const": "1.1.0" },
         "schemaUrl": { "const": "https://hayalows.com/webmcp/results.schema.json" },
         "status": { "enum": ["draft_saved", "draft_ready"] },
-        "helpType": { "type": "string" },
+        "helpType": { "enum": ["Business clarity or systems", "Brand and communication", "Website or digital tool", "Product or venture discussion", "Partnership", "General enquiry"] },
         "message": { "type": "string" },
         "contactDetailsIncluded": { "type": "boolean" },
         "sent": { "const": false },
@@ -86,6 +87,20 @@
         "sourceUrl": { "const": "https://hayalows.com/#contact-form" }
       },
       "required": ["schemaVersion", "schemaUrl", "status", "helpType", "message", "contactDetailsIncluded", "sent", "navigationStarted", "nextStep", "sourceUrl"],
+      "additionalProperties": false
+    },
+    "NavigateHayalowsResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "1.1.0" },
+        "schemaUrl": { "const": "https://hayalows.com/webmcp/results.schema.json" },
+        "destination": { "enum": ["home", "services", "approach", "enquiry", "payments", "payments_refunds", "privacy", "terms"] },
+        "label": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "navigationStarted": { "const": true },
+        "nextStep": { "type": "string" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "destination", "label", "url", "navigationStarted", "nextStep"],
       "additionalProperties": false
     }
   }

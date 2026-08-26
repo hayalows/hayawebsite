@@ -1,6 +1,6 @@
 import { registerHooks } from "node:module";
 
-const sdkUrl = new URL("../vendor/webmcp-sdk-0.5.0.js", import.meta.url).href;
+const sdkUrl = new URL("../vendor/webmcp-sdk-0.5.0-output-schema.js", import.meta.url).href;
 
 registerHooks({
   resolve(specifier, context, nextResolve) {

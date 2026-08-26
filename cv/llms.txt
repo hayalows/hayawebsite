@@ -28,7 +28,10 @@
 ## WebMCP browser tools
 
 - `ask_papa_kojo` is available on the profile and one-page CV. It retrieves relevant public profile sections with canonical source URLs and does not expose private source material.
+- `get_papa_kojo_projects` returns the three published projects or one exact project with its canonical link.
+- `navigate_papa_kojo_profile` opens an exact profile section or the one-page résumé.
 - `prepare_papa_kojo_email` is available on the profile and one-page CV. It prepares and focuses a reversible email draft link but never opens the mail app, sends a message or books time.
 - Stable, versioned result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
+- Every tool registers an `outputSchema` and returns matching `structuredContent`.
 
 Last updated: 2026-08-26. This file summarises facts already published on the canonical profile.

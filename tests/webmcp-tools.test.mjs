@@ -5,10 +5,17 @@ import test from "node:test";
 import {
   askHayalows,
   browseHayalowsServices,
+  navigateHayalows,
   prepareHayalowsEnquiry,
   searchHayalowsContent,
 } from "../webmcp/tools.js";
-import { askPapaKojo, preparePapaKojoEmail, searchProfileContent } from "../cv/webmcp/tools.js";
+import {
+  askPapaKojo,
+  getPapaKojoProjects,
+  navigatePapaKojoProfile,
+  preparePapaKojoEmail,
+  searchProfileContent,
+} from "../cv/webmcp/tools.js";
 
 test("Hayalows retrieval returns focused published sources", () => {
   const matches = searchHayalowsContent("Can you help with a website and customer follow-up?");
@@ -21,7 +28,7 @@ test("Hayalows retrieval returns focused published sources", () => {
   assert.equal(response.matches[0].id, "payments");
   assert.equal(response.matches.length, 1);
   assert.match(response.matches[0].text, /does not collect card details/i);
-  assert.equal(response.schemaVersion, "1.0.0");
+  assert.equal(response.schemaVersion, "1.1.0");
   assert.equal(response.schemaUrl, "https://hayalows.com/webmcp/results.schema.json");
   assert.equal(response.contact, null);
 });
@@ -60,6 +67,17 @@ test("CV retrieval normalizes common experience wording", () => {
   assert.ok(response.matches.some((match) => match.title === "Banking and customer service experience"));
 });
 
+test("CV retrieval can constrain matching to one precise topic", () => {
+  const response = askPapaKojo.execute({
+    query: "customer service experience",
+    topic: "experience",
+  });
+  assert.equal(response.topic, "experience");
+  assert.ok(response.matches.length >= 1);
+  assert.ok(response.matches.every((match) => /experience|design work/i.test(match.title)));
+  assert.ok(!response.matches.some((match) => match.title === "Education"));
+});
+
 test("service browsing visibly opens the selected offering", () => {
   const detail = { open: false };
   let focused = false;
@@ -87,7 +105,7 @@ test("service browsing visibly opens the selected offering", () => {
   assert.equal(scrolled, true);
   assert.equal(response.selected, "brand_communication");
   assert.equal(response.navigationStarted, false);
-  assert.equal(response.schemaVersion, "1.0.0");
+  assert.equal(response.schemaVersion, "1.1.0");
 });
 
 test("enquiry preparation fills a reversible draft and never sends", () => {
@@ -167,6 +185,36 @@ test("CV contact tool prepares and focuses an email draft without sending", () =
   assert.equal(response.status, "draft_ready");
   assert.equal(response.sent, false);
   assert.equal(response.recipient, "mpapakojo@gmail.com");
+  assert.equal(preparePapaKojoEmail.outputSchema.properties.recipient.const, "mpapakojo@gmail.com");
+});
+
+test("CV project tool returns precise published portfolio records", () => {
+  const all = getPapaKojoProjects.execute({ project: "all" });
+  const selected = getPapaKojoProjects.execute({ project: "routelab" });
+  assert.equal(all.projects.length, 3);
+  assert.equal(selected.projects.length, 1);
+  assert.equal(selected.projects[0].name, "RouteLab");
+  assert.equal(selected.projects[0].url, "https://maps.hayalows.com/");
+  assert.equal(getPapaKojoProjects.annotations.readOnlyHint, true);
+});
+
+test("direct navigation tools cover Hayalows pages and CV projects or resume", () => {
+  const navigations = [];
+  const originalSetTimeout = globalThis.setTimeout;
+  globalThis.location = { assign(url) { navigations.push(url); } };
+  globalThis.setTimeout = (callback) => { callback(); return 1; };
+  try {
+    const policy = navigateHayalows.execute({ destination: "privacy" });
+    const projects = navigatePapaKojoProfile.execute({ destination: "projects" });
+    const resume = navigatePapaKojoProfile.execute({ destination: "resume" });
+    assert.deepEqual(navigations, ["/privacy/", "/#projects", "/resume/"]);
+    assert.equal(policy.url, "https://hayalows.com/privacy/");
+    assert.equal(projects.url, "https://pkm.hayalows.com/#projects");
+    assert.equal(resume.url, "https://pkm.hayalows.com/resume/");
+    assert.ok([policy, projects, resume].every((result) => result.navigationStarted === true));
+  } finally {
+    globalThis.setTimeout = originalSetTimeout;
+  }
 });
 
 test("Hayalows actions carry safe journeys from subpages to the homepage", () => {
@@ -199,7 +247,7 @@ test("Hayalows actions carry safe journeys from subpages to the homepage", () =>
   }
 });
 
-test("homepage registration exposes three tools with telemetry disabled", async () => {
+test("Hayalows registration exposes four schema-enforced tools with telemetry disabled", async () => {
   const registered = [];
   let fetches = 0;
   globalThis.fetch = async () => { fetches += 1; return { ok: true }; };
@@ -219,15 +267,17 @@ test("homepage registration exposes three tools with telemetry disabled", async 
 
   assert.deepEqual(
     registered.map((tool) => tool.name),
-    ["ask_hayalows", "browse_hayalows_services", "prepare_hayalows_enquiry"],
+    ["ask_hayalows", "browse_hayalows_services", "prepare_hayalows_enquiry", "navigate_hayalows"],
   );
   assert.equal(fetches, 0);
-  assert.equal(registered[0].annotations.readOnlyHint, true);
-  assert.equal(registered[1].annotations.readOnlyHint, false);
-  assert.equal(registered[2].annotations.readOnlyHint, false);
+  assert.ok(registered.every((tool) => tool.outputSchema?.type === "object"));
+  assert.deepEqual(registered.map((tool) => tool.annotations.readOnlyHint), [true, false, false, false]);
+  const normalized = await registered[0].execute({ query: "payments" });
+  assert.equal(normalized.structuredContent.schemaVersion, "1.1.0");
+  assert.deepEqual(JSON.parse(normalized.content[0].text), normalized.structuredContent);
 });
 
-test("CV registration exposes retrieval and contact actions", async () => {
+test("CV registration exposes four schema-enforced discovery and action tools", async () => {
   const registered = [];
   globalThis.document = {
     modelContext: {
@@ -241,10 +291,13 @@ test("CV registration exposes retrieval and contact actions", async () => {
 
   assert.deepEqual(
     registered.map((tool) => tool.name),
-    ["ask_papa_kojo", "prepare_papa_kojo_email"],
+    ["ask_papa_kojo", "get_papa_kojo_projects", "navigate_papa_kojo_profile", "prepare_papa_kojo_email"],
   );
-  assert.equal(registered[0].annotations.readOnlyHint, true);
-  assert.equal(registered[1].annotations.readOnlyHint, false);
+  assert.ok(registered.every((tool) => tool.outputSchema?.type === "object"));
+  assert.deepEqual(registered.map((tool) => tool.annotations.readOnlyHint), [true, true, false, false]);
+  const normalized = await registered[1].execute({ project: "routelab" });
+  assert.equal(normalized.structuredContent.projects[0].name, "RouteLab");
+  assert.deepEqual(JSON.parse(normalized.content[0].text), normalized.structuredContent);
 });
 
 test("HTML entry points declare the pinned local SDK and agent-readable alternates", async () => {
@@ -263,7 +316,7 @@ test("HTML entry points declare the pinned local SDK and agent-readable alternat
     const importMapSource = html.match(/<script type="importmap">([\s\S]*?)<\/script>/)?.[1];
     assert.ok(importMapSource, `missing import map in ${file}`);
     const importMap = JSON.parse(importMapSource);
-    assert.equal(importMap.imports["@nekuda/webmcp-sdk"], "/vendor/webmcp-sdk-0.5.0.js");
+    assert.equal(importMap.imports["@nekuda/webmcp-sdk"], "/vendor/webmcp-sdk-0.5.0-output-schema.js");
     assert.match(html, /rel="alternate" type="text\/plain"/);
     assert.match(html, /rel="alternate" type="application\/schema\+json"/);
     assert.match(html, /<script type="module" src="\/webmcp\/entry\.js"><\/script>/);

@@ -2,10 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://pkm.hayalows.com/webmcp/results.schema.json",
   "title": "Papa Kojo Mensah WebMCP result contracts",
-  "description": "Versioned result contracts for the WebMCP tools exposed by pkm.hayalows.com. WebMCP does not yet define a browser-level outputSchema field, so each tool description and result links to this canonical contract.",
+  "description": "Versioned result contracts for the WebMCP tools exposed by pkm.hayalows.com. Each contract is also registered as outputSchema and every object result is returned as structuredContent.",
   "oneOf": [
     { "$ref": "#/$defs/AskPapaKojoResult" },
-    { "$ref": "#/$defs/PreparePapaKojoEmailResult" }
+    { "$ref": "#/$defs/PreparePapaKojoEmailResult" },
+    { "$ref": "#/$defs/GetPapaKojoProjectsResult" },
+    { "$ref": "#/$defs/NavigatePapaKojoProfileResult" }
   ],
   "$defs": {
     "ProfileSection": {
@@ -22,20 +24,21 @@
     "AskPapaKojoResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.0.0" },
+        "schemaVersion": { "const": "1.1.0" },
         "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "topic": { "enum": ["all", "profile", "skills", "experience", "projects", "education", "contact"] },
         "query": { "type": "string" },
-        "matches": { "type": "array", "items": { "$ref": "#/$defs/ProfileSection" } },
+        "matches": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/ProfileSection" } },
         "note": { "type": "string" },
         "canonicalProfile": { "const": "https://pkm.hayalows.com/" }
       },
-      "required": ["schemaVersion", "schemaUrl", "query", "matches", "note", "canonicalProfile"],
+      "required": ["schemaVersion", "schemaUrl", "topic", "query", "matches", "note", "canonicalProfile"],
       "additionalProperties": false
     },
     "PreparePapaKojoEmailResult": {
       "type": "object",
       "properties": {
-        "schemaVersion": { "const": "1.0.0" },
+        "schemaVersion": { "const": "1.1.0" },
         "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
         "status": { "const": "draft_ready" },
         "recipient": { "const": "mpapakojo@gmail.com" },
@@ -46,6 +49,45 @@
         "sourceUrl": { "const": "https://pkm.hayalows.com/#contact" }
       },
       "required": ["schemaVersion", "schemaUrl", "status", "recipient", "subject", "message", "sent", "nextStep", "sourceUrl"],
+      "additionalProperties": false
+    },
+    "Project": {
+      "type": "object",
+      "properties": {
+        "key": { "enum": ["routelab", "hayalows_ventures", "english_chat_finder"] },
+        "name": { "type": "string" },
+        "kind": { "type": "string" },
+        "summary": { "type": "string" },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "required": ["key", "name", "kind", "summary", "url"],
+      "additionalProperties": false
+    },
+    "GetPapaKojoProjectsResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "1.1.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "project": { "enum": ["all", "routelab", "hayalows_ventures", "english_chat_finder"] },
+        "projects": { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/$defs/Project" } },
+        "note": { "type": "string" },
+        "sourceUrl": { "const": "https://pkm.hayalows.com/#projects" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "project", "projects", "note", "sourceUrl"],
+      "additionalProperties": false
+    },
+    "NavigatePapaKojoProfileResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": { "const": "1.1.0" },
+        "schemaUrl": { "const": "https://pkm.hayalows.com/webmcp/results.schema.json" },
+        "destination": { "enum": ["about", "projects", "experience", "skills", "education", "contact", "resume"] },
+        "label": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "navigationStarted": { "const": true },
+        "nextStep": { "type": "string" }
+      },
+      "required": ["schemaVersion", "schemaUrl", "destination", "label", "url", "navigationStarted", "nextStep"],
       "additionalProperties": false
     }
   }

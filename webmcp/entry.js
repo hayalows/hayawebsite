@@ -2,6 +2,7 @@ import { registerTools } from "@nekuda/webmcp-sdk";
 import {
   askHayalows,
   browseHayalowsServices,
+  navigateHayalows,
   prepareHayalowsEnquiry,
   restorePendingEnquiryDraft,
 } from "./tools.js";
@@ -9,7 +10,7 @@ import {
 restorePendingEnquiryDraft();
 
 const registration = registerTools(
-  [askHayalows, browseHayalowsServices, prepareHayalowsEnquiry],
+  [askHayalows, browseHayalowsServices, prepareHayalowsEnquiry, navigateHayalows],
   { telemetry: false },
 );
 addEventListener("pagehide", () => registration.unregister(), { once: true });
