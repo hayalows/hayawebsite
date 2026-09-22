@@ -355,6 +355,25 @@ h1 {
   line-height: 1.67;
 }
 
+/* Keep experience, learning and availability distinct in the introduction. */
+.exploring-copy {
+  max-width: 61ch;
+  margin-block-start: 1rem;
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.65;
+}
+.exploring-copy strong { color: var(--text); font-weight: 600; }
+.availability-note {
+  max-width: 61ch;
+  margin-block-start: 1.35rem;
+  padding-inline-start: .9rem;
+  border-inline-start: 2px solid var(--accent);
+  color: #cececa;
+  font-size: .84rem;
+  line-height: 1.6;
+}
+
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
