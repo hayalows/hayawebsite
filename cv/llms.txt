@@ -1,6 +1,6 @@
 # Papa Kojo Mensah
 
-> Papa Kojo Mensah is an operations and customer experience professional based in Ghana and open to thoughtful work globally. He uses trusted data, practical digital tools and clear design to make complex work easier to understand and use.
+> Papa Kojo Mensah is an early-career professional based in Ghana, with experience in customer service at Absa and data review through Springboard. He is interested in customer service, operations support and hospitality opportunities, and is learning about practical uses of AI and user experience.
 
 ## Canonical profile
 
@@ -11,7 +11,7 @@
 
 ## Current positioning
 
-- Primary focus: operations and customer experience.
+- Primary focus: customer service and operations support.
 - Supporting strengths: data quality, record review, Excel, Google Sheets, process documentation, project coordination, brand identity and graphic design.
 - Current role: Data Entry Specialist at Springboard, remote, from April 2026.
 - Education: BSc Actuarial Science, Kwame Nkrumah University of Science and Technology, 2024.
@@ -38,4 +38,4 @@
 - Stable, versioned result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
 - Every tool registers an `outputSchema` and returns matching `structuredContent`.
 
-Last updated: 2026-08-26. This file summarises facts already published on the canonical profile.
+Last updated: 2026-09-22. This file summarises facts already published on the canonical profile.

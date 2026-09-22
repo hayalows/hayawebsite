@@ -10,10 +10,10 @@ const RESULT_METADATA_PROPERTIES = {
 
 const PROFILE = {
   fullName: "Papa Kojo Mensah",
-  headline: "Operations and Customer Experience Professional",
+  headline: "Customer Service and Operations Support",
   location: "Ghana",
-  availability: "Open to thoughtful work globally",
-  summary: "Papa Kojo Mensah makes complex work easier to understand and use through accurate records, clear communication, practical tools and thoughtful customer experiences.",
+  availability: "Open to customer service, operations support and hospitality opportunities",
+  summary: "Papa Kojo Mensah is an early-career professional based in Ghana, with customer service and data review experience. He is exploring hospitality, practical uses of AI and user experience.",
   canonicalProfileUrl: "https://pkm.hayalows.com/",
   resumeUrl: "https://pkm.hayalows.com/resume/",
   linkedInUrl: "https://www.linkedin.com/in/papakojomensah",
