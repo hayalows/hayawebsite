@@ -4,10 +4,10 @@ const {
   spotifyRequest,
 } = require("../lib/spotify");
 
-const LIVE_CACHE = "no-store";
-const RECENT_EDGE_CACHE = "public, s-maxage=30, stale-while-revalidate=30";
+const CURRENT_EDGE_CACHE = "public, s-maxage=20, stale-while-revalidate=40";
+const RECENT_EDGE_CACHE = "public, s-maxage=300, stale-while-revalidate=900";
 
-function send(response, status, payload, cachePolicy = LIVE_CACHE, retryAfter) {
+function send(response, status, payload, cachePolicy = CURRENT_EDGE_CACHE, retryAfter) {
   response.status(status);
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("X-Content-Type-Options", "nosniff");
@@ -142,8 +142,8 @@ module.exports = async function handler(request, response) {
     const view = requestedView(request);
     if (view === "current") {
       const playback = await currentPlayback();
-      if (playback) return send(response, 200, playback, LIVE_CACHE);
-      return send(response, 200, await recentlyPlayed(), LIVE_CACHE);
+      if (playback) return send(response, 200, playback, CURRENT_EDGE_CACHE);
+      return send(response, 200, await recentlyPlayed(), CURRENT_EDGE_CACHE);
     }
     if (view === "recent") return send(response, 200, await recentlyPlayed(), RECENT_EDGE_CACHE);
 
@@ -151,21 +151,22 @@ module.exports = async function handler(request, response) {
     try { playback = await currentPlayback(); }
     catch (error) { if (error.status !== 403) throw error; }
     const recent = await recentlyPlayed();
-    if (playback?.track) return send(response, 200, {...playback, tracks: recent.tracks, listeningWindow: recent.listeningWindow}, LIVE_CACHE);
-    return send(response, 200, recent, LIVE_CACHE);
+    if (playback?.track) return send(response, 200, {...playback, tracks: recent.tracks, listeningWindow: recent.listeningWindow}, CURRENT_EDGE_CACHE);
+    return send(response, 200, recent, CURRENT_EDGE_CACHE);
   } catch (error) {
     if (error.code === "spotify_refresh_token_missing" || error.code === "spotify_config_missing") {
-      return send(response, 200, {...basePayload("not_connected"), provider: null, updatedAt: null}, LIVE_CACHE);
+      return send(response, 200, {...basePayload("not_connected"), provider: null, updatedAt: null}, CURRENT_EDGE_CACHE);
     }
     if (error.status === 429) {
       const retryAfter = error.retryAfter || 30;
-      return send(response, 429, {...basePayload("rate_limited"), retryAfter}, LIVE_CACHE, retryAfter);
+      const rateLimitCache = "public, s-maxage=" + Math.max(30, Math.min(retryAfter, 86400));
+      return send(response, 429, {...basePayload("rate_limited"), retryAfter}, rateLimitCache, retryAfter);
     }
     // Only an actual OAuth refresh-token invalid_grant means reconnect. A generic
     // Web API 400/401 is not enough evidence to tell the visitor to reconnect.
     if (error.code === "spotify_refresh_token_invalid") {
-      return send(response, 200, basePayload("needs_reconnect"), LIVE_CACHE);
+      return send(response, 200, basePayload("needs_reconnect"), CURRENT_EDGE_CACHE);
     }
-    return send(response, 503, basePayload("unavailable"), LIVE_CACHE);
+    return send(response, 503, basePayload("unavailable"), "no-store");
   }
 };

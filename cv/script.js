@@ -80,7 +80,7 @@ copyButton?.addEventListener('click',async()=>{try{await navigator.clipboard.wri
 const listeningEndpoint=document.querySelector('meta[name="listening-endpoint"]')?.content;
 const listeningPanel=document.querySelector('[data-listening]');
 const le={status:document.querySelector('[data-listening-status]'),current:document.querySelector('[data-listening-current]'),art:document.querySelector('[data-listening-current-art]'),fallback:document.querySelector('[data-listening-current-fallback]'),label:document.querySelector('[data-listening-current-label]'),title:document.querySelector('[data-listening-current-title]'),meta:document.querySelector('[data-listening-current-meta]'),progressWrap:document.querySelector('[data-listening-progress-wrap]'),progress:document.querySelector('[data-listening-progress]'),list:document.querySelector('[data-listening-list]'),window:document.querySelector('[data-listening-window]'),refresh:document.querySelector('[data-listening-refresh]')};
-let listeningTimer=null,listeningLoading=false,historyState=null,historyFetchedAt=0,progressFrame=0,progressModel=null;
+let listeningTimer=null,listeningLoading=false,historyState=null,historyFetchedAt=0,currentState=null,progressFrame=0,progressModel=null,listeningRetryAt=0;
 const artistText=track=>Array.isArray(track?.artists)?track.artists.join(', '):String(track?.artist||track?.artists||'');
 const imageUrl=track=>track?.imageUrl||track?.image||null;
 function setTrackLink(el,url){if(!el)return;if(url){el.href=url;el.target='_blank';el.rel='noopener';el.removeAttribute('aria-disabled');}else{el.removeAttribute('href');el.removeAttribute('target');el.setAttribute('aria-disabled','true');}}
@@ -88,6 +88,136 @@ function stopProgress(){cancelAnimationFrame(progressFrame);progressFrame=0;prog
 function startProgress(state){stopProgress();const duration=Number(state?.track?.durationMs),initial=Number(state?.progressMs);if(state?.status!=='playing'||!Number.isFinite(duration)||duration<=0||!Number.isFinite(initial)||!le.progressWrap||!le.progress)return;le.progressWrap.hidden=false;progressModel={duration,initial,started:performance.now()};const tick=now=>{if(!progressModel)return;const elapsed=document.hidden?0:now-progressModel.started;const value=Math.min(progressModel.duration,progressModel.initial+elapsed);le.progress.style.width=Math.max(0,Math.min(100,value/progressModel.duration*100))+'%';if(value<progressModel.duration)progressFrame=requestAnimationFrame(tick);};progressFrame=requestAnimationFrame(tick);}
 function renderCurrent(state){const track=state?.track;if(!track){le.label.textContent='Spotify';le.title.textContent=state?.status==='needs_reconnect'?'Spotify needs reconnecting':'Nothing playing right now';le.meta.textContent='Recent listening is available below.';setTrackLink(le.current,null);if(le.art){le.art.hidden=true;le.art.removeAttribute('src');}if(le.fallback)le.fallback.hidden=false;stopProgress();return;}le.label.textContent=state.status==='playing'?'Playing now':state.status==='paused'?'Paused':'Played recently';le.title.textContent=track.name||'Untitled';le.meta.textContent=artistText(track);setTrackLink(le.current,track.url);const image=imageUrl(track);if(le.art&&image){le.art.onload=()=>{le.art.hidden=false;if(le.fallback)le.fallback.hidden=true;};le.art.onerror=()=>{le.art.hidden=true;if(le.fallback)le.fallback.hidden=false;};le.art.src=image;le.art.alt='Album cover for '+(track.album||track.name||'current track');le.art.hidden=false;if(le.fallback)le.fallback.hidden=true;}else{if(le.art)le.art.hidden=true;if(le.fallback)le.fallback.hidden=false;}startProgress(state);}
 function renderRecent(state){const tracks=Array.isArray(state?.tracks)?state.tracks:[];if(!le.list||!tracks.length)return;le.list.innerHTML='';tracks.slice(0,5).forEach((track,index)=>{const li=document.createElement('li');li.className='listening-ranking__item';const row=document.createElement(track.url?'a':'div');row.className='listening-row';if(track.url){row.href=track.url;row.target='_blank';row.rel='noopener';}const rank=document.createElement('span');rank.className='listening-rank';rank.textContent=String(index+1).padStart(2,'0');const art=document.createElement('span');art.className='listening-art';const image=imageUrl(track);if(image){const img=document.createElement('img');img.src=image;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();art.textContent='♪';};art.append(img);}else art.textContent='♪';const copy=document.createElement('span');copy.className='listening-row__copy';const strong=document.createElement('strong');strong.textContent=track.name||'Untitled';const small=document.createElement('small');small.textContent=artistText(track);copy.append(strong,small);const count=document.createElement('span');count.className='listening-count';const countStrong=document.createElement('strong');countStrong.textContent=track.plays||1;const countSmall=document.createElement('small');countSmall.textContent=Number(track.plays)===1?'play':'plays';count.append(countStrong,countSmall);row.append(rank,art,copy,count);li.append(row);le.list.append(li);});if(le.window&&state?.listeningWindow?.from&&state?.listeningWindow?.to)le.window.textContent='Recent Spotify listening';}
-async function fetchListening(view){const response=await fetch(listeningEndpoint+'?view='+view+'&_='+Date.now(),{headers:{accept:'application/json'},cache:'no-store'});if(!response.ok)throw new Error('Spotify '+view+' '+response.status);return response.json();}
-async function loadListening(forceHistory=false){if(!listeningEndpoint||!listeningPanel||listeningLoading)return;listeningLoading=true;try{const needHistory=forceHistory||!historyState||Date.now()-historyFetchedAt>120000;const currentPromise=fetchListening('current');const historyPromise=needHistory?fetchListening('recent'):Promise.resolve(historyState);const [current,recent]=await Promise.all([currentPromise,historyPromise]);if(needHistory){historyState=recent;historyFetchedAt=Date.now();}listeningPanel.dataset.state=current?.status||'ready';le.status.textContent=current?.status==='playing'?'live':current?.status==='paused'?'paused':'recent';renderCurrent(current);renderRecent(historyState);}catch(error){console.error('Listening surface:',error);if(le.status)le.status.textContent='offline';}finally{listeningLoading=false;clearTimeout(listeningTimer);if(!document.hidden)listeningTimer=setTimeout(()=>loadListening(false),10000);}}
-if(listeningPanel&&listeningEndpoint){if('IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();loadListening(true);}},{rootMargin:'400px'});observer.observe(listeningPanel);}else loadListening(true);le.refresh?.addEventListener('click',()=>loadListening(true));document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(listeningTimer);cancelAnimationFrame(progressFrame);}else loadListening(false);});}
+async function fetchListening(view){
+  const separator=listeningEndpoint.includes('?')?'&':'?';
+  const response=await fetch(listeningEndpoint+separator+'view='+encodeURIComponent(view),{headers:{accept:'application/json'}});
+  const state=await response.json().catch(()=>({status:'unavailable'}));
+  if(response.status===429)return{response,state};
+  if(!response.ok)throw new Error('Spotify '+view+' '+response.status);
+  return{response,state};
+}
+const LISTENING_HISTORY_INTERVAL=300000;
+const LISTENING_PLAYING_INTERVAL=30000;
+const LISTENING_IDLE_INTERVAL=60000;
+const LISTENING_STORAGE_KEY='pkm.spotify.snapshot.v1';
+function listeningRetryDelay(result){
+  const retryAfter=Number(result?.state?.retryAfter)||Number(result?.response?.headers?.get('retry-after'))||30;
+  return Math.max(30,retryAfter)*1000;
+}
+function saveListeningSnapshot(){
+  try{localStorage.setItem(LISTENING_STORAGE_KEY,JSON.stringify({current:currentState,recent:historyState,savedAt:Date.now()}));}catch{}
+}
+function restoreListeningSnapshot(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(LISTENING_STORAGE_KEY)||'null');
+    if(!saved||!saved.savedAt||Date.now()-saved.savedAt>604800000)return;
+    currentState=saved.current||null;
+    historyState=saved.recent||null;
+    historyFetchedAt=saved.savedAt||0;
+  }catch{}
+}
+function renderListeningSnapshot(){
+  const preferred=currentState?.track?currentState:(historyState?.track?historyState:null);
+  if(preferred)renderCurrent(preferred);
+  else if(currentState)renderCurrent(currentState);
+  if(historyState)renderRecent(historyState);
+  listeningPanel.dataset.state=preferred?.status||historyState?.status||'recent';
+  if(le.status)le.status.textContent=preferred?.status==='playing'?'live':preferred?.status==='paused'?'paused':'recent';
+}
+function renderListeningRateLimit(){
+  listeningPanel.dataset.state='rate_limited';
+  if(currentState?.track||historyState?.track||(Array.isArray(historyState?.tracks)&&historyState.tracks.length)){
+    renderListeningSnapshot();
+    if(le.status)le.status.textContent='cached';
+    return;
+  }
+  if(le.status)le.status.textContent='waiting';
+  if(le.label)le.label.textContent='Spotify';
+  if(le.title)le.title.textContent='Listening updates paused';
+  if(le.meta)le.meta.textContent='Spotify asked the site to wait before checking again.';
+  setTrackLink(le.current,null);
+  stopProgress();
+}
+function scheduleListening(delay){
+  clearTimeout(listeningTimer);
+  if(!document.hidden)listeningTimer=setTimeout(()=>loadListening(false),Math.max(1000,delay));
+}
+async function loadListening(forceHistory=false){
+  if(!listeningEndpoint||!listeningPanel||listeningLoading)return;
+  const now=Date.now();
+  if(now<listeningRetryAt){
+    renderListeningRateLimit();
+    scheduleListening(listeningRetryAt-now);
+    return;
+  }
+  listeningLoading=true;
+  let updated=false;
+  let retryDelay=0;
+  try{
+    const needHistory=forceHistory||!historyState||now-historyFetchedAt>=LISTENING_HISTORY_INTERVAL;
+    const requests=[fetchListening('current')];
+    if(needHistory)requests.push(fetchListening('recent'));
+    const results=await Promise.allSettled(requests);
+    const currentResult=results[0];
+    const recentResult=needHistory?results[1]:null;
+    if(currentResult?.status==='fulfilled'){
+      if(currentResult.value.state?.status==='rate_limited'){
+        retryDelay=Math.max(retryDelay,listeningRetryDelay(currentResult.value));
+      }else{
+        currentState=currentResult.value.state;
+        updated=true;
+      }
+    }
+    if(recentResult?.status==='fulfilled'){
+      if(recentResult.value.state?.status==='rate_limited'){
+        retryDelay=Math.max(retryDelay,listeningRetryDelay(recentResult.value));
+      }else{
+        historyState=recentResult.value.state;
+        historyFetchedAt=Date.now();
+        updated=true;
+      }
+    }
+    if(retryDelay>0){
+      listeningRetryAt=Date.now()+retryDelay;
+      if(updated)saveListeningSnapshot();
+      renderListeningRateLimit();
+      scheduleListening(retryDelay);
+      return;
+    }
+    listeningRetryAt=0;
+    if(updated){
+      saveListeningSnapshot();
+      renderListeningSnapshot();
+    }else if(currentState||historyState){
+      renderListeningSnapshot();
+    }else{
+      throw new Error('Spotify listening unavailable');
+    }
+    const next=currentState?.status==='playing'?LISTENING_PLAYING_INTERVAL:LISTENING_IDLE_INTERVAL;
+    scheduleListening(next);
+  }catch(error){
+    console.error('Listening surface:',error);
+    if(currentState||historyState){
+      renderListeningSnapshot();
+      if(le.status)le.status.textContent='cached';
+    }else if(le.status){
+      le.status.textContent='offline';
+    }
+    scheduleListening(120000);
+  }finally{
+    listeningLoading=false;
+  }
+}
+if(listeningPanel&&listeningEndpoint){
+  restoreListeningSnapshot();
+  if(currentState||historyState)renderListeningSnapshot();
+  if('IntersectionObserver'in window){
+    const observer=new IntersectionObserver(entries=>{if(entries.some(entry=>entry.isIntersecting)){observer.disconnect();loadListening(true);}},{rootMargin:'400px'});
+    observer.observe(listeningPanel);
+  }else loadListening(true);
+  le.refresh?.addEventListener('click',()=>loadListening(true));
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){clearTimeout(listeningTimer);cancelAnimationFrame(progressFrame);}
+    else loadListening(false);
+  });
+}
