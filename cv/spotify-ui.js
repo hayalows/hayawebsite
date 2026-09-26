@@ -11,6 +11,18 @@ if (endpoint && panel) {
   let frame = 0;
   let progressState = null;
 
+  if (progressWrap && progress) {
+    Object.assign(progressWrap.style, {
+      position: 'relative', display: 'block', width: '100%', height: '3px',
+      marginTop: '10px', overflow: 'hidden', borderRadius: '999px',
+      background: 'var(--line-strong)'
+    });
+    Object.assign(progress.style, {
+      display: 'block', width: '0%', height: '100%', borderRadius: 'inherit',
+      background: 'var(--accent)', willChange: 'width'
+    });
+  }
+
   const artistText = (track) => Array.isArray(track?.artists)
     ? track.artists.join(', ')
     : (track?.artist || track?.artists || '');
@@ -90,26 +102,25 @@ if (endpoint && panel) {
   async function sync() {
     try {
       const [current, recent] = await Promise.all([get('current'), get('recent')]);
-      // Let the main renderer build its rows first, then correct the API field mapping.
       requestAnimationFrame(() => {
         paintCurrent(current);
         paintRecent(recent);
       });
     } catch {
-      // The existing listening UI already handles offline/reconnect states.
+      // The existing listening UI handles offline and reconnect states.
     }
   }
 
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((entry) => entry.isIntersecting)) {
-      sync();
+      setTimeout(sync, 120);
       observer.disconnect();
     }
   }, { rootMargin: '300px' });
   observer.observe(panel);
 
   const refresh = document.querySelector('[data-listening-refresh]');
-  refresh?.addEventListener('click', () => setTimeout(sync, 80));
+  refresh?.addEventListener('click', () => setTimeout(sync, 120));
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) sync();
   });
