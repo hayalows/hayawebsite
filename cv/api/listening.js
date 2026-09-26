@@ -4,8 +4,6 @@ const {
   spotifyRequest,
 } = require("../lib/spotify");
 
-// Current playback is user-specific, fast-changing state. Never let the browser,
-// Vercel CDN, or an intermediary reuse it. Recent history can be cached briefly.
 const LIVE_CACHE = "no-store";
 const RECENT_EDGE_CACHE = "public, s-maxage=30, stale-while-revalidate=30";
 
@@ -13,7 +11,6 @@ function send(response, status, payload, cachePolicy = LIVE_CACHE, retryAfter) {
   response.status(status);
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.setHeader("X-Content-Type-Options", "nosniff");
-
   if (cachePolicy === "no-store") {
     response.setHeader("Cache-Control", "private, no-store, no-cache, max-age=0, must-revalidate");
     response.setHeader("CDN-Cache-Control", "no-store");
@@ -24,16 +21,13 @@ function send(response, status, payload, cachePolicy = LIVE_CACHE, retryAfter) {
     response.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
     response.setHeader("Vercel-CDN-Cache-Control", cachePolicy);
   }
-
   if (retryAfter) response.setHeader("Retry-After", String(retryAfter));
   response.end(JSON.stringify(payload));
 }
 
 function imageFrom(images) {
   return Array.isArray(images) && images.length
-    ? images.find((image) => image?.width && image.width <= 320)?.url
-      || images[1]?.url
-      || images[0]?.url
+    ? images.find((image) => image?.width && image.width <= 320)?.url || images[1]?.url || images[0]?.url
     : null;
 }
 
@@ -91,7 +85,6 @@ function basePayload(status, track = null, details = {}) {
     tracks: Array.isArray(details.tracks) ? details.tracks : [],
     listeningWindow: details.listeningWindow || null,
     progressMs: Number.isFinite(Number(details.progressMs)) ? Number(details.progressMs) : null,
-    deviceId: details.deviceId || null,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -119,15 +112,14 @@ async function recentlyPlayed() {
 }
 
 async function currentPlayback() {
-  // /me/player is the authoritative playback-state endpoint and preserves the
-  // current item while paused. This lets a two-second play remain visible after pause.
-  const current = await requestWithFreshToken("/v1/me/player", {allowNoContent: true});
+  // Keep using the endpoint authorized by the site's existing Spotify scopes.
+  // It returns the current item, is_playing and progress_ms, including paused state.
+  const current = await requestWithFreshToken("/v1/me/player/currently-playing", {allowNoContent: true});
   const track = trackPayload(current?.data?.item);
   if (!track) return null;
   return basePayload(current?.data?.is_playing ? "playing" : "paused", track, {
-    source: "playback_state",
+    source: "currently_playing",
     progressMs: current.data?.progress_ms,
-    deviceId: current.data?.device?.id || null,
   });
 }
 
@@ -137,8 +129,7 @@ function requestedView(request) {
     try { rawView = new URL(request.url, "https://pkm.hayalows.com").searchParams.get("view"); }
     catch { rawView = null; }
   }
-  if (rawView === "current" || rawView === "recent") return rawView;
-  return "combined";
+  return rawView === "current" || rawView === "recent" ? rawView : "combined";
 }
 
 module.exports = async function handler(request, response) {
@@ -147,53 +138,34 @@ module.exports = async function handler(request, response) {
     response.status(405).json({error: "method_not_allowed"});
     return;
   }
-
   try {
     const view = requestedView(request);
-
     if (view === "current") {
       const playback = await currentPlayback();
-      if (playback) {
-        send(response, 200, playback, LIVE_CACHE);
-        return;
-      }
-      // Spotify may return 204 when there is no active device/session. Only then
-      // fall back to history. Never let history outrank an available playback item.
-      const recent = await recentlyPlayed();
-      send(response, 200, recent, LIVE_CACHE);
-      return;
+      if (playback) return send(response, 200, playback, LIVE_CACHE);
+      return send(response, 200, await recentlyPlayed(), LIVE_CACHE);
     }
-
-    if (view === "recent") {
-      const recent = await recentlyPlayed();
-      send(response, 200, recent, RECENT_EDGE_CACHE);
-      return;
-    }
+    if (view === "recent") return send(response, 200, await recentlyPlayed(), RECENT_EDGE_CACHE);
 
     let playback = null;
     try { playback = await currentPlayback(); }
-    catch (error) { if (error.status !== 401 && error.status !== 403) throw error; }
-
+    catch (error) { if (error.status !== 403) throw error; }
     const recent = await recentlyPlayed();
-    if (playback?.track) {
-      send(response, 200, {...playback, tracks: recent.tracks, listeningWindow: recent.listeningWindow}, LIVE_CACHE);
-      return;
-    }
-    send(response, 200, recent, LIVE_CACHE);
+    if (playback?.track) return send(response, 200, {...playback, tracks: recent.tracks, listeningWindow: recent.listeningWindow}, LIVE_CACHE);
+    return send(response, 200, recent, LIVE_CACHE);
   } catch (error) {
     if (error.code === "spotify_refresh_token_missing" || error.code === "spotify_config_missing") {
-      send(response, 200, {...basePayload("not_connected"), provider: null, updatedAt: null}, LIVE_CACHE);
-      return;
+      return send(response, 200, {...basePayload("not_connected"), provider: null, updatedAt: null}, LIVE_CACHE);
     }
     if (error.status === 429) {
       const retryAfter = error.retryAfter || 30;
-      send(response, 429, {...basePayload("rate_limited"), retryAfter}, LIVE_CACHE, retryAfter);
-      return;
+      return send(response, 429, {...basePayload("rate_limited"), retryAfter}, LIVE_CACHE, retryAfter);
     }
-    if (error.code === "spotify_refresh_token_invalid" || error.status === 400 || error.status === 401) {
-      send(response, 200, basePayload("needs_reconnect"), LIVE_CACHE);
-      return;
+    // Only an actual OAuth refresh-token invalid_grant means reconnect. A generic
+    // Web API 400/401 is not enough evidence to tell the visitor to reconnect.
+    if (error.code === "spotify_refresh_token_invalid") {
+      return send(response, 200, basePayload("needs_reconnect"), LIVE_CACHE);
     }
-    send(response, 503, basePayload("unavailable"), LIVE_CACHE);
+    return send(response, 503, basePayload("unavailable"), LIVE_CACHE);
   }
 };
