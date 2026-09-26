@@ -1,3 +1,4 @@
+import "../spotify-ui.js";
 import { registerTools } from "@nekuda/webmcp-sdk";
 import {
   getPapaKojoEducation,
