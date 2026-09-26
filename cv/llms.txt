@@ -1,26 +1,34 @@
 # Papa Kojo Mensah
 
-> Papa Kojo Mensah is an early-career professional based in Ghana, with experience in customer service at Absa and data review through Springboard. He is interested in customer service, operations support and hospitality opportunities, and is learning about practical uses of AI and user experience.
+> Papa Kojo Mensah is based in Ghana and brings operations, customer service, data, design and practical digital tools together around one idea: making complex work clearer. His published experience includes customer service at Absa Bank Ghana, historical-record review through Springboard and independent graphic design work.
 
 ## Canonical profile
 
-- [Professional profile](https://pkm.hayalows.com/): About, projects, experience, skills, education, contact information and a personal Spotify listening panel.
+- [Professional portfolio](https://pkm.hayalows.com/): Selected work, experience, skills, education, contact information and a small personal listening panel.
 - [One-page CV](https://pkm.hayalows.com/resume/): Concise, printable curriculum vitae.
-- [Project index](https://pkm.hayalows.com/projects/): Focused summaries and canonical links for three published projects.
+- [Selected work](https://pkm.hayalows.com/projects/): Problem, approach and evidence notes for three published projects.
 - [LinkedIn](https://www.linkedin.com/in/papakojomensah): Public professional profile.
 
 ## Current positioning
 
-- Primary focus: customer service and operations support.
-- Supporting strengths: data quality, record review, Excel, Google Sheets, process documentation, project coordination, brand identity and graphic design.
+- Working idea: make complex work clearer.
+- Professional areas: operations, customer service, data quality, practical digital tools and design.
+- Current opportunities: customer service, operations support and hospitality roles; also project work involving data, design or practical digital tools.
 - Current role: Data Entry Specialist at Springboard, remote, from April 2026.
 - Education: BSc Actuarial Science, Kwame Nkrumah University of Science and Technology, 2024.
 
+## Evidence from published experience
+
+- At Absa Bank Ghana, processed and reviewed 50+ customer and account requests on busy days.
+- Built an Excel tool for faster treasury-bill quotations and reduced manual calculation errors.
+- Supported 125+ youth accounts in a campaign and a GHS 1 million wholesale investment placement through tracking and follow-up.
+- English Chat Finder brings availability from more than 200 conversation calendars into one search.
+
 ## Selected projects
 
-- [RouteLab](https://maps.hayalows.com/): A map-first tool for planning, remembering and exploring everyday movement.
-- [Hayalows Ventures](https://hayalows.com/): Brand, customer-journey, operations and practical-systems work.
-- [English Chat Finder](https://englishchatsession.vercel.app/): A search tool across more than 200 conversation calendars.
+- [RouteLab](https://maps.hayalows.com/): A map-first tool for planning, remembering and exploring everyday movement in a calmer flow.
+- [Hayalows Ventures](https://hayalows.com/): Brand communication, customer journeys, operations and practical digital systems considered together.
+- [English Chat Finder](https://englishchatsession.vercel.app/): A search tool across availability from more than 200 conversation calendars.
 
 ## Contact
 
@@ -28,14 +36,12 @@
 
 ## WebMCP browser tools
 
-- `get_papa_kojo_profile` returns only public identity, positioning, location, availability and canonical profile links.
-- `get_papa_kojo_skills` returns one exact capability group or all three published groups.
-- `get_papa_kojo_experience` returns one exact organization record or all three published roles.
-- `get_papa_kojo_education` returns one exact qualification or all published education and training records.
-- `get_papa_kojo_projects` returns one exact published project or all three projects with canonical live links.
-- `prepare_papa_kojo_email` prepares and focuses a reversible email draft link but never opens the mail app, sends a message or books time.
-- These tools are available across the professional profile, project index and one-page CV so an agent can complete the same bounded journey from each public context.
-- Stable, versioned result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
-- Every tool registers an `outputSchema` and returns matching `structuredContent`.
+- `get_papa_kojo_profile` returns public identity, positioning, location, availability and canonical profile links.
+- `get_papa_kojo_skills` returns published capability groups.
+- `get_papa_kojo_experience` returns published work history.
+- `get_papa_kojo_education` returns published education and training.
+- `get_papa_kojo_projects` returns the three published projects with canonical live links.
+- `prepare_papa_kojo_email` prepares a reversible email draft link but never sends a message or books time.
+- Stable result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
 
-Last updated: 2026-09-22. This file summarises facts already published on the canonical profile.
+Last updated: 2026-09-26. This file summarises facts already published on the canonical portfolio.
