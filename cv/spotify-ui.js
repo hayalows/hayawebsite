@@ -10,6 +10,8 @@ if (endpoint && panel) {
   const list = document.querySelector('[data-listening-list]');
   let frame = 0;
   let progressState = null;
+  let syncController = null;
+  let lastAppliedAt = 0;
 
   if (progressWrap && progress) {
     Object.assign(progressWrap.style, {
@@ -31,13 +33,28 @@ if (endpoint && panel) {
     const track = state?.track;
     const image = track?.imageUrl || track?.image || null;
 
-    if (currentMeta && track) currentMeta.textContent = artistText(track);
+    if (currentMeta) currentMeta.textContent = track ? artistText(track) : '';
 
     if (art && image) {
-      art.src = image;
-      art.hidden = false;
-      if (fallback) fallback.hidden = true;
-    } else if (art && !track) {
+      // Do not blank the old cover while the new image is loading. Swap only
+      // when the requested artwork is ready, which avoids flashes on track changes.
+      if (art.src !== image) {
+        const preload = new Image();
+        preload.onload = () => {
+          art.src = image;
+          art.hidden = false;
+          if (fallback) fallback.hidden = true;
+        };
+        preload.onerror = () => {
+          art.hidden = true;
+          if (fallback) fallback.hidden = false;
+        };
+        preload.src = image;
+      } else {
+        art.hidden = false;
+        if (fallback) fallback.hidden = true;
+      }
+    } else if (art) {
       art.hidden = true;
       if (fallback) fallback.hidden = false;
     }
@@ -47,14 +64,19 @@ if (endpoint && panel) {
 
     const duration = Number(track?.durationMs);
     const initial = Number(state?.progressMs);
-    const isLive = state?.status === 'playing' && Number.isFinite(duration) && duration > 0 && Number.isFinite(initial);
+    const hasProgress = (state?.status === 'playing' || state?.status === 'paused')
+      && Number.isFinite(duration) && duration > 0 && Number.isFinite(initial);
 
     if (!progressWrap || !progress) return;
-    progressWrap.hidden = !isLive;
-    if (!isLive) {
+    progressWrap.hidden = !hasProgress;
+    if (!hasProgress) {
       progress.style.width = '0%';
       return;
     }
+
+    const basePercent = Math.max(0, Math.min(100, initial / duration * 100));
+    progress.style.width = `${basePercent}%`;
+    if (state.status !== 'playing') return;
 
     progressState = { duration, initial, started: performance.now() };
     const tick = (now) => {
@@ -80,51 +102,77 @@ if (endpoint && panel) {
       const meta = row.querySelector('.listening-row__copy small');
       if (meta) meta.textContent = artistText(track);
       if (holder && image) {
-        holder.textContent = '';
+        const existing = holder.querySelector('img');
+        if (existing?.src === image) return;
         const img = document.createElement('img');
         img.src = image;
         img.alt = '';
         img.loading = 'lazy';
-        holder.append(img);
+        img.onload = () => holder.replaceChildren(img);
       }
     });
   }
 
-  async function get(view) {
-    const response = await fetch(`${endpoint}?view=${view}`, {
-      headers: { accept: 'application/json' },
+  async function get(view, signal) {
+    const separator = endpoint.includes('?') ? '&' : '?';
+    const url = `${endpoint}${separator}view=${encodeURIComponent(view)}&_=${Date.now()}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+        'cache-control': 'no-cache, no-store',
+        pragma: 'no-cache',
+      },
       cache: 'no-store',
+      signal,
     });
-    if (!response.ok) throw new Error(`Spotify ${view} request failed`);
+    if (!response.ok) throw new Error(`Spotify ${view} request failed: ${response.status}`);
     return response.json();
   }
 
   async function sync() {
+    // A slower previous request must never overwrite a newer Spotify state.
+    syncController?.abort();
+    syncController = new AbortController();
+    const controller = syncController;
+    const requestedAt = Date.now();
+
     try {
-      const [current, recent] = await Promise.all([get('current'), get('recent')]);
+      const [current, recent] = await Promise.all([
+        get('current', controller.signal),
+        get('recent', controller.signal),
+      ]);
+      if (controller.signal.aborted || requestedAt < lastAppliedAt) return;
+      lastAppliedAt = requestedAt;
       requestAnimationFrame(() => {
         paintCurrent(current);
         paintRecent(recent);
       });
-    } catch {
-      // The existing listening UI handles offline and reconnect states.
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        // Keep the last known good UI rather than replacing it with stale/error state.
+      }
     }
   }
 
   const observer = new IntersectionObserver((entries) => {
     if (entries.some((entry) => entry.isIntersecting)) {
-      setTimeout(sync, 120);
+      sync();
       observer.disconnect();
     }
   }, { rootMargin: '300px' });
   observer.observe(panel);
 
   const refresh = document.querySelector('[data-listening-refresh]');
-  refresh?.addEventListener('click', () => setTimeout(sync, 120));
+  refresh?.addEventListener('click', sync);
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) sync();
   });
+  window.addEventListener('pageshow', sync);
+  window.addEventListener('online', sync);
+
+  // Five seconds keeps track changes responsive without hammering Spotify.
   setInterval(() => {
     if (!document.hidden) sync();
-  }, 15000);
+  }, 5000);
 }
