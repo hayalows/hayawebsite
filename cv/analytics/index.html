@@ -6,107 +6,206 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="theme-color" content="#080808">
   <title>Portfolio analytics · Papa Kojo Mensah</title>
-  <link rel="stylesheet" href="styles.css?v=4">
-  <script src="dashboard.js?v=4" defer></script>
+  <link rel="stylesheet" href="styles.css?v=product-os-1">
+  <script src="dashboard.js?v=product-os-1" defer></script>
 </head>
 <body>
-  <main class="analytics-shell">
+  <a class="skip-link" href="#analytics-main">Skip to analytics</a>
+
+  <main class="analytics-shell" id="analytics-main">
     <header class="analytics-header">
-      <div>
-        <p class="eyebrow">Private · First-party analytics</p>
-        <h1>Portfolio pulse</h1>
-        <p class="lede">A private view of how people find and use pkm.hayalows.com.</p>
+      <div class="analytics-header__copy">
+        <div class="header-meta">
+          <span class="private-badge">Private</span>
+          <span>First-party analytics</span>
+        </div>
+        <h1>Portfolio analytics</h1>
+        <p class="lede">See what people are looking at, where they came from, and which actions they take.</p>
       </div>
-      <a class="back-link" href="../">Portfolio ↗</a>
+      <a class="back-link" href="../"><span aria-hidden="true">←</span> Portfolio</a>
     </header>
 
-    <section class="auth-card" data-auth>
-      <div>
-        <p class="eyebrow">Access</p>
-        <h2>Open analytics</h2>
-        <p>The dashboard is private. Enter your analytics key. It is kept only for this browser tab/session.</p>
+    <section class="auth-card" data-auth aria-labelledby="auth-title">
+      <div class="auth-card__intro">
+        <p class="eyebrow">Private access</p>
+        <h2 id="auth-title">Open your dashboard</h2>
+        <p>Enter your analytics key. It stays only in this browser session and is cleared when you lock the dashboard.</p>
       </div>
-      <form data-auth-form>
+      <form class="auth-form" data-auth-form>
         <label for="analytics-key">Analytics key</label>
         <div class="auth-row">
-          <input id="analytics-key" name="key" type="password" autocomplete="current-password" required>
-          <button type="submit">Continue</button>
+          <div class="password-field">
+            <input id="analytics-key" name="key" type="password" autocomplete="current-password" required aria-describedby="auth-help">
+            <button class="field-action" type="button" data-toggle-key aria-label="Show analytics key">Show</button>
+          </div>
+          <button class="button button--primary" type="submit">Open dashboard</button>
         </div>
-        <p class="form-status" data-auth-status aria-live="polite"></p>
+        <p class="form-help" id="auth-help">The key is never written into the page URL.</p>
+        <p class="form-status" data-auth-status role="status" aria-live="polite"></p>
       </form>
     </section>
 
-    <section class="dashboard" data-dashboard hidden>
-      <div class="toolbar">
-        <div class="range-control" aria-label="Date range">
-          <button type="button" data-range="1d">24 hours</button>
-          <button type="button" class="is-active" data-range="7d">7 days</button>
-          <button type="button" data-range="30d">30 days</button>
-          <button type="button" data-range="90d">90 days</button>
-          <button type="button" data-range="all">All time</button>
+    <section class="dashboard" data-dashboard hidden aria-busy="false">
+      <div class="control-bar">
+        <div class="range-control" role="group" aria-label="Analytics date range">
+          <button type="button" data-range="1d" aria-pressed="false">24h</button>
+          <button type="button" data-range="7d" class="is-active" aria-pressed="true">7 days</button>
+          <button type="button" data-range="30d" aria-pressed="false">30 days</button>
+          <button type="button" data-range="90d" aria-pressed="false">90 days</button>
+          <button type="button" data-range="all" aria-pressed="false">All time</button>
         </div>
-        <div class="toolbar-actions">
-          <span data-generated>Not loaded yet</span>
-          <button type="button" data-refresh>Refresh</button>
-          <button type="button" data-lock>Lock</button>
+        <div class="control-actions">
+          <div class="sync-state" aria-live="polite">
+            <span class="sync-dot" aria-hidden="true"></span>
+            <span data-generated>Not loaded yet</span>
+          </div>
+          <button class="button button--quiet" type="button" data-refresh>Refresh</button>
+          <button class="button button--quiet" type="button" data-lock>Lock</button>
         </div>
       </div>
 
       <div class="status-banner" data-status role="status" aria-live="polite">Loading analytics…</div>
 
-      <section class="metric-grid" aria-label="Headline metrics">
-        <article><span>Visitors</span><strong data-metric="visitors">—</strong><small data-audience>Anonymous visitors</small></article>
-        <article><span>Page views</span><strong data-metric="pageviews">—</strong><small>Pages opened</small></article>
-        <article><span>Sessions</span><strong data-metric="sessions">—</strong><small>Browsing sessions</small></article>
-        <article><span>Live now</span><strong data-metric="active_now">—</strong><small>Seen in the last 5 minutes</small></article>
-        <article><span>Avg. session</span><strong data-metric="avg_session_seconds">—</strong><small>Approximate engaged visit length</small></article>
-        <article><span>Returning</span><strong data-metric="returning_visitors">—</strong><small>Visitors seen in more than one session</small></article>
+      <section class="dashboard-section dashboard-section--overview" aria-labelledby="overview-title">
+        <div class="section-intro">
+          <div>
+            <p class="eyebrow">Overview</p>
+            <h2 id="overview-title">What is happening</h2>
+          </div>
+          <p>Start here for the useful signal. The rest of the dashboard explains where it came from.</p>
+        </div>
+
+        <div class="metric-grid" aria-label="Headline metrics">
+          <article class="metric-card metric-card--primary">
+            <span class="metric-label">Visitors</span>
+            <strong data-metric="visitors">—</strong>
+            <small data-audience>Anonymous visitors</small>
+          </article>
+          <article class="metric-card metric-card--primary">
+            <span class="metric-label">Page views</span>
+            <strong data-metric="pageviews">—</strong>
+            <small data-views-summary>Pages opened</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Sessions</span>
+            <strong data-metric="sessions">—</strong>
+            <small>Browsing sessions</small>
+          </article>
+          <article class="metric-card metric-card--live">
+            <span class="metric-label"><i class="live-dot" aria-hidden="true"></i>Live now</span>
+            <strong data-metric="active_now">—</strong>
+            <small>Active within 5 minutes</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Avg. session</span>
+            <strong data-metric="avg_session_seconds">—</strong>
+            <small>Approximate visit length</small>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Returning</span>
+            <strong data-metric="returning_visitors">—</strong>
+            <small data-returning-summary>Seen in more than one session</small>
+          </article>
+        </div>
       </section>
 
-      <section class="panel panel--chart">
-        <header><div><p class="eyebrow">Traffic</p><h2>Visitors over time</h2></div><p>Anonymous visitors and page views.</p></header>
+      <section class="panel panel--chart" aria-labelledby="traffic-title">
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Traffic</p>
+            <h2 id="traffic-title">Visitors over time</h2>
+          </div>
+          <div class="chart-context">
+            <p data-traffic-summary>Visitors and page views across the selected period.</p>
+            <div class="chart-legend" aria-hidden="true">
+              <span><i class="legend-line legend-line--visitors"></i>Visitors</span>
+              <span><i class="legend-line legend-line--views"></i>Page views</span>
+            </div>
+          </div>
+        </header>
         <div class="chart-wrap" data-chart aria-label="Traffic chart"></div>
       </section>
 
-      <section class="panel live-panel">
-        <header><div><p class="eyebrow">Now</p><h2>Live visitors</h2></div><p>Sessions active within five minutes.</p></header>
-        <div class="table-wrap">
-          <table>
+      <section class="panel live-panel" aria-labelledby="live-title">
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Right now</p>
+            <h2 id="live-title">Live visitors</h2>
+          </div>
+          <p>Anonymous sessions seen within the last five minutes.</p>
+        </header>
+        <div class="table-wrap table-wrap--live">
+          <table class="live-table">
             <thead><tr><th>Visitor</th><th>Location</th><th>Device</th><th>Entry</th><th>Source</th><th>Seen</th></tr></thead>
             <tbody data-table="live"></tbody>
           </table>
         </div>
       </section>
 
-      <div class="two-up">
-        <section class="panel"><header><div><p class="eyebrow">Content</p><h2>Top pages</h2></div></header><div class="table-wrap"><table><thead><tr><th>Page</th><th>Visitors</th><th>Views</th></tr></thead><tbody data-table="pages"></tbody></table></div></section>
-        <section class="panel"><header><div><p class="eyebrow">Acquisition</p><h2>Referrers</h2></div></header><div class="rank-list" data-list="referrers"></div></section>
-      </div>
+      <section class="dashboard-section" aria-labelledby="content-title">
+        <div class="section-intro">
+          <div><p class="eyebrow">Content</p><h2 id="content-title">What people looked at</h2></div>
+          <p>Pages and sections that held attention.</p>
+        </div>
+        <div class="two-up">
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>Top pages</h3></div><p>Unique visitors and total views.</p></header><div class="table-wrap"><table><thead><tr><th>Page</th><th>Visitors</th><th>Views</th></tr></thead><tbody data-table="pages"></tbody></table></div></section>
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>Sections viewed</h3></div><p>First meaningful view in each session.</p></header><div class="rank-list" data-list="sections"></div></section>
+        </div>
+      </section>
 
-      <div class="three-up">
-        <section class="panel"><header><div><p class="eyebrow">Audience</p><h2>Countries</h2></div></header><div class="rank-list" data-list="countries"></div></section>
-        <section class="panel"><header><div><p class="eyebrow">Devices</p><h2>Device mix</h2></div></header><div class="rank-list" data-list="devices"></div></section>
-        <section class="panel"><header><div><p class="eyebrow">Browsers</p><h2>Browser mix</h2></div></header><div class="rank-list" data-list="browsers"></div></section>
-      </div>
+      <section class="dashboard-section" aria-labelledby="acquisition-title">
+        <div class="section-intro">
+          <div><p class="eyebrow">Acquisition</p><h2 id="acquisition-title">How people arrived</h2></div>
+          <p>Referring sites and campaign tags.</p>
+        </div>
+        <div class="two-up">
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>Referrers</h3></div></header><div class="rank-list" data-list="referrers"></div></section>
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>UTM campaigns</h3></div></header><div class="rank-list" data-list="campaigns"></div></section>
+        </div>
+      </section>
 
-      <div class="two-up">
-        <section class="panel"><header><div><p class="eyebrow">Systems</p><h2>Operating systems</h2></div></header><div class="rank-list" data-list="operatingSystems"></div></section>
-        <section class="panel"><header><div><p class="eyebrow">Campaigns</p><h2>UTM campaigns</h2></div></header><div class="rank-list" data-list="campaigns"></div></section>
-      </div>
+      <section class="dashboard-section" aria-labelledby="audience-title">
+        <div class="section-intro">
+          <div><p class="eyebrow">Audience</p><h2 id="audience-title">Where and how people visit</h2></div>
+          <p>Coarse location and device context, without storing raw IPs or raw user-agent strings.</p>
+        </div>
+        <div class="three-up">
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>Countries</h3></div></header><div class="rank-list" data-list="countries"></div></section>
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>Devices</h3></div></header><div class="rank-list" data-list="devices"></div></section>
+          <section class="panel panel--nested"><header class="panel-header"><div><h3>Browsers</h3></div></header><div class="rank-list" data-list="browsers"></div></section>
+        </div>
+        <details class="detail-panel">
+          <summary><span>More audience details</span><small>Operating systems</small></summary>
+          <div class="detail-panel__body"><div class="rank-list" data-list="operatingSystems"></div></div>
+        </details>
+      </section>
 
-      <div class="two-up">
-        <section class="panel"><header><div><p class="eyebrow">Attention</p><h2>Sections viewed</h2></div></header><div class="rank-list" data-list="sections"></div></section>
-        <section class="panel"><header><div><p class="eyebrow">Intent</p><h2>Useful actions</h2></div></header><div class="rank-list" data-list="interactions"></div></section>
-      </div>
+      <section class="dashboard-section" aria-labelledby="intent-title">
+        <div class="section-intro">
+          <div><p class="eyebrow">Intent</p><h2 id="intent-title">What people acted on</h2></div>
+          <p>Useful clicks such as projects, résumé, credentials, LinkedIn and email.</p>
+        </div>
+        <section class="panel panel--nested">
+          <div class="rank-list rank-list--wide" data-list="interactions"></div>
+        </section>
+      </section>
 
-      <section class="panel">
-        <header><div><p class="eyebrow">Recent</p><h2>Activity stream</h2></div><p>Anonymous activity only.</p></header>
-        <ol class="activity-list" data-recent></ol>
+      <section class="dashboard-section" aria-labelledby="activity-title">
+        <div class="section-intro">
+          <div><p class="eyebrow">Recent activity</p><h2 id="activity-title">Latest anonymous events</h2></div>
+          <p>A lightweight event stream for context, not individual profiling.</p>
+        </div>
+        <section class="panel panel--activity">
+          <ol class="activity-list" data-recent></ol>
+        </section>
       </section>
 
       <footer class="privacy-note">
-        <strong>Privacy by design.</strong>
-        <span>No raw IP address or raw user-agent string is stored. The site uses a random anonymous browser ID, respects Global Privacy Control and Do Not Track, and does not use advertising trackers.</span>
+        <div>
+          <strong>Privacy by design</strong>
+          <span>No raw IP address or raw user-agent string is stored. Global Privacy Control and Do Not Track are respected.</span>
+        </div>
+        <a href="../privacy/">Read privacy details</a>
       </footer>
     </section>
   </main>
