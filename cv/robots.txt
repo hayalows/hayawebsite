@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /api/\nDisallow: /analytics/
+Disallow: /api/
+Disallow: /analytics/
 
 Sitemap: https://pkm.hayalows.com/sitemap.xml
