@@ -69,3 +69,22 @@ The public /api/listening route returns metadata only:
 ## Deployment
 
 The existing Vercel project uses `cv` as its Git root directory. Deploy from this folder and keep the main Hayalows website configuration untouched.
+
+
+## First-party analytics
+
+The portfolio includes a custom analytics collector and private dashboard backed by Neon Postgres.
+
+Required production environment variables:
+
+- `PKM_ANALYTICS_DATABASE_URL`: pooled Neon Postgres connection string for the analytics database.
+- `PKM_ANALYTICS_HASH_KEY`: long random secret used to HMAC visitor network/browser signals. Raw IP addresses and raw user-agent strings are not stored.
+- `PKM_ANALYTICS_DASHBOARD_KEY`: private key required by `/analytics/` to read aggregated data.
+
+Apply `analytics/schema.sql` once to the target Neon database before enabling collection.
+
+Public collection endpoint: `POST /api/analytics`.
+Private summary endpoint: `GET /api/analytics-summary?days=30`.
+Private dashboard: `/analytics/`.
+
+The tracker respects Global Privacy Control and Do Not Track, does not use advertising cookies, and records an engagement event when the visitor leaves the page.
