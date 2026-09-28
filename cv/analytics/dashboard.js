@@ -280,6 +280,8 @@
       rankList("countries", data.countries, countryLabel);
       rankList("devices", data.devices);
       rankList("browsers", data.browsers);
+      rankList("operatingSystems", data.operatingSystems);
+      rankList("campaigns", data.campaigns);
       rankList("sections", data.sections, value => String(value || "Unknown").replaceAll("_", " "));
       rankList("interactions", data.interactions, value => String(value || "Unknown").replaceAll("_", " "));
       recent(data.recent);
