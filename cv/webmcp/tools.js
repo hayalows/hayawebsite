@@ -21,5 +21,42 @@ const projectSchema={type:"object",properties:{key:{enum:PROJECTS.map(x=>x.key)}
 const projectsOutput={type:"object",properties:{...META,project:{enum:["all",...PROJECTS.map(x=>x.key)]},projects:{type:"array",minItems:1,maxItems:3,items:projectSchema},sourceUrl:{const:"https://pkm.hayalows.com/projects/"}},required:["schemaVersion","schemaUrl","project","projects","sourceUrl"],additionalProperties:false};
 export const getPapaKojoProjects=defineTool({stableKey:"pkm.get_projects",name:"get_papa_kojo_projects",title:"Get Papa Kojo's projects",description:"Return Papa Kojo Mensah's published portfolio projects with canonical live URLs.",inputSchema:{type:"object",properties:{project:{type:"string",enum:["all",...PROJECTS.map(x=>x.key)],default:"all"}},required:[],additionalProperties:false},outputSchema:projectsOutput,annotations:{readOnlyHint:true},source:"merchant_authored",intent:"answer",execute({project="all"}){return{schemaVersion:RESULT_SCHEMA_VERSION,schemaUrl:RESULT_SCHEMA_URL,project,projects:project==="all"?PROJECTS:PROJECTS.filter(x=>x.key===project),sourceUrl:"https://pkm.hayalows.com/projects/"}}});
 const emailOutput={type:"object",properties:{...META,status:{const:"draft_ready"},recipient:{const:"mpapakojo@gmail.com"},subject:{type:"string",minLength:3,maxLength:160},message:{type:"string",minLength:10,maxLength:3000},sent:{const:false},nextStep:{type:"string"},sourceUrl:{const:"https://pkm.hayalows.com/#contact"}},required:["schemaVersion","schemaUrl","status","recipient","subject","message","sent","nextStep","sourceUrl"],additionalProperties:false};
-export const preparePapaKojoEmail=defineTool({stableKey:"pkm.prepare_email",name:"prepare_papa_kojo_email",title:"Prepare an email to Papa Kojo",description:"Prepare a reversible email draft to Papa Kojo Mensah. Never sends a message.",inputSchema:{type:"object",properties:{subject:{type:"string",minLength:3,maxLength:160},message:{type:"string",minLength:10,maxLength:3000}},required:["subject","message"],additionalProperties:false},outputSchema:emailOutput,annotations:{readOnlyHint:false},source:"merchant_authored",intent:"action",execute({subject,message}){const cleanSubject=subject.trim().slice(0,160),cleanMessage=message.trim().slice(0,3000);const href=`mailto:mpapakojo@gmail.com?subject=${encodeURIComponent(cleanSubject)}&body=${encodeURIComponent(cleanMessage)}`;const link=document.querySelector('.primary-action');if(link){link.href=href;link.focus();}return{schemaVersion:RESULT_SCHEMA_VERSION,schemaUrl:RESULT_SCHEMA_URL,status:"draft_ready",recipient:"mpapakojo@gmail.com",subject:cleanSubject,message:cleanMessage,sent:false,nextStep:"Review the prepared email link and choose Email me to open it in your mail app. Sending remains a human action.",sourceUrl:"https://pkm.hayalows.com/#contact"}}});
+export const preparePapaKojoEmail = defineTool({
+  stableKey: "pkm.prepare_email",
+  name: "prepare_papa_kojo_email",
+  title: "Prepare an email to Papa Kojo",
+  description: "Prepare a reversible email draft to Papa Kojo Mensah. Never sends a message.",
+  inputSchema: { type: "object", properties: { subject: { type: "string", minLength: 3, maxLength: 160 }, message: { type: "string", minLength: 10, maxLength: 3000 } }, required: ["subject", "message"], additionalProperties: false },
+  outputSchema: emailOutput,
+  annotations: { readOnlyHint: false },
+  source: "merchant_authored",
+  intent: "act",
+  execute({ subject, message }) {
+    const cleanSubject = subject.trim().slice(0, 160);
+    const cleanMessage = message.trim().slice(0, 3000);
+    if (cleanSubject.length < 3 || cleanMessage.length < 10) {
+      throw new TypeError("Provide a subject of at least 3 characters and a message of at least 10 characters after trimming whitespace.");
+    }
+    const href = `mailto:mpapakojo@gmail.com?${new URLSearchParams({ subject: cleanSubject, body: cleanMessage })}`;
+    const link = document.querySelector('a[href^="mailto:mpapakojo@gmail.com"]');
+    if (link) {
+      link.href = href;
+      link.scrollIntoView({ behavior: "smooth", block: "center" });
+      link.focus({ preventScroll: true });
+    }
+    return {
+      schemaVersion: RESULT_SCHEMA_VERSION,
+      schemaUrl: RESULT_SCHEMA_URL,
+      status: "draft_ready",
+      recipient: "mpapakojo@gmail.com",
+      subject: cleanSubject,
+      message: cleanMessage,
+      sent: false,
+      nextStep: link
+        ? "Review the prepared email link and choose it to open the draft in your mail app. Sending remains a human action."
+        : `Review the draft and open this link in your mail app: ${href}. Sending remains a human action.`,
+      sourceUrl: "https://pkm.hayalows.com/#contact",
+    };
+  },
+});
 export const tools=[getPapaKojoProfile,getPapaKojoSkills,getPapaKojoExperience,getPapaKojoEducation,getPapaKojoProjects,preparePapaKojoEmail];

@@ -39,9 +39,25 @@ https://pkm.hayalows.com/api/spotify/callback
 
 To authorise the account, open https://pkm.hayalows.com/api/spotify/login. Spotify returns a one-time refresh token page. Add that value to Vercel as SPOTIFY_REFRESH_TOKEN, then redeploy. Keep the value private.
 
-The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. The public page waits until the listening panel is near the viewport, then separates lightweight current-playback checks from the heavier recent-history request. While the panel is visible, current playback refreshes every 10 seconds during a song and every 15 seconds while quiet; recent history refreshes every two minutes. The live progress indicator advances locally between responses. Spotify `204`, expired access tokens, `401`, `403`, `429` with `Retry-After`, and temporary offline states are handled explicitly.
+The connection requests only `user-read-currently-playing` and `user-read-recently-played`. No top-artist, profile or playlist permissions are requested. One controller, `spotify-ui.js`, owns the listening panel; WebMCP only registers tools. The page requests the stable `/api/listening` URL when the panel is near the viewport. It checks every 30 seconds while playing and every five minutes while idle or paused. It stops checking while offscreen, hidden, or offline. The progress bar advances locally and respects reduced motion.
 
-`/api/listening?view=current` returns only the current playback state and uses a five-second edge cache. `/api/listening?view=recent` returns the ranked recent history with a longer edge cache. The original combined response remains available for backwards compatibility and diagnostics.
+The API caches current playback for 30 seconds while playing or five minutes while idle, and recent history for 15 minutes. Concurrent requests share playback/history work and OAuth refreshes within a warm function instance. A Spotify `204` is an idle result; the current-only route never fetches history as a fallback. The combined response keeps the latest known track and ranked history, so the main card can say “Last played” without a fresh history call on every idle check.
+
+Successful snapshots and quiet/error states return HTTP 200 with a payload `status` and Vercel CDN cache headers. A Spotify `429` returns `status: "rate_limited"`, an absolute `retryAt`, remaining `retryAfter`, and any available saved metadata. Both API views and OAuth calls respect the cooldown within the warm instance. The CDN can cache this metadata response throughout the cooldown; the browser persists the same deadline across reloads, refresh clicks, lifecycle events, and tabs. Saved music is never labelled live. Temporary failures keep the last known UI and use a slower retry.
+
+`/api/listening?view=current` and `?view=recent` remain available for diagnostics and backwards compatibility. The page uses the queryless combined route so visitors share one CDN key, with no timestamps or cache-bypass headers. Warm-instance memory is not a durable store or a global lock across cold workers/regions. CDN caching reduces those requests, but Spotify's app-wide quota still applies, including other clients using the same app. This code cannot cancel an existing Spotify cooldown or guarantee a provider will never return 429.
+
+### Verify the listening flow
+
+From the repository root:
+
+```sh
+node --test cv/tests/listening-api.test.cjs
+SPOTIFY_EVIDENCE_DIR=/tmp/spotify-flow-evidence node cv/tests/spotify-flow.e2e.cjs
+node --import ./tests/register-webmcp-loader.mjs --test tests/webmcp-tools.test.mjs tests/profile-structured-data.test.mjs
+```
+
+The browser harness needs Playwright (validated with 1.62.1) available to Node and Chromium at `/usr/bin/chromium`. It starts an ephemeral local HTTP server, exercises the real page and listening handler, and mocks only Spotify/OAuth and unrelated outbound browser requests. It uses disposable fixture credentials and local browser storage. It closes the server/browser and leaves `report.json` plus desktop/mobile screenshots in the evidence directory. The report includes source revision, patch and harness hashes, versions, and scenario outcomes. The local adapter does not verify Vercel CDN behavior or production credentials. `--baseline` serves the original `773c38e` frontend to reproduce the original controller/registration failures; API source always comes from the current checkout.
 
 The public /api/listening route returns metadata only:
 

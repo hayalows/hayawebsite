@@ -120,3 +120,20 @@ footer { display:flex; justify-content:space-between; gap:1rem; margin-block-sta
 @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; }.js .reveal-section,.js .reveal-section.is-revealed { opacity:1; transform:none; transition:none; }.nav-glide { transition:none !important; }.project-index-link a,.project-index-link a span { transition:none; } }
 @media (prefers-reduced-transparency:reduce) { .section-nav,.mobile-nav__primary,.mobile-nav__more-menu { backdrop-filter:none; background:var(--surface); } }
 @media (prefers-contrast:more) { :root { --muted:#c8c8c4; --quiet:#ababA6; --line:#4b4b4b; --line-strong:#6d6d6d; } }
+
+/* Progress is calculated locally; it never needs a Spotify request per tick. */
+.listening-progress { position:relative; width:100%; height:3px; margin-top:10px; overflow:hidden; border-radius:999px; background:var(--line-strong); }
+.listening-progress [data-listening-progress] { height:100%; width:0; border-radius:inherit; background:var(--accent); }
+.listening-progress[hidden], .listening-current__art img[hidden], [data-listening-current-fallback][hidden] { display:none; }
+.listening-panel:not([data-state="playing"]) .listening-live { color:var(--muted); }
+.listening-panel > .listening-footnote { padding:.65rem 1rem; border-top:1px solid var(--line); }
+.listening-footnote em { flex:1 1 12rem; line-height:1.5; }
+.listening-footnote button { min-height:32px; padding:.35rem .25rem; }
+.listening-footnote button:disabled { cursor:default; color:var(--muted); }
+.listening-footnote button:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:4px; }
+.listening-empty { padding:.75rem 0; color:var(--muted); font-size:.75rem; line-height:1.5; }
+.listening-row { text-decoration:none; }
+.listening-row[href]:hover .listening-row__copy strong { text-decoration:underline; text-underline-offset:3px; }
+.listening-row__copy { min-width:0; overflow-wrap:anywhere; }
+.listening-current__copy [data-listening-current-meta] { overflow-wrap:anywhere; line-height:1.5; }
+.listening-count strong, .listening-count small { display:block; }

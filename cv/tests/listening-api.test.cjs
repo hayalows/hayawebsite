@@ -5,9 +5,6 @@ process.env.SPOTIFY_CLIENT_SECRET = "test-secret";
 process.env.SPOTIFY_REDIRECT_URI = "https://example.com/callback";
 process.env.SPOTIFY_REFRESH_TOKEN = "test-refresh";
 
-const spotify = require("../lib/spotify");
-const handler = require("../api/listening");
-
 const track = (id, name) => ({
   id,
   type: "track",
@@ -52,6 +49,12 @@ function createResponse() {
 }
 
 async function runScenario(currentResponse, view = "combined") {
+  // Each scenario represents an independent function instance. Warm-instance
+  // deduplication/cooldowns are exercised through HTTP in spotify-flow.e2e.cjs.
+  delete require.cache[require.resolve("../lib/spotify")];
+  delete require.cache[require.resolve("../api/listening")];
+  const spotify = require("../lib/spotify");
+  const handler = require("../api/listening");
   spotify.clearAccessToken();
   const requestedUrls = [];
   global.fetch = async (url) => {
@@ -98,7 +101,7 @@ async function runScenario(currentResponse, view = "combined") {
   assert.equal(playing.body.tracks.length, 2);
   assert.equal(playing.body.tracks[0].plays, 2);
   assert.equal(playing.headers["cache-control"], "public, max-age=0, must-revalidate");
-  assert.match(playing.headers["vercel-cdn-cache-control"], /s-maxage=5/);
+  assert.match(playing.headers["vercel-cdn-cache-control"], /s-maxage=30/);
 
   const fallback = await runScenario(new Response(null, { status: 204 }));
 
@@ -134,10 +137,12 @@ async function runScenario(currentResponse, view = "combined") {
     { "retry-after": "42" },
   ), "current");
 
-  assert.equal(rateLimited.statusCode, 429);
+  // Public metadata states use HTTP 200 so Vercel can cache the cooldown.
+  assert.equal(rateLimited.statusCode, 200);
   assert.equal(rateLimited.body.status, "rate_limited");
   assert.equal(rateLimited.headers["retry-after"], "42");
-  assert.equal(rateLimited.headers["cache-control"], "no-store");
+  assert.equal(rateLimited.headers["cache-control"], "public, max-age=0, must-revalidate");
+  assert.match(rateLimited.headers["vercel-cdn-cache-control"], /s-maxage=42/);
 
   const recentOnly = await runScenario(new Response(null, { status: 204 }), "recent");
 
@@ -147,7 +152,7 @@ async function runScenario(currentResponse, view = "combined") {
     recentOnly.requestedUrls.some((url) => url.endsWith("currently-playing")),
     false,
   );
-  assert.match(recentOnly.headers["vercel-cdn-cache-control"], /s-maxage=45/);
+  assert.match(recentOnly.headers["vercel-cdn-cache-control"], /s-maxage=900/);
 
   process.stdout.write("Spotify live, current-only and recent fallback scenarios passed.\n");
 })().catch((error) => {

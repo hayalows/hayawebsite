@@ -9,6 +9,35 @@ let accessTokenCache = {
   token: "",
   expiresAt: 0,
 };
+let accessTokenRequest = null;
+let rateLimitedUntil = 0;
+
+function retrySeconds(value) {
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds > 0) return Math.ceil(seconds);
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(1, Math.ceil((date - Date.now()) / 1000)) : 60;
+}
+
+function getRateLimit() {
+  const retryAfter = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
+  return retryAfter > 0 ? { retryAfter, retryAt: rateLimitedUntil } : null;
+}
+
+function checkCooldown() {
+  const limit = getRateLimit();
+  if (!limit) return;
+  const error = createError("spotify_rate_limited", "Spotify updates are paused.", 429);
+  Object.assign(error, limit);
+  throw error;
+}
+
+function rememberRateLimit(response, error) {
+  if (response.status !== 429) return;
+  const retryAfter = Math.max(30, retrySeconds(response.headers.get("retry-after")));
+  rateLimitedUntil = Math.max(rateLimitedUntil, Date.now() + retryAfter * 1000);
+  Object.assign(error, getRateLimit());
+}
 
 function createError(code, message, status = 500) {
   const error = new Error(message);
@@ -103,6 +132,7 @@ function buildAuthorizationUrl(state) {
 }
 
 async function requestToken(parameters) {
+  checkCooldown();
   const { clientId, clientSecret } = getOAuthConfig();
   const basicCredentials = Buffer
     .from(clientId + ":" + clientSecret)
@@ -115,6 +145,7 @@ async function requestToken(parameters) {
       "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams(parameters),
+    signal: AbortSignal.timeout(8000),
   });
 
   const body = await response.json().catch(() => ({}));
@@ -128,6 +159,7 @@ async function requestToken(parameters) {
       response.status,
     );
     error.retryAfter = Number(response.headers.get("retry-after")) || null;
+    rememberRateLimit(response, error);
     throw error;
   }
 
@@ -135,6 +167,7 @@ async function requestToken(parameters) {
 }
 
 async function getAccessToken(options = {}) {
+  checkCooldown();
   if (
     !options.forceRefresh
     && accessTokenCache.token
@@ -142,6 +175,16 @@ async function getAccessToken(options = {}) {
   ) {
     return accessTokenCache.token;
   }
+
+  // Concurrent visitors share one token refresh instead of exchanging the
+  // same refresh token for every request during a cold start or expiry.
+  if (accessTokenRequest) return accessTokenRequest;
+  accessTokenRequest = refreshAccessToken();
+  try { return await accessTokenRequest; }
+  finally { accessTokenRequest = null; }
+}
+
+async function refreshAccessToken() {
 
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
@@ -174,15 +217,18 @@ async function getAccessToken(options = {}) {
   return accessTokenCache.token;
 }
 
-function clearAccessToken() {
+function clearAccessToken(rejectedToken) {
+  if (rejectedToken && rejectedToken !== accessTokenCache.token) return;
   accessTokenCache = { token: "", expiresAt: 0 };
 }
 
 async function spotifyRequest(path, accessToken, options = {}) {
+  checkCooldown();
   const response = await fetch("https://api.spotify.com" + path, {
     headers: {
       Authorization: "Bearer " + accessToken,
     },
+    signal: AbortSignal.timeout(8000),
   });
 
   const retryAfter = Number(response.headers.get("retry-after")) || null;
@@ -200,6 +246,7 @@ async function spotifyRequest(path, accessToken, options = {}) {
       response.status,
     );
     error.retryAfter = retryAfter;
+    rememberRateLimit(response, error);
     throw error;
   }
 
@@ -215,6 +262,7 @@ module.exports = {
   getAccessToken,
   getOAuthConfig,
   getRefreshToken,
+  getRateLimit,
   parseCookies,
   requestToken,
   serializeCookie,
