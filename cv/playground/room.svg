@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" fill="none">
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="1200" y2="650" gradientUnits="userSpaceOnUse"><stop stop-color="#20302f"/><stop offset="1" stop-color="#111b1d"/></linearGradient>
+    <linearGradient id="wood" x1="380" y1="250" x2="740" y2="560" gradientUnits="userSpaceOnUse"><stop stop-color="#a48058"/><stop offset="1" stop-color="#6c503c"/></linearGradient>
+    <linearGradient id="sky" x1="210" y1="70" x2="230" y2="245" gradientUnits="userSpaceOnUse"><stop stop-color="#aac4bf"/><stop offset=".65" stop-color="#789b96"/><stop offset="1" stop-color="#445f5d"/></linearGradient>
+    <radialGradient id="light"><stop stop-color="#f8d29c" stop-opacity=".2"/><stop offset="1" stop-color="#f8d29c" stop-opacity="0"/></radialGradient>
+    <pattern id="paper" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".7" fill="#eee0bf" fill-opacity=".08"/></pattern>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <path fill="url(#wall)" d="M0 0h1200v650H0z"/><path fill="url(#paper)" d="M0 0h1200v650H0z"/>
+  <path d="m0 400 740-180 460 180v250H0Z" fill="#121d1f"/>
+  <path d="m0 400 740-180 460 180" stroke="#34423c" stroke-opacity=".6"/>
+  <ellipse cx="360" cy="200" rx="450" ry="290" fill="url(#light)"/>
+  <path d="m120 98 222-48v189l-222 58Z" fill="#142222" stroke="#687975" stroke-width="5"/>
+  <path d="m132 108 198-43v166l-198 52Z" fill="url(#sky)"/>
+  <circle cx="278" cy="115" r="26" fill="#e5bc89"/>
+  <path d="m132 223 32-42 22 10 26-25 28 16 30-35 30 30 30-12v66l-198 52Z" fill="#496c61"/>
+  <path d="m132 252 42-15 35 4 19-19 26 13 25-20 51 16-198 52Z" fill="#304d44"/>
+  <path d="m232 84-1 174m-99-70 198-46" stroke="#223a38" stroke-width="8"/>
+  <path d="m113 292 233-60 14 11-237 62Z" fill="#758079"/>
+  <path d="m127 305 230-61v8l-230 61Z" fill="#344841"/>
+  <path d="m849 73 124 34v131l-124-34Z" fill="#152527" stroke="#516566" stroke-width="3"/>
+  <path d="m863 93 93 25v100l-93-24Z" fill="#b6bba3"/>
+  <path d="m882 133 16-16 35 9m-51 7 19 29 32-36m-32 36 16 25" stroke="#476158" stroke-width="3"/>
+  <circle cx="882" cy="133" r="6" fill="#a15e3a"/><circle cx="933" cy="126" r="7" fill="#476158"/><circle cx="917" cy="187" r="6" fill="#a15e3a"/>
+  <path d="m590 125 113-28 48 13-113 28Z" fill="#74614b"/><path d="m590 125 48 13v8l-48-13Zm48 13 113-28v8l-113 28Z" fill="#453e32"/>
+  <path d="m611 113 11-3v-31l-11 3Z" fill="#b4c4bc"/><path d="m624 110 13-3V72l-13 3Z" fill="#be865a"/><path d="m640 106 11-3V78l-11 3Z" fill="#667c76"/>
+  <path d="m680 89 22-6 19 6-21 6Z" fill="#dec8a3"/><path d="m680 89 20 6v21l-20-6Zm20 6 21-6v21l-21 6Z" fill="#8d7254"/>
+  <path d="M700 91V65" stroke="#638778" stroke-width="3"/><path d="M700 78q-23-9-17-24 21 3 17 24Zm1-4q20-4 17-20-17 0-17 20Z" fill="#7e9c74"/>
+  <ellipse cx="672" cy="563" rx="377" ry="52" fill="#000" opacity=".3" filter="url(#shadow)"/>
+  <path d="m256 537 483-117 278 143-460 77Z" fill="#344b4c"/>
+  <path d="m286 536 452-105 244 129-424 65Z" stroke="#64736a" stroke-opacity=".45" stroke-width="2"/>
+  <path d="m312 540 421-95 218 113-394 56Z" stroke="#64736a" stroke-opacity=".2" stroke-width="2"/>
+  <path d="m362 380 36 18v159l-36-19Z" fill="#3b342c"/><path d="m398 398 18-5v158l-18 6Z" fill="#282b26"/>
+  <path d="m850 344 32 15v172l-32-15Z" fill="#3b342c"/><path d="m882 359 17-4v170l-17 6Z" fill="#282b26"/>
+  <path d="m489 506 34 16v116l-34-17Z" fill="#43362b"/><path d="m523 522 19-5v115l-19 6Z" fill="#282b26"/>
+  <path d="m191 320 561-127 336 206-578 144Z" fill="url(#wood)" stroke="#b28e65" stroke-width="2"/>
+  <path d="m191 320 319 223v15L191 335Z" fill="#69503a"/><path d="m510 543 578-144v15L510 558Z" fill="#453b30"/>
+  <path d="m237 322 299 203m-218-221 298 202m-210-222 299 202m-208-222 298 201m-210-221 297 202m-210-222 297 201m-208-221 297 201" stroke="#ccaa78" stroke-opacity=".12" stroke-width="2"/>
+  <!-- Brass lamp and its pool of light -->
+  <ellipse cx="774" cy="290" rx="54" ry="15" fill="#4c4433"/>
+  <path d="m741 283 28-6 36 15-31 9Z" fill="#9c845b"/><path d="M773 290V179l-52-20" stroke="#ae925f" stroke-width="8" stroke-linecap="round"/>
+  <path d="m683 166 26-41 31 11 18 45Z" fill="#bcc1a1"/><path d="m683 166 75 15-30 15Z" fill="#e5cda0"/>
+  <ellipse cx="718" cy="274" rx="126" ry="53" fill="url(#light)"/>
+  <!-- The record player -->
+  <path d="m306 330 148-34 137 70-151 36Z" fill="#765138"/>
+  <path d="m306 330 134 72v18l-134-73Zm134 72 151-36v18l-151 36Z" fill="#392f27"/>
+  <path d="m315 329 138-29 125 65-138 32Z" fill="#2b3431"/>
+  <ellipse cx="435" cy="346" rx="64" ry="28" transform="rotate(12 435 346)" fill="#111b1b" stroke="#53615a" stroke-width="2"/>
+  <ellipse cx="435" cy="346" rx="52" ry="22" transform="rotate(12 435 346)" stroke="#35443d"/>
+  <ellipse cx="435" cy="346" rx="43" ry="17" transform="rotate(12 435 346)" stroke="#35443d"/>
+  <ellipse cx="435" cy="346" rx="20" ry="9" transform="rotate(12 435 346)" fill="#d6ad78"/>
+  <ellipse cx="435" cy="346" rx="3" ry="2" fill="#303a34"/>
+  <path d="m524 326 13 18-57 15" stroke="#c7c5ac" stroke-width="5" stroke-linecap="round"/>
+  <path d="m475 357 8-3 10 4-8 4Z" fill="#c4b89b"/>
+  <circle cx="553" cy="365" r="5" fill="#b8bea6"/>
+  <!-- The blue notebook -->
+  <path d="m590 342 123-30 91 69-128 35Z" fill="#354845" opacity=".65"/>
+  <path d="m583 331 125-30 91 69-127 35v9l-89-70Z" fill="#dfd7be"/>
+  <path d="m583 328 125-30 91 69-127 35Z" fill="#8bb0bb" stroke="#a7c9d1" stroke-width="2"/>
+  <path d="m595 325 89 74" stroke="#628b97" stroke-width="5"/>
+  <path d="m618 328 77-18 49 38-78 20Z" fill="#abd0d2"/>
+  <path d="m640 331 41-10m-30 19 46-11m-34 20 34-8" stroke="#547c87" stroke-width="3" stroke-linecap="round"/>
+  <path d="m709 407 11 26 12-17" fill="#c38654"/>
+  <!-- Folded map -->
+  <path d="m831 316 39-10 28 9 43-11 63 42-44 12-28-9-39 11Z" fill="#d5d4b6"/>
+  <path d="m870 306 62 43-39 11-62-44Z" fill="#efdfb8"/>
+  <path d="m898 315 62 43-28-9-62-43Z" fill="#b6c4a5"/>
+  <path d="m870 326 14 2 9 18 24-2 20-14 23 7" stroke="#5a8271" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="870" cy="326" r="4" fill="#b75d3d"/><circle cx="960" cy="337" r="5" fill="#b75d3d"/>
+  <path d="m845 321 32 23m-9-31 33 27m31-18 29 20m-99-2 82-13" stroke="#88977b" stroke-opacity=".4"/>
+  <!-- Postcard, pencil and cup -->
+  <path d="m540 453 137-34 95 52-138 36Z" fill="#423c2f" opacity=".45"/>
+  <path d="m535 442 137-34 95 52-138 36Z" fill="#f0dfbf"/>
+  <path d="m551 444 119-29 80 43-120 30Z" stroke="#ac7652"/>
+  <path d="m577 447 46-11m-34 20 66-16m-52 26 39-10" stroke="#9b8970" stroke-width="2"/>
+  <path d="m700 441 16-4 11 6-16 4Z" fill="#93aaa0"/>
+  <path d="m758 434 99-24" stroke="#d3b56e" stroke-width="7" stroke-linecap="round"/><path d="m857 410 13-3-8 8Z" fill="#dbc3a0"/>
+  <path d="M286 296v28q0 19 21 19t21-19v-28Z" fill="#d2c4a8"/><ellipse cx="307" cy="296" rx="21" ry="8" fill="#e4d5b7"/><ellipse cx="307" cy="297" rx="16" ry="5" fill="#554238"/>
+  <path d="M328 305q22-2 16 14-4 11-17 6" stroke="#c2b391" stroke-width="6"/>
+  <path d="M302 283q-9-8 0-15m10 12q-8-8 0-15" stroke="#e0d6bd" stroke-opacity=".28" stroke-width="2" stroke-linecap="round"/>
+  <!-- Plant in the corner -->
+  <ellipse cx="1036" cy="483" rx="62" ry="15" fill="#000" opacity=".2"/>
+  <path d="m1005 396 9 66q21 23 44 0l11-66Z" fill="#8f6042"/><ellipse cx="1037" cy="396" rx="32" ry="11" fill="#b18257"/><ellipse cx="1037" cy="397" rx="26" ry="7" fill="#514c36"/>
+  <path d="M1037 393V302m0 58-32-42m32 18 35-42m-35 32-8-57" stroke="#69826a" stroke-width="4" stroke-linecap="round"/>
+  <path d="M1005 318q-44 3-42-32 35-10 42 32Zm32 15q-8-45 23-52 24 27-23 52Zm-8-54q-28-38-5-59 34 17 5 59Zm43 15q8-34 39-24 0 35-39 24Zm-35 76q-18-39-47-17 9 35 47 17Zm2-14q27-36 52-14-9 33-52 14Z" fill="#73916c"/>
+  <path d="M1013 331q-17-16-30-32m57 28 15-33m-26-27-3-29m52 55 23-15m-72 87-28-7m47-4 23-8" stroke="#98aa7e" stroke-width="2" opacity=".6"/>
+  <path d="M65 580h1070" stroke="#293939" stroke-dasharray="2 8"/>
+</svg>

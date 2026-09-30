@@ -137,3 +137,10 @@ footer { display:flex; justify-content:space-between; gap:1rem; margin-block-sta
 .listening-row__copy { min-width:0; overflow-wrap:anywhere; }
 .listening-current__copy [data-listening-current-meta] { overflow-wrap:anywhere; line-height:1.5; }
 .listening-count strong, .listening-count small { display:block; }
+.playground-invitation { display:flex; align-items:center; gap:1rem; min-height:5.4rem; margin-top:1rem; padding:1rem 1.1rem; border:1px solid var(--line-strong); border-radius:12px; background:#121a1c; text-decoration:none; }
+.playground-invitation__mark { display:grid; place-items:center; flex:0 0 2.5rem; height:2.5rem; color:#e1b381; font-size:1.7rem; }
+.playground-invitation strong,.playground-invitation small { display:block; }
+.playground-invitation strong { color:var(--text); font-size:.88rem; font-weight:600; }
+.playground-invitation small { margin-top:.3rem; color:var(--muted); font-size:.73rem; line-height:1.5; }
+.playground-invitation>span:last-child { margin-left:auto; color:var(--accent); }
+.playground-invitation:hover { border-color:var(--accent); }

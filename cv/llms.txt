@@ -7,6 +7,7 @@
 - [Professional portfolio](https://pkm.hayalows.com/): Selected work, experience, skills, education, contact information and a small personal listening panel.
 - [One-page CV](https://pkm.hayalows.com/resume/): Concise, printable curriculum vitae.
 - [Selected work](https://pkm.hayalows.com/projects/): Problem, approach and evidence notes for three published projects.
+- [PKM Playground](https://pkm.hayalows.com/playground/): An optional illustrated workspace, fictional calendar challenge inspired by English Chat Finder, and a locally downloadable postcard. Puzzle sessions are examples, not bookable events. Saved listening in this room is not a live playback claim.
 - [LinkedIn](https://www.linkedin.com/in/papakojomensah): Public professional profile.
 
 ## Current positioning
@@ -44,4 +45,4 @@
 - `prepare_papa_kojo_email` prepares a reversible email draft link but never sends a message or books time.
 - Stable result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
 
-Last updated: 2026-09-26. This file summarises facts already published on the canonical portfolio.
+Last updated: 2026-09-30. This file summarises facts already published on the canonical portfolio.

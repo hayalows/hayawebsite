@@ -18,6 +18,16 @@ Open `http://localhost:4173`.
 
 `resume/` is a one-page, print-friendly public CV built from private Google Drive source material. It deliberately omits the private document URL and phone number. The main site links to this route as “View one-page CV”.
 
+## PKM Playground
+
+`playground/` is an optional, dependency-free experience linked below the homepage evidence strip. Its original SVG workspace has four named corners: the Clarity Lab, RouteLab map notes, a listening corner and a postcard. Assets load only when someone navigates to the playground; the existing portfolio and printable CV remain directly accessible.
+
+The calendar tangle is a fictional puzzle inspired by English Chat Finder. Three reversible filters narrow eight sample sessions to one match for Thursday, 18:30–19:15 GMT, lasting at least 45 minutes. Incorrect choices explain the mismatch, a correct choice reveals the real project story, and visitors can replay. These sessions are not live availability or bookable events.
+
+Completion, explored corners and the chosen postcard palette are saved locally under `pkm.playground.v1`; unavailable or corrupt storage leaves the experience usable. An optional recipient name stays in page memory and the visitor's downloaded image. Postcards export locally as 1600×1000 PNGs, without a server or external image/font requests. The listening corner reads only an existing `pkm.spotify.snapshot.v2` saved track, labels it as saved, and makes no Spotify or listening API requests. The six existing WebMCP tools register on the new page as well.
+
+Verify with `PLAYGROUND_EVIDENCE_DIR=/tmp/pkm-playground node cv/tests/playground-flow.e2e.cjs` from the repository root. The prerequisites match the Spotify browser harness below. The script serves real static files, uses native browser dialogs and downloads, closes disposable contexts/server, and leaves a versioned scenario report, screenshots and actual exported PNGs. External/unrelated API requests are blocked; WebMCP uses an AbortSignal-compatible browser registration fixture. Explicit storage/export failures are injected through browser APIs. Local checks do not establish production CDN behavior, field performance, or assistive-technology compliance.
+
 ## Spotify connection
 
 The personal listening panel reads public track metadata from a server-side Vercel function. It shows the five tracks that repeat most within Spotify’s latest 50 recently played entries, while still checking whether something is playing now. Spotify does not provide lifetime play counts through this feed, so the page labels these as recent plays and shows the listening window. It stays quiet when Spotify is not connected and never exposes OAuth tokens to browser JavaScript.
