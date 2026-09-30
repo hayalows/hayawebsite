@@ -150,7 +150,7 @@
     }
     drawHistory(state);
     if (ui.note) ui.note.textContent = retryAt > Date.now()
-      ? 'Showing saved listening. Updates resume automatically after ' + new Date(retryAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '.'
+      ? (track ? 'Showing saved listening. Updates resume automatically after ' : 'Spotify updates are paused. Checking resumes automatically after ') + new Date(retryAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '.'
       : saved || state?.stale ? 'Showing the last saved listening. Updates resume automatically.'
       : 'Recent plays, rather than lifetime counts.';
     updateControls();
@@ -176,7 +176,9 @@
       const legacy = value ? null : JSON.parse(localStorage.getItem('pkm.spotify.snapshot.v1') || 'null');
       const saved = value || legacy;
       if (!saved || Date.now() - saved.savedAt > 604800000) return;
-      snapshot = value?.snapshot || (legacy?.current?.track ? legacy.current : legacy?.recent);
+      const oldTrack = legacy?.current?.track ? legacy.current : legacy?.recent;
+      snapshot = value?.snapshot || (oldTrack ? {...oldTrack,
+        tracks:legacy?.recent?.tracks || [], listeningWindow:legacy?.recent?.listeningWindow || null} : null);
       if (snapshot) snapshot = {...snapshot, status:snapshot.track ? 'recent' : snapshot.status, isPlaying:false, progressMs:null, stale:true};
       retryAt = Math.max(retryAt, Number(value?.retryAt) || 0);
       nextCheckAt = Math.max(nextCheckAt, Number(value?.nextCheckAt) || 0);

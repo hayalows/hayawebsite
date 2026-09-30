@@ -207,6 +207,27 @@ async function api(view='') {
     await otherTab.close();
   });
   await liveContext.close();
+  const legacyContext=await browser.newContext({viewport:{width:375,height:812}});
+  await legacyContext.route('**/*',route=>route.request().url().startsWith(origin)?route.continue():route.fulfill({status:204,body:''}));
+  await legacyContext.addInitScript(()=>{
+    const track={name:'Previous Saved Song',artists:['Previous Artist'],url:'https://open.spotify.com/track/previous',durationMs:240000};
+    localStorage.setItem('pkm.spotify.snapshot.v1',JSON.stringify({savedAt:Date.now(),
+      current:{status:'playing',track,progressMs:60000,updatedAt:new Date().toISOString()},
+      recent:{status:'recent',track,tracks:[{...track,plays:3}],listeningWindow:{sampleSize:3}}}));
+  });
+  const legacyPage=await legacyContext.newPage();legacyPage.setDefaultTimeout(5000);reset('limited');
+  await check('Existing saved track and ranked history survive migration during a cooldown',async()=>{
+    await legacyPage.goto(origin);await legacyPage.locator('[data-listening]').scrollIntoViewIfNeeded();
+    await legacyPage.waitForFunction(()=>document.querySelector('[data-listening-refresh]').textContent==='Updates paused');
+    assert.equal(await legacyPage.locator('[data-listening-current-title]').textContent(),'Previous Saved Song');
+    assert.equal(await legacyPage.locator('[data-listening-current-label]').textContent(),'Last played');
+    await legacyPage.locator('[data-listening-history]').evaluate(el=>el.open=true);
+    assert.equal(await legacyPage.locator('.listening-row__copy strong').textContent(),'Previous Saved Song');
+    assert.equal(await legacyPage.locator('.listening-count strong').textContent(),'3');
+    const migrated=await legacyPage.evaluate(()=>JSON.parse(localStorage.getItem('pkm.spotify.snapshot.v2')));
+    assert.equal(migrated.snapshot.tracks.length,1);assert.ok(migrated.retryAt>Date.now());
+  });
+  await legacyContext.close();
 })().catch(error=>{report.fatal=error.stack;process.exitCode=1;}).finally(async()=>{
   if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));global.fetch=realFetch;
   fs.writeFileSync(path.join(evidence,'report.json'),JSON.stringify(report,null,2));
