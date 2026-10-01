@@ -42,7 +42,7 @@
         "name": "Papa Kojo Mensah | I make complex work clearer",
         "description": "The professional portfolio and curriculum vitae of Papa Kojo Mensah.",
         "dateCreated": "2026-08-23T00:00:00Z",
-        "dateModified": "2026-09-30T00:00:00Z",
+        "dateModified": "2026-10-01T00:00:00Z",
         "mainEntity": {
           "@type": "Person",
           "@id": "https://pkm.hayalows.com/#papa-kojo-mensah",
@@ -62,7 +62,8 @@
       }
     </script>
     <script>if ('IntersectionObserver' in window) document.documentElement.classList.add('js');</script>
-    <link rel="stylesheet" href="styles.css?v=room-1">
+    <link rel="stylesheet" href="styles.css?v=folders-1">
+    <script src="project-folders.js?v=1" defer></script>
     <script src="script.js?v=site-2" defer></script>
     <script src="spotify-ui.js?v=spotify-safe-2" defer></script>
     <script src="analytics-tracker.js?v=3" defer></script>
@@ -136,23 +137,65 @@
           <span class="anchor-alias" id="work" aria-hidden="true"></span>
           <header class="section-heading section-heading--projects"><p class="section-index">01</p><div><div class="heading-line"><h2 id="projects-title">Selected work</h2><span class="project-signal" aria-hidden="true"><i></i><i></i><i></i></span></div><p>Three examples of how I approach a problem: understand the repeated work, reduce friction, and make the next action easier to see.</p></div></header>
           <div class="project-showcase">
-            <article class="project-card">
+            <article class="project-card" data-project-folder="routelab">
+              <div class="project-card__intro"><div class="project-card__summary">
               <div class="project-card__top"><span class="project-number">01</span><span class="project-kind">Live product</span></div>
               <h3>RouteLab</h3><p class="project-card__lead">A quieter way to plan, remember and explore everyday movement.</p>
+              </div>
+              <button class="project-folder project-folder--blue" type="button" data-folder-toggle aria-label="Open RouteLab preview" aria-expanded="false" aria-controls="routelab-preview" hidden>
+                <span class="folder-drawing" aria-hidden="true">
+                  <span class="folder-back"></span>
+                  <span class="folder-paper folder-paper--one"><small>THE IDEA</small><strong>A calmer route</strong><span>Plan, move, remember.</span><i></i><i></i></span>
+                  <span class="folder-paper folder-paper--two"><small>AT A GLANCE</small><img src="assets/projects/routelab.webp" alt="" width="900" height="600" loading="lazy" decoding="async"><strong>RouteLab</strong></span>
+                  <span class="folder-paper folder-paper--three"><small>PROJECT NOTES</small><strong>RouteLab</strong><span>Plan, move, remember.</span><i></i><i></i><i></i></span>
+                  <span class="folder-flap"><span class="folder-glass"></span><svg width="321" height="241" viewBox="0 0 321 241" fill="none"><defs><linearGradient id="routelab-folder-fill" x1="30" y1="0" x2="280" y2="241" gradientUnits="userSpaceOnUse"><stop stop-color="var(--folder-light)" stop-opacity=".7"/><stop offset="1" stop-color="var(--folder-dark)" stop-opacity=".9"/></linearGradient></defs><path d="M0 25C0 11.1929 11.1929 0 25 0H136.084C143.044 0 149.689 2.90139 154.42 8.00608L178.08 33.5343C182.811 38.639 189.456 41.5404 196.416 41.5404H296C309.807 41.5404 321 52.7333 321 66.5404V216C321 229.807 309.807 241 296 241H25C11.1929 241 0 229.807 0 216V25Z" fill="url(#routelab-folder-fill)" stroke="var(--folder-edge)" stroke-width="1.5"/><path d="M25 228H296" stroke="white" stroke-opacity=".13"/></svg><span class="folder-label">RouteLab</span></span>
+                </span>
+                <span class="folder-invitation"><span data-folder-label>Open preview</span><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg></span>
+              </button>
+              </div>
+              <figure class="project-preview" id="routelab-preview" hidden><img src="assets/projects/routelab.webp" alt="RouteLab public interface, captured October 2026" width="900" height="600" loading="lazy" decoding="async"><figcaption><span>RouteLab · Interface preview</span><button type="button" data-folder-close aria-label="Close RouteLab preview">Close preview <span aria-hidden="true">×</span></button></figcaption><p class="preview-fallback" hidden>Preview image unavailable. The project links below still work.</p></figure>
               <dl class="project-evidence"><div><dt>Problem</dt><dd>Route planning and movement history can become noisy when too much information competes for attention.</dd></div><div><dt>Approach</dt><dd>Bring planning and movement history into one map-first flow with a calmer interface.</dd></div><div><dt>What it shows</dt><dd>Product thinking, information hierarchy and restraint around an everyday task.</dd></div></dl>
-              <div class="project-card__actions"><a data-project-link="routelab" href="https://maps.hayalows.com/?utm_source=pkm_cv&utm_medium=portfolio&utm_campaign=project_links&utm_content=routelab_card" target="_blank" rel="noopener">Visit RouteLab <span aria-hidden="true">↗</span></a><a href="projects/#routelab">Read project notes →</a></div>
+              <div class="project-card__actions"><a data-project-link="routelab" href="https://maps.hayalows.com/?utm_source=pkm_cv&utm_medium=portfolio&utm_campaign=project_links&utm_content=routelab_card" target="_blank" rel="noopener">Visit RouteLab <svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12 12 4M4 4h8v8"/></svg></a><a href="projects/#routelab">Read project notes →</a></div>
             </article>
-            <article class="project-card">
+            <article class="project-card" data-project-folder="hayalows">
+              <div class="project-card__intro"><div class="project-card__summary">
               <div class="project-card__top"><span class="project-number">02</span><span class="project-kind">Venture</span></div>
               <h3>Hayalows Ventures</h3><p class="project-card__lead">A place to connect brand communication, customer journeys, operations and practical systems.</p>
+              </div>
+              <button class="project-folder project-folder--paper" type="button" data-folder-toggle aria-label="Open Hayalows Ventures preview" aria-expanded="false" aria-controls="hayalows-preview" hidden>
+                <span class="folder-drawing" aria-hidden="true">
+                  <span class="folder-back"></span>
+                  <span class="folder-paper folder-paper--one"><small>THE IDEA</small><strong>One connected experience</strong><span>Brand, service and systems.</span><i></i><i></i></span>
+                  <span class="folder-paper folder-paper--two"><small>AT A GLANCE</small><img src="assets/projects/hayalows.webp" alt="" width="900" height="600" loading="lazy" decoding="async"><strong>Hayalows Ventures</strong></span>
+                  <span class="folder-paper folder-paper--three"><small>PROJECT NOTES</small><strong>Hayalows Ventures</strong><span>Brand, service and systems.</span><i></i><i></i><i></i></span>
+                  <span class="folder-flap"><span class="folder-glass"></span><svg width="321" height="241" viewBox="0 0 321 241" fill="none"><defs><linearGradient id="hayalows-folder-fill" x1="30" y1="0" x2="280" y2="241" gradientUnits="userSpaceOnUse"><stop stop-color="var(--folder-light)" stop-opacity=".7"/><stop offset="1" stop-color="var(--folder-dark)" stop-opacity=".9"/></linearGradient></defs><path d="M0 25C0 11.1929 11.1929 0 25 0H136.084C143.044 0 149.689 2.90139 154.42 8.00608L178.08 33.5343C182.811 38.639 189.456 41.5404 196.416 41.5404H296C309.807 41.5404 321 52.7333 321 66.5404V216C321 229.807 309.807 241 296 241H25C11.1929 241 0 229.807 0 216V25Z" fill="url(#hayalows-folder-fill)" stroke="var(--folder-edge)" stroke-width="1.5"/><path d="M25 228H296" stroke="white" stroke-opacity=".13"/></svg><span class="folder-label">Hayalows Ventures</span></span>
+                </span>
+                <span class="folder-invitation"><span data-folder-label>Open preview</span><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg></span>
+              </button>
+              </div>
+              <figure class="project-preview" id="hayalows-preview" hidden><img src="assets/projects/hayalows.webp" alt="Hayalows Ventures public interface, captured October 2026" width="900" height="600" loading="lazy" decoding="async"><figcaption><span>Hayalows Ventures · Interface preview</span><button type="button" data-folder-close aria-label="Close Hayalows Ventures preview">Close preview <span aria-hidden="true">×</span></button></figcaption><p class="preview-fallback" hidden>Preview image unavailable. The project links below still work.</p></figure>
               <dl class="project-evidence"><div><dt>Problem</dt><dd>A business can look clear from the outside while the customer experience and day-to-day work remain disconnected.</dd></div><div><dt>Approach</dt><dd>Treat brand, service and operations as parts of the same experience instead of separate deliverables.</dd></div><div><dt>What it shows</dt><dd>How I connect visual communication with the practical work behind it.</dd></div></dl>
-              <div class="project-card__actions"><a data-project-link="hayalows_ventures" href="https://hayalows.com/?utm_source=pkm_cv&utm_medium=portfolio&utm_campaign=project_links&utm_content=hayalows_ventures_card" target="_blank" rel="noopener">Visit Hayalows <span aria-hidden="true">↗</span></a><a href="projects/#hayalows">Read project notes →</a></div>
+              <div class="project-card__actions"><a data-project-link="hayalows_ventures" href="https://hayalows.com/?utm_source=pkm_cv&utm_medium=portfolio&utm_campaign=project_links&utm_content=hayalows_ventures_card" target="_blank" rel="noopener">Visit Hayalows <svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12 12 4M4 4h8v8"/></svg></a><a href="projects/#hayalows">Read project notes →</a></div>
             </article>
-            <article class="project-card">
+            <article class="project-card" data-project-folder="english-chat">
+              <div class="project-card__intro"><div class="project-card__summary">
               <div class="project-card__top"><span class="project-number">03</span><span class="project-kind">Live tool</span></div>
               <h3>English Chat Finder</h3><p class="project-card__lead">One search across availability from more than 200 conversation calendars.</p>
+              </div>
+              <button class="project-folder project-folder--sage" type="button" data-folder-toggle aria-label="Open English Chat Finder preview" aria-expanded="false" aria-controls="english-chat-preview" hidden>
+                <span class="folder-drawing" aria-hidden="true">
+                  <span class="folder-back"></span>
+                  <span class="folder-paper folder-paper--one"><small>THE IDEA</small><strong>Less searching</strong><span>One search across calendars.</span><i></i><i></i></span>
+                  <span class="folder-paper folder-paper--two"><small>AT A GLANCE</small><img src="assets/projects/english-chat.webp" alt="" width="900" height="600" loading="lazy" decoding="async"><strong>English Chat Finder</strong></span>
+                  <span class="folder-paper folder-paper--three"><small>PROJECT NOTES</small><strong>English Chat Finder</strong><span>One search across calendars.</span><i></i><i></i><i></i></span>
+                  <span class="folder-flap"><span class="folder-glass"></span><svg width="321" height="241" viewBox="0 0 321 241" fill="none"><defs><linearGradient id="english-chat-folder-fill" x1="30" y1="0" x2="280" y2="241" gradientUnits="userSpaceOnUse"><stop stop-color="var(--folder-light)" stop-opacity=".7"/><stop offset="1" stop-color="var(--folder-dark)" stop-opacity=".9"/></linearGradient></defs><path d="M0 25C0 11.1929 11.1929 0 25 0H136.084C143.044 0 149.689 2.90139 154.42 8.00608L178.08 33.5343C182.811 38.639 189.456 41.5404 196.416 41.5404H296C309.807 41.5404 321 52.7333 321 66.5404V216C321 229.807 309.807 241 296 241H25C11.1929 241 0 229.807 0 216V25Z" fill="url(#english-chat-folder-fill)" stroke="var(--folder-edge)" stroke-width="1.5"/><path d="M25 228H296" stroke="white" stroke-opacity=".13"/></svg><span class="folder-label">English Chat Finder</span></span>
+                </span>
+                <span class="folder-invitation"><span data-folder-label>Open preview</span><svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg></span>
+              </button>
+              </div>
+              <figure class="project-preview" id="english-chat-preview" hidden><img src="assets/projects/english-chat.webp" alt="English Chat Finder public interface, captured October 2026" width="900" height="600" loading="lazy" decoding="async"><figcaption><span>English Chat Finder · Interface preview</span><button type="button" data-folder-close aria-label="Close English Chat Finder preview">Close preview <span aria-hidden="true">×</span></button></figcaption><p class="preview-fallback" hidden>Preview image unavailable. The project links below still work.</p></figure>
               <dl class="project-evidence"><div><dt>Problem</dt><dd>Finding a suitable conversation session meant repeatedly checking many separate calendars.</dd></div><div><dt>Approach</dt><dd>Bring the available sessions into one search so the user can start with the time they need.</dd></div><div><dt>Scale</dt><dd>More than 200 conversation calendars represented in a single discovery flow.</dd></div></dl>
-              <div class="project-card__actions"><a data-project-link="english_chat_finder" href="https://englishchatsession.vercel.app/?utm_source=pkm_cv&utm_medium=portfolio&utm_campaign=project_links&utm_content=english_chat_finder_card" target="_blank" rel="noopener">Open the tool <span aria-hidden="true">↗</span></a><a href="projects/#english-chat">Read project notes →</a></div>
+              <div class="project-card__actions"><a data-project-link="english_chat_finder" href="https://englishchatsession.vercel.app/?utm_source=pkm_cv&utm_medium=portfolio&utm_campaign=project_links&utm_content=english_chat_finder_card" target="_blank" rel="noopener">Open the tool <svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12 12 4M4 4h8v8"/></svg></a><a href="projects/#english-chat">Read project notes →</a></div>
             </article>
           </div>
           <p class="project-index-link"><a href="projects/">See the full project index <span aria-hidden="true">→</span></a></p>
@@ -198,7 +241,7 @@
           <p class="contact-brief"><strong>A useful first note</strong><span>Tell me about the role or project, what you need help with and where the work is based.</span></p>
           <div class="contact-actions"><div class="email-action"><a class="primary-action" href="mailto:mpapakojo@gmail.com?subject=Hello%20Papa%20Kojo" aria-label="Email Papa Kojo Mensah at mpapakojo@gmail.com"><span class="primary-action__copy"><strong>Email me</strong><small>mpapakojo@gmail.com</small></span><span aria-hidden="true">↗</span></a><button class="copy-action" type="button" data-copy-email aria-label="Copy mpapakojo@gmail.com" title="Copy email address"><span class="copy-action__icons" aria-hidden="true"><svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-4-4"/></svg></span><span data-copy-label>Copy email</span><span class="sr-only" data-copy-status aria-live="polite"></span></button></div><a class="secondary-action" href="https://www.linkedin.com/in/papakojomensah" rel="me"><span>LinkedIn</span><span aria-hidden="true">↗</span></a><a class="secondary-action" href="resume/"><span>View résumé</span><span aria-hidden="true">↗</span></a></div>
         </section>
-        <footer><span>© <span data-year></span> Papa Kojo Mensah</span><a href="privacy/">Privacy</a><a href="#about">Back to top</a></footer>
+        <footer><span>© <span data-year></span> Papa Kojo Mensah</span><a href="privacy/">Privacy</a><a href="#about">Back to top</a><span class="design-credit">Folder design adapted from <a href="https://rareui.com/" target="_blank" rel="noopener">Rare UI</a></span></footer>
       </main>
     </div>
   </body>

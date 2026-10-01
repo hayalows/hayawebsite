@@ -114,3 +114,28 @@ Private summary endpoint: `GET /api/analytics-summary?days=30`.
 Private dashboard: `/analytics/`.
 
 The tracker respects Global Privacy Control and Do Not Track, does not use advertising cookies, and records an engagement event when the visitor leaves the page.
+
+## Project folders
+
+Selected work uses a vanilla HTML/CSS/JavaScript adaptation of Rare UI's folder
+silhouette and motion. Each native button opens a static interface preview;
+Escape or Close preview closes it and returns focus to the folder. Only one
+preview opens at a time. Names, project evidence and tracked links remain visible
+without JavaScript. Open state resets on reload. Images failing to load show a
+message while the project links remain available.
+
+The three public project screenshots were captured on 2026-10-01 and stored as
+local, lazy-loaded WebP images (about 116 KB combined). This feature makes no API
+calls. The visible footer credit and `THIRD-PARTY-NOTICES.md` preserve Rare UI's
+copyright and licence conditions.
+
+Run the browser checks from the repository root:
+
+```sh
+FOLDER_EVIDENCE_DIR=/tmp/pkm-project-folders node cv/tests/project-folders-flow.e2e.cjs
+```
+
+Requires Playwright and `/usr/bin/chromium`. The harness serves the real static
+files, blocks API/external requests, and uses an AbortSignal-compatible WebMCP
+registration fixture. Reports and screenshots record the actual outcomes;
+image failure and JavaScript-disabled scenarios use disposable contexts.
