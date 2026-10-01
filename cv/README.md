@@ -196,3 +196,20 @@ If the optional script cannot load, the existing links and Explore still work.
 Rare UI attribution remains on the privacy page and the source licence is in
 `THIRD-PARTY-NOTICES.md`. The Explore browser harness also verifies active tile
 separation, rapid selection, reduced motion and wrapped rows.
+
+## AccordionOS project stories
+
+`projects/` adapts UseLayouts AccordionOS into three manual native disclosure
+panels per project: Problem, Approach and Evidence. The original facts and live
+links remain, with the existing public screenshot and a selected-stage caption.
+There is no autoplay, polling or new API dependency. Previous/next buttons stay
+within each story; arrow keys, Home and End move between focused summaries,
+and Escape closes the open part. Without JavaScript every explanation starts
+expanded. Missing screenshots show a readable fallback. Mobile layouts and
+reduced motion are supported; the MIT notice is in `THIRD-PARTY-NOTICES.md`.
+
+Run the browser scenarios and collect screenshots/report with:
+
+```sh
+ACCORDION_EVIDENCE_DIR=/tmp/pkm-accordion node cv/tests/accordion-flow.e2e.cjs
+```

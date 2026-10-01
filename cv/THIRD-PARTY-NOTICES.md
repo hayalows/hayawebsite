@@ -71,3 +71,9 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Project stories also adapt the AccordionOS disclosure/image composition from
+UseLayouts (`registry/default/example/accordionos.tsx`), upstream revision
+`07cc4f4fb8e064643168e6fc8792127af92637f5`. The MIT notice above applies.
+The adaptation uses manual native disclosures and the owner’s existing public
+project screenshots rather than the upstream sample content/images.
