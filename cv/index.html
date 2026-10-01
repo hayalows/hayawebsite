@@ -62,9 +62,9 @@
       }
     </script>
     <script>if ('IntersectionObserver' in window) document.documentElement.classList.add('js');</script>
-    <link rel="stylesheet" href="styles.css?v=folders-1">
+    <link rel="stylesheet" href="styles.css?v=explore-1">
     <script src="project-folders.js?v=1" defer></script>
-    <script src="script.js?v=site-2" defer></script>
+    <script src="script.js?v=explore-1" defer></script>
     <script src="spotify-ui.js?v=spotify-safe-2" defer></script>
     <script src="analytics-tracker.js?v=3" defer></script>
     <script type="importmap">{"imports":{"@nekuda/webmcp-sdk":"/vendor/webmcp-sdk-0.5.0-output-schema.js"}}</script>
@@ -76,20 +76,25 @@
 
     <header class="mobile-nav" aria-label="Page navigation">
       <nav class="mobile-nav__primary" aria-label="Primary portfolio sections">
-        <a href="#about" data-section-link="about">About</a>
+        <a href="#about" data-section-link="about">Home</a>
         <a href="#projects" data-section-link="projects">Work</a>
         <a href="#experience" data-section-link="experience">Experience</a>
-        <button class="mobile-nav__more" type="button" aria-expanded="false" aria-controls="mobile-more-menu"><span>More</span><span class="mobile-nav__more-icon" aria-hidden="true">+</span></button>
+        <a href="#contact" data-section-link="contact">Contact</a>
+        <details class="explore explore--mobile" data-explore name="portfolio-explore">
+          <summary class="explore__trigger" aria-controls="mobile-explore-panel"><span>Explore</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
+          <div class="explore__panel" id="mobile-explore-panel">
+            <div class="explore__heading"><p>A little more to discover</p><button class="explore__close" type="button" data-explore-close aria-label="Close Explore" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+            <nav aria-label="Mobile Explore destinations">
+              <a class="explore__destination" href="playground/"><span class="explore__icon explore__icon--warm"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3v18M3 12h18M6 6l12 12M6 18 18 6"/></svg></span><span><strong>Playground</strong><small>Puzzles, maps &amp; a postcard</small></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+              <a class="explore__destination" href="resume/"><span class="explore__icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></svg></span><span><strong>One-page CV</strong><small>A printable professional profile</small></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+              <p class="explore__label">On this page</p>
+              <a class="explore__section" href="#skills" data-section-link="skills"><span>Skills</span><span aria-hidden="true">↓</span></a>
+              <a class="explore__section" href="#education" data-section-link="education"><span>Education</span><span aria-hidden="true">↓</span></a>
+              <a class="explore__section" href="#personal" data-section-link="personal"><span>Personal</span><span aria-hidden="true">↓</span></a>
+            </nav>
+          </div>
+        </details>
       </nav>
-      <div class="mobile-nav__more-menu" id="mobile-more-menu" hidden>
-        <p class="mobile-nav__more-label">More sections</p>
-        <nav aria-label="Additional portfolio sections">
-          <a href="#skills" data-section-link="skills">Skills</a>
-          <a href="#education" data-section-link="education">Education</a>
-          <a href="#personal" data-section-link="personal">Personal</a>
-          <a href="#contact" data-section-link="contact">Contact</a>
-        </nav>
-      </div>
     </header>
 
     <div class="page-shell">
@@ -106,6 +111,20 @@
             <a href="#personal" data-section-link="personal"><span>Personal</span></a>
             <a href="#contact" data-section-link="contact"><span>Contact</span></a>
           </nav>
+          <details class="explore explore--desktop" data-explore name="portfolio-explore">
+          <summary class="explore__trigger" aria-controls="desktop-explore-panel"><span>Explore</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
+          <div class="explore__panel" id="desktop-explore-panel">
+            <div class="explore__heading"><p>A little more to discover</p><button class="explore__close" type="button" data-explore-close aria-label="Close Explore" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+            <nav aria-label="Desktop Explore destinations">
+              <a class="explore__destination" href="playground/"><span class="explore__icon explore__icon--warm"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3v18M3 12h18M6 6l12 12M6 18 18 6"/></svg></span><span><strong>Playground</strong><small>Puzzles, maps &amp; a postcard</small></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+              <a class="explore__destination" href="resume/"><span class="explore__icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></svg></span><span><strong>One-page CV</strong><small>A printable professional profile</small></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+              <p class="explore__label">On this page</p>
+              <a class="explore__section" href="#skills" data-section-link="skills"><span>Skills</span><span aria-hidden="true">↓</span></a>
+              <a class="explore__section" href="#education" data-section-link="education"><span>Education</span><span aria-hidden="true">↓</span></a>
+              <a class="explore__section" href="#personal" data-section-link="personal"><span>Personal</span><span aria-hidden="true">↓</span></a>
+            </nav>
+          </div>
+        </details>
         </div>
         <p class="side-rail__meta">Based in Ghana<br><span>Open to remote work.</span></p>
       </aside>
@@ -239,7 +258,7 @@
         <section class="contact-section reveal-section" id="contact" data-section="contact" aria-labelledby="contact-title">
           <header class="contact-heading"><p class="contact-kicker"><span>06</span><strong>Contact</strong><i aria-hidden="true"></i><small>Open to roles and project work</small></p><h2 id="contact-title">Have a role or project in mind?</h2><p>I’m interested in customer service, operations support and hospitality opportunities where I can contribute and keep learning. I’m also open to projects involving data, design or practical digital tools.</p></header>
           <p class="contact-brief"><strong>A useful first note</strong><span>Tell me about the role or project, what you need help with and where the work is based.</span></p>
-          <div class="contact-actions"><div class="email-action"><a class="primary-action" href="mailto:mpapakojo@gmail.com?subject=Hello%20Papa%20Kojo" aria-label="Email Papa Kojo Mensah at mpapakojo@gmail.com"><span class="primary-action__copy"><strong>Email me</strong><small>mpapakojo@gmail.com</small></span><span aria-hidden="true">↗</span></a><button class="copy-action" type="button" data-copy-email aria-label="Copy mpapakojo@gmail.com" title="Copy email address"><span class="copy-action__icons" aria-hidden="true"><svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-4-4"/></svg></span><span data-copy-label>Copy email</span><span class="sr-only" data-copy-status aria-live="polite"></span></button></div><a class="secondary-action" href="https://www.linkedin.com/in/papakojomensah" rel="me"><span>LinkedIn</span><span aria-hidden="true">↗</span></a><a class="secondary-action" href="resume/"><span>View résumé</span><span aria-hidden="true">↗</span></a></div>
+          <div class="contact-actions"><div class="email-action"><a class="primary-action" href="mailto:mpapakojo@gmail.com?subject=Hello%20Papa%20Kojo" aria-label="Email Papa Kojo Mensah at mpapakojo@gmail.com"><span class="contact-signature" aria-hidden="true"><img src="assets/papa-kojo-portrait.webp" width="40" height="40" alt="" loading="lazy" decoding="async"><span>You</span></span><span class="primary-action__copy"><span class="contact-greeting" aria-hidden="true"><strong class="contact-greeting__default">Email me</strong><strong class="contact-greeting__personal">Let’s talk</strong></span><small>mpapakojo@gmail.com</small></span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a><button class="copy-action" type="button" data-copy-email hidden aria-label="Copy email address: mpapakojo@gmail.com" title="Copy email address"><span class="copy-action__icons" aria-hidden="true"><svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-4-4"/></svg></span><span data-copy-label>Copy email</span><span class="sr-only" data-copy-status aria-live="polite"></span></button></div><p class="copy-feedback" data-copy-feedback hidden></p><a class="secondary-action" href="https://www.linkedin.com/in/papakojomensah" rel="me"><span>LinkedIn</span><span aria-hidden="true">↗</span></a><a class="secondary-action" href="resume/"><span>View résumé</span><span aria-hidden="true">↗</span></a></div>
         </section>
         <footer><span>© <span data-year></span> Papa Kojo Mensah</span><a href="privacy/">Privacy</a><a href="#about">Back to top</a><span class="design-credit">Folder design adapted from <a href="https://rareui.com/" target="_blank" rel="noopener">Rare UI</a></span></footer>
       </main>

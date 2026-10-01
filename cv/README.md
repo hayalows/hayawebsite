@@ -139,3 +139,41 @@ Requires Playwright and `/usr/bin/chromium`. The harness serves the real static
 files, blocks API/external requests, and uses an AbortSignal-compatible WebMCP
 registration fixture. Reports and screenshots record the actual outcomes;
 image failure and JavaScript-disabled scenarios use disposable contexts.
+
+## Explore navigation and contact
+
+The portfolio has one native disclosure controller for desktop and mobile
+Explore menus. UseLayouts Smooth Dropdown and Bottom Menu inspired the compact
+panel and tray motion; Get In Touch inspired the portrait contact link, and
+StatusButton informed clipboard feedback. Adaptations use the existing vanilla
+stack with no new runtime dependency or Spotify requests. The MIT copyright and
+permission notice are retained in `THIRD-PARTY-NOTICES.md`.
+
+Mobile keeps Home, Work, Experience and Contact directly visible. Explore links
+to the Playground, one-page CV, Skills, Education and Personal. The desktop
+sidebar retains its section links and adds the same Explore destinations.
+Native `details`/`summary` and real links work without JavaScript; the mobile
+fallback keeps the menu in document flow and hides the unavailable copy button. Enhancement
+adds Escape/outside dismissal, focus handling and section tracking. The dock
+wraps when enlarged text needs more room; the panel scrolls within the viewport.
+Animations respect reduced motion.
+
+The contact link keeps the email address visible while its portrait/greeting
+respond to hover and keyboard focus. Clipboard feedback reflects the actual
+write result: pending suppresses duplicate writes, success announces Copied,
+and denial offers manual selection or the mail link plus retry. It does not
+silently launch email after a failed copy.
+
+Run from the repository root:
+
+```sh
+EXPLORE_EVIDENCE_DIR=/tmp/pkm-explore node cv/tests/explore-flow.e2e.cjs
+```
+
+Requires Playwright and `/usr/bin/chromium`. The harness serves the real static
+site, uses disposable browser contexts and leaves scenario reports/screenshots.
+Listening/analytics and outbound requests are fixtures; clipboard success,
+pending and rejection are injected through the browser API. WebMCP uses the
+same AbortSignal registration fixture as the existing browser checks. No email
+is sent. These checks do not establish production CDN behaviour or formal
+assistive-technology compliance.
