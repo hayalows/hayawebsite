@@ -126,7 +126,7 @@ message while the project links remain available.
 
 The three public project screenshots were captured on 2026-10-01 and stored as
 local, lazy-loaded WebP images (about 116 KB combined). This feature makes no API
-calls. The visible footer credit and `THIRD-PARTY-NOTICES.md` preserve Rare UI's
+calls. The visible privacy-page design credit and `THIRD-PARTY-NOTICES.md` preserve Rare UI's
 copyright and licence conditions.
 
 Run the browser checks from the repository root:
