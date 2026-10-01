@@ -1,7 +1,7 @@
-# Rare UI folder adaptation
+# Rare UI adaptations
 
-The project-folder silhouette and three-card motion are adapted from
-[Rare UI](https://rareui.com), component `folder-component.tsx`, revision
+The project-folder silhouette, three-card motion and mobile gooey navigation are adapted from
+[Rare UI](https://rareui.com), components `folder-component.tsx` and `components/ui/gooey-nav.tsx`, revision
 `1d572f4b1862f5f6b1be61bb33380fede433e1df`.
 
 MIT + Commons Clause License Condition v1.0 + Attribution

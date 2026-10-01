@@ -177,3 +177,22 @@ pending and rejection are injected through the browser API. WebMCP uses the
 same AbortSignal registration fixture as the existing browser checks. No email
 is sent. These checks do not establish production CDN behaviour or formal
 assistive-technology compliance.
+
+## Mobile Gooey Nav
+
+`mobile-gooey.js` adapts Rare UI’s Gooey Nav for the existing five mobile
+destinations. Selected tiles separate from joined inactive groups; decorative
+SVG necks pinch and break during a bounded 320 ms transition. Section tracking
+and the native Explore disclosure continue to own navigation. Open Explore
+temporarily takes visual priority, while the actual current-section link keeps
+its accessible state.
+
+The adaptation uses the portfolio’s pale-blue accent, retains 48 px target
+heights, and adds no dependency or API calls. Rapid selections replace the
+current animation rather than accumulating work. Reduced motion applies the
+final state immediately. At enlarged text sizes, wrapped rows use separate
+rounded tiles without SVG bridges. The desktop sidebar stays unchanged.
+If the optional script cannot load, the existing links and Explore still work.
+Rare UI attribution remains on the privacy page and the source licence is in
+`THIRD-PARTY-NOTICES.md`. The Explore browser harness also verifies active tile
+separation, rapid selection, reduced motion and wrapped rows.

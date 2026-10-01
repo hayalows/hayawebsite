@@ -316,3 +316,20 @@ footer { display:flex; justify-content:space-between; gap:1rem; margin-block-sta
   html:not(.js) .explore--mobile { flex-basis:100%; }
   html:not(.js) .explore--mobile .explore__panel { position:static; width:100%; max-height:none; margin-top:.5rem; }
 }
+/* Rare UI Gooey Nav © 2026 Swami Malode; see THIRD-PARTY-NOTICES.md. */
+@media (max-width:52rem) {
+  .mobile-nav__primary[data-gooey="ready"] { border-color:transparent; background:rgb(8 8 8 / .94); box-shadow:none; }
+  .mobile-nav__primary[data-gooey="ready"] .nav-glide { display:none; }
+  .mobile-nav__primary[data-gooey="ready"] > a { flex-basis:2.65rem; }
+  .mobile-nav__primary[data-gooey="ready"] > a[data-section-link="experience"] { flex-basis:4.4rem; }
+  .mobile-nav__primary[data-gooey="ready"] > a[data-section-link="contact"] { flex-basis:3.2rem; }
+  .mobile-nav__primary[data-gooey="ready"] > .explore--mobile { flex-basis:3.9rem; }
+  .mobile-nav__primary .gooey-tile { background:#262626; color:#c7c7c1; transition:background-color 200ms,color 200ms; }
+  .mobile-nav__primary .gooey-tile.is-gooey-selected { color:#080808; background:var(--accent); }
+  .mobile-nav__primary .gooey-neck { position:absolute; z-index:-1; top:0; right:100%; width:8px; height:100%; pointer-events:none; transform:none!important; transition:none!important; }
+  .mobile-nav__primary.gooey-wrapped { gap:.3rem; }
+  .mobile-nav__primary.gooey-wrapped .gooey-neck { display:none; }
+  .mobile-nav__primary .gooey-tile:focus-visible { outline-color:var(--focus); outline-offset:2px; }
+  .mobile-nav__primary .gooey-tile.is-gooey-selected:focus-visible { outline-color:var(--accent); }
+}
+@media (prefers-reduced-motion:reduce) { .mobile-nav__primary .gooey-tile { transition:none; } }
