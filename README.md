@@ -5,9 +5,7 @@ The official website for Hayalows Ventures. It is a dependency-free static site 
 ## Main files
 
 - `index.html` - page content, metadata and structured data
-- `styles.css` - shared visual system, responsive layout and motion
-- `home.css` - homepage composition, responsive refinements and interaction styling
-- `docs/homepage-redesign.md` - redesign rationale, component references and verification
+- `styles.css` - visual system, responsive layout and motion
 - `script.js` - navigation, reveal behaviour and contact-form actions
 - `pages.css` - shared payment and policy page layouts
 - `payment.js` - payment confirmation dialog and USSD copy actions

@@ -126,7 +126,6 @@ const isHomepage = window.location.pathname === "/" || window.location.pathname 
 
 if (isHomepage && navigation) {
   const sectionLinks = [...navigation.querySelectorAll('a[href^="/#"]')]
-    .filter((link) => !link.classList.contains("nav-contact-mobile"))
     .map((link) => {
       const sectionId = link.getAttribute("href")?.split("#")[1];
       return {
@@ -196,30 +195,6 @@ if (customerPathPanel) {
   const solutionText = customerPathPanel.querySelector("[data-gap-solution]");
   const gapAction = customerPathPanel.querySelector("[data-gap-action]");
   const pathStages = [...customerPathPanel.querySelectorAll(".customer-path-chart li")];
-  // Shared moving selection surface, inspired by tactile segmented controls.
-  // The semantic tabs remain fully usable if this enhancement is unavailable.
-  const gapTabList = customerPathPanel.querySelector(".gap-tabs");
-  const tabIndicator = document.createElement("span");
-  tabIndicator.className = "gap-tab-indicator";
-  tabIndicator.setAttribute("aria-hidden", "true");
-  gapTabList.append(tabIndicator);
-
-  function positionTabIndicator() {
-    const selectedTab = gapTabs.find((item) => item.getAttribute("aria-selected") === "true");
-    if (!selectedTab) return;
-    gapTabList.style.setProperty("--tab-left", `${selectedTab.offsetLeft}px`);
-    gapTabList.style.setProperty("--tab-width", `${selectedTab.offsetWidth}px`);
-    gapTabList.classList.add("has-indicator");
-  }
-
-  if ("ResizeObserver" in window) {
-    const tabResizeObserver = new ResizeObserver(positionTabIndicator);
-    tabResizeObserver.observe(gapTabList);
-  } else {
-    window.addEventListener("resize", positionTabIndicator);
-  }
-  positionTabIndicator();
-
   const gapContent = {
     offer: {
       label: "an unclear offer",
@@ -285,8 +260,6 @@ if (customerPathPanel) {
       item.tabIndex = isActive ? 0 : -1;
     });
 
-    positionTabIndicator();
-
     pathStages.forEach((stage, index) => {
       stage.classList.toggle("is-reached", index < content.reachedStages);
     });
@@ -314,8 +287,6 @@ if (customerPathPanel) {
       });
     }
   }
-
-  selectGap(gapTabs.find((tab) => tab.getAttribute("aria-selected") === "true"));
 
   gapTabs.forEach((tab, index) => {
     tab.addEventListener("click", () => selectGap(tab));
