@@ -73,15 +73,29 @@ Contact links open the visitor’s mail app with a graphic design project subjec
   narrow widths at 360 px or below use one. Header/actions wrap as needed.
 - Native image links remain available without JavaScript. The hero then links
   to the corresponding artwork anchor. Filters are hidden until enhancement works.
-- Filters combine with a filename/title/category search. Empty results offer a
-  reset action and announce the result count. Search text is not sent to a server.
+- Filters combine with normalized word search across filename/title/category.
+  Compact controls stay reachable during long browsing; short viewports and
+  enlarged text let the panel become static to avoid obscuring work. Category
+  counts, active-state reset and empty-result recovery clarify the current set.
+  Search text is not sent to a server.
 - A native modal dialog provides inert background and a keyboard focus trap.
   Close/Escape restores the opener; outside clicks close on desktop. Arrow keys
   navigate the current filtered set with bounded previous/next controls.
 - `#view=DRIVE_ID` links directly to a design. Back/Forward preserves modal history;
   browsing within a modal replaces its current entry rather than growing history.
-- Loading shows immediate feedback and a close action. Failure exposes retry,
-  full image and Drive original links. Zoom is disabled until the image is ready.
+- The 640 px preview appears immediately while full detail loads. A slow or
+  failed detail request retains that preview and exposes retry and the original
+  source; a 15-second stall becomes a recoverable error. Zoom becomes available
+  when either image is ready. Stale image and clipboard completions are ignored.
+- Touch swipe, mouse/pen drag and horizontal trackpad bursts move once within
+  the current results, with explicit first/last boundaries. Vertical scroll,
+  pinch and zoomed panning remain native. An optional thumbnail strip provides
+  direct jumps, active selection and roving keyboard focus.
+- Options groups full-image/source links, filename, a current-design copy link
+  and a contextual email draft. Clipboard denial offers manual copy. Email opens
+  only on deliberate selection; no message is sent by the site.
+- A direct-link close brings its artwork into the gallery viewport; ordinary
+  close restores the original opener and browsing position.
 - Zoom expands the artwork in a scrollable surface; Fit to screen restores its
   uncropped view. Browser/touch zoom remains available.
 - Desktop depth reacts to the pointer; touch does not require hover. The motion
@@ -110,8 +124,9 @@ formal screen-reader certification, production CDN verification or field perform
 measurement. Existing analytics can report page visits and contact/source link
 clicks; no new analytics events or collection of search terms is introduced.
 
-Final local verification: all 18 gallery scenarios and all 17 existing Explore
-scenarios passed. Source inventory IDs matched all 67 imported catalog entries.
+Initial gallery verification: all 18 gallery scenarios and all 17 existing Explore
+scenarios passed. The follow-up audit and 32-scenario repair verification are
+recorded in `design-ux-audit-2026-10-07.md`. Source inventory IDs matched all 67 imported catalog entries.
 Primary, muted and accent text contrast checks passed at 7.51:1 or above on their
 applicable backgrounds. Screenshots were inspected for desktop, mobile and viewer
-states. No production deployment was made by this change.
+states. The archive was subsequently deployed to `https://pkm.hayalows.com/design/`.

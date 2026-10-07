@@ -224,10 +224,13 @@ This is a snapshot: future Drive additions need importing.
 
 UseLayouts Expandable Gallery and Pop Tilt Cards are adapted for the existing
 vanilla stack with visible/source attribution. Filters and search, a native modal
-viewer, zoom, category-scoped navigation, deep links and pointer depth support
-desktop and mobile. Reduced motion, no-JavaScript image links, missing-image retry,
+viewer, zoom, touch swipes, mouse drag, horizontal trackpad browsing, an optional
+thumbnail navigator, category-scoped navigation, deep links and pointer depth
+support desktop and mobile. Reachable browsing tools, preview-first detail loading
+and contextual copy/enquiry actions simplify the gallery journey. Reduced motion, no-JavaScript image links, missing-image retry,
 focus return and browser history are covered by the browser harness. See
-`docs/design-gallery.md` for sources, content inventory and implementation decisions.
+`docs/design-gallery.md` for sources, content inventory and implementation decisions;
+`docs/design-ux-audit-2026-10-07.md` records the audit, repairs and verification.
 
 ```sh
 DESIGN_EVIDENCE_DIR=/tmp/pkm-design node cv/tests/design-gallery-flow.e2e.cjs
