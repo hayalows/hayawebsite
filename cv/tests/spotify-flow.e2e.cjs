@@ -91,9 +91,9 @@ async function api(view='') {
     const {body}=await api('current');assert.equal(body.status,'offline');assert.equal(count('recently-played'),0);
   });
   reset('idle');
-  await check('Idle combined snapshot retains last played song and is cached for five minutes',async()=>{
+  await check('Idle combined snapshot retains last played song and allows a fresh check within one minute',async()=>{
     const first=await api();await api();assert.equal(first.body.track.name,'Last Fixture Song');
-    assert.match(first.response.headers.get('vercel-cdn-cache-control'),/s-maxage=300/);
+    assert.match(first.response.headers.get('vercel-cdn-cache-control'),/s-maxage=60/);
     assert.equal(count('currently-playing'),1);assert.equal(count('recently-played'),1);
   });
   reset('limited');
@@ -130,7 +130,7 @@ async function api(view='') {
     await page.locator('[data-listening]').scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>document.querySelector('[data-listening-current-title]').textContent==='Last Fixture Song');
     assert.deepEqual(browserRequests,['']);
-    await page.clock.runFor(60000);assert.equal(browserRequests.length,1,'Idle panel must not poll every few seconds');
+    await page.clock.runFor(10000);assert.equal(browserRequests.length,1,'Idle panel must not poll every few seconds');
     assert.equal(await page.locator('[data-listening-current-label]').textContent(),'Last played');
     await page.locator('[data-listening-history]').evaluate(el=>el.open=true);
     await page.screenshot({path:path.join(evidence,'idle-desktop.png'),fullPage:true});
@@ -207,6 +207,49 @@ async function api(view='') {
     await otherTab.close();
   });
   await liveContext.close();
+  // Backend warm-cache expiry is tested in listening-api.test.cjs. These
+  // controller fixtures timestamp responses against Chromium's virtual clock
+  // so fake timer advancement does not mislabel fresh data as older than 60s.
+  for(const remaining of [60000,20000]) {
+    const transition=await browser.newContext({viewport:{width:1280,height:900}});
+    await transition.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.fulfill({status:204,body:''}));
+    const t=await transition.newPage();await t.clock.install();let requests=0;
+    await t.route('**/api/listening',async route=>{
+      const now=await t.evaluate(()=>Date.now());requests++;
+      const playing=requests>1;
+      await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({
+        status:playing?'playing':'recent',isPlaying:playing,
+        source:playing?'currently_playing':'recently_played',
+        track:{name:playing?'Newly Started Song':'Previously Played Song',artists:['Fixture Artist'],url:'https://open.spotify.com/track/fixture',durationMs:240000},
+        tracks:[],progressMs:playing?10000:null,updatedAt:new Date(now).toISOString(),
+        nextCheckAt:now+(playing?30000:remaining)})});
+    });
+    await check(remaining===60000?'Starting playback after idle updates the visible panel within one minute':'Cached idle response uses its remaining lifetime without adding another minute',async()=>{
+      await t.goto(origin);await t.locator('[data-listening]').scrollIntoViewIfNeeded();
+      await t.waitForFunction(()=>document.querySelector('[data-listening-current-title]').textContent==='Previously Played Song');
+      await t.clock.runFor(remaining-1000);assert.equal(requests,1);
+      await t.clock.runFor(2000);
+      await t.waitForFunction(()=>document.querySelector('[data-listening-current-label]').textContent==='Playing now');
+      assert.equal(await t.locator('[data-listening-current-title]').textContent(),'Newly Started Song');
+      assert.equal(requests,2);
+    });
+    await transition.close();
+  }
+  const restoredContext=await browser.newContext({viewport:{width:1280,height:900}});
+  await restoredContext.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.fulfill({status:204,body:''}));
+  await restoredContext.addInitScript(()=>{
+    localStorage.setItem('pkm.spotify.snapshot.v2',JSON.stringify({savedAt:Date.now(),retryAt:0,nextCheckAt:Date.now()+300000,
+      snapshot:{status:'recent',isPlaying:false,updatedAt:new Date().toISOString(),track:{name:'Previously Cached Song',artists:['Fixture'],url:'https://open.spotify.com/track/previous'},tracks:[]}}));
+  });
+  reset('playing');
+  await check('Reloading a normal saved idle state revalidates instead of keeping its old five-minute deadline',async()=>{
+    const restoredPage=await restoredContext.newPage();await restoredPage.goto(origin);
+    await restoredPage.locator('[data-listening]').scrollIntoViewIfNeeded();
+    await restoredPage.waitForFunction(()=>document.querySelector('[data-listening-current-label]').textContent==='Playing now');
+    assert.equal(await restoredPage.locator('[data-listening-current-title]').textContent(),'Live Fixture Song');
+    assert.equal(count('currently-playing'),1);await restoredPage.close();
+  });
+  await restoredContext.close();
   const legacyContext=await browser.newContext({viewport:{width:375,height:812}});
   await legacyContext.route('**/*',route=>route.request().url().startsWith(origin)?route.continue():route.fulfill({status:204,body:''}));
   await legacyContext.addInitScript(()=>{

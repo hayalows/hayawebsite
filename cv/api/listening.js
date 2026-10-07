@@ -6,7 +6,8 @@ const {
 } = require("../lib/spotify");
 
 const PLAYING_SECONDS = 30;
-const IDLE_SECONDS = 300;
+// Bound idle detection: starting a song should not stay hidden for five minutes.
+const IDLE_SECONDS = 60;
 const HISTORY_SECONDS = 900;
 const currentSnapshot = { value: null, expiresAt: 0, pending: null };
 const recentSnapshot = { value: null, expiresAt: 0, pending: null };

@@ -131,6 +131,40 @@ async function runScenario(currentResponse, view = "combined") {
   assert.equal(currentOffline.body.status, "offline");
   assert.equal(currentOffline.body.source, "currently_playing");
 
+  // A real warm-instance idle -> playing transition must become observable
+  // within a minute, while concurrent visitors still share upstream work.
+  const realNow = Date.now;
+  try {
+    let now = realNow(); Date.now = () => now;
+    const idle = await runScenario(new Response(null, {status: 204}));
+    const warmHandler = require("../api/listening");
+    const fixtureFetch = global.fetch;
+    let freshPlaybackCalls = 0;
+    global.fetch = async url => {
+      if (String(url).endsWith("/v1/me/player/currently-playing")) {
+        freshPlaybackCalls += 1;
+        return jsonResponse({is_playing: true, progress_ms: 10000,
+          item: track("newly-started", "Newly Started Song")});
+      }
+      return fixtureFetch(url);
+    };
+    assert.ok(idle.body.nextCheckAt <= now + 60000);
+    now += 59999;
+    const cached = createResponse();
+    await warmHandler({method: "GET", query: {}}, cached);
+    assert.equal(cached.body.status, "recent");
+    assert.equal(freshPlaybackCalls, 0);
+    now += 2;
+    const visitors = await Promise.all(Array.from({length: 8}, async () => {
+      const response = createResponse();
+      await warmHandler({method: "GET", query: {}}, response);
+      return response;
+    }));
+    assert.ok(visitors.every(r => r.body.status === "playing" && r.body.track.name === "Newly Started Song"));
+    assert.equal(freshPlaybackCalls, 1);
+    assert.equal(idle.requestedUrls.filter(url => url.includes("recently-played")).length, 1);
+  } finally { Date.now = realNow; }
+
   const rateLimited = await runScenario(jsonResponse(
     { error: { status: 429, message: "Too many requests" } },
     429,

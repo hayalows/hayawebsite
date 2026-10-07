@@ -14,7 +14,7 @@
   };
   const STORAGE_KEY = 'pkm.spotify.snapshot.v2';
   const PLAYING_INTERVAL = 30000;
-  const IDLE_INTERVAL = 300000;
+  const IDLE_INTERVAL = 60000;
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   let snapshot = null, retryAt = 0, nextCheckAt = 0, lastRequestAt = 0;
   let timer = 0, frame = 0, loading = false, nearViewport = false;
@@ -181,7 +181,9 @@
         tracks:legacy?.recent?.tracks || [], listeningWindow:legacy?.recent?.listeningWindow || null} : null);
       if (snapshot) snapshot = {...snapshot, status:snapshot.track ? 'recent' : snapshot.status, isPlaying:false, progressMs:null, stale:true};
       retryAt = Math.max(retryAt, Number(value?.retryAt) || 0);
-      nextCheckAt = Math.max(nextCheckAt, Number(value?.nextCheckAt) || 0);
+      // Revalidate ordinary saved content on entry using the shared CDN URL.
+      // Only a provider cooldown must survive reload as a request deadline.
+      nextCheckAt = Math.max(nextCheckAt, retryAt);
       if (snapshot) draw(snapshot, true);
     } catch { /* A corrupt saved snapshot must not prevent live updates. */ }
   }
@@ -225,7 +227,11 @@
           if (!failed || !snapshot?.track) snapshot = state;
           if (failed) markSaved();
           const interval = state.status === 'playing' ? PLAYING_INTERVAL : failed ? (state.status === 'unavailable' ? 120000 : 900000) : IDLE_INTERVAL;
-          nextCheckAt = Math.max(now + interval, Number(state.nextCheckAt) || 0);
+          // Honor the remaining shared snapshot lifetime rather than adding
+          // a fresh full interval to an already-cached idle result.
+          const serverNext = Number(state.nextCheckAt);
+          nextCheckAt = Math.max(now + 1000, Number.isFinite(serverNext) && serverNext > now
+            ? serverNext : now + interval);
           draw(snapshot, failed);
         }
       }
