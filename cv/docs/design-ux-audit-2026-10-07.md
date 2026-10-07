@@ -211,3 +211,63 @@ created. Proposed visitor success measures above remain unmeasured.
 Deployment verification is recorded in the task's live report after publishing;
 only report success once the exact Git revision is READY and the custom domain
 serves the revised gesture code and controls.
+
+## Follow-up: artwork framing and mobile header
+
+User evidence: screenshot of the hero and a report that the mobile Portfolio
+label is incomplete. Baseline revision: `7280ca3`. Scope: hero, navigation,
+mobile/text reflow, artwork entry and related recovery states. Product Design OS
+is reapplied to this focused refinement.
+
+- B01 (P2, high confidence): fixed 3:4 hero slots, padded surfaces and a light
+  image background create visible white letterboxing around landscape/square
+  designs. Respect each original ratio, remove the added mat/frame, keep the
+  artwork uncropped and retain manual hover/focus depth and native links.
+- B02 (P2, high confidence for layout): the header distributes three labels in a
+  single flex row. At enlarged text it breaks the arrow from Portfolio, squeezes
+  the contact label across multiple lines and pushes its icon toward the edge.
+  Keep Portfolio complete on one line, make the mobile contact label concise,
+  and let navigation wrap deliberately at enlarged text. Baseline normal mobile
+  Chromium shows the entire word; the owner's device-specific truncation is not
+  independently reproduced, so verify glyph and link bounds rather than assume
+  its exact cause.
+- B03 (P2, high confidence): mobile Chromium at 320 px with 200% root text reports
+  an expanded 381 px layout viewport. The service strip’s intrinsic grid columns exceed its container; the long
+  display word and inflexible header are further reflow risks. Repair min-width/reflow constraints, responsive headline
+  sizing and the hero's intermediate-width layout. Verify 320–1920 px, including
+  mobile emulation and enlarged text, not only desktop viewport resizing.
+- B04 (P2, high confidence): gallery images have error recovery, but the three
+  hero images do not. Add a same-ratio readable fallback with the working native
+  link; failed images must not leave an unexplained blank or shift the next
+  section over the art.
+- B05 (P3, medium confidence): viewer “Browse” does not name the thumbnail index
+  it reveals. Use visible “Thumbnails” with accessible Show/Hide labels and expanded state;
+  keep the visible label stable to avoid moving the toolbar on toggle.
+
+The framing change follows the owner's explicit visual preference. This audit
+does not claim measured preference, conversion improvement or physical-device
+accessibility. The overlapping composition and existing gallery remain familiar;
+no autoplay or new dependency is introduced. Captions should sit in document
+flow rather than an absolute slot so enlarged text does not collide with images.
+
+
+Follow-up evidence: `/tmp/pkm-design-hero-refined/` (scenario report, unframed
+hero desktop/mobile captures and mobile header at enlarged text), plus
+`/tmp/pkm-hero-after/`. The stricter overflow check compares document scroll width
+with its client width: mobile browsers can expand `innerWidth` to hide a layout
+problem from an incorrect check. After repair, the 320 px mobile viewport remains
+320 px at 200% text instead of expanding to 381 px. The service descriptions now
+stack on mobile rather than forcing two narrow intrinsic grid tracks. The same
+strict check also exposed tablet search/result-count overflow at 200% text; the
+search row now wraps and its input shrinks within the available content width. Captions
+flow below the artwork. All originals and source links remain intact.
+
+
+Final follow-up validation: all 35 gallery scenarios pass, including all three
+favourites opened by keyboard with correct focus return, original rendered image
+ratios, failed hero previews with usable full-detail links, complete Portfolio
+text bounds at 320/360/390/600/768 px with normal and 200% text, all prior gesture /
+viewer / recovery scenarios, and the automated accessibility scan. Visual review
+covers the unframed desktop/mobile hero and enlarged-text mobile header. The
+mobile implementation is tested in Chromium emulation; no physical Safari / iOS
+result or measured visitor preference is asserted.

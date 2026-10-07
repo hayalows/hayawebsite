@@ -111,7 +111,7 @@
   reset.addEventListener('click', () => { clearFilters(); search.focus({ preventScroll: true }); });
   document.querySelector('[data-clear]').addEventListener('click', () => { clearFilters(); filters[0].focus(); });
   applyFilters();
-  for (const img of document.querySelectorAll('.artwork__surface img')) {
+  for (const img of document.querySelectorAll('.artwork__surface img,.deck-card__surface img')) {
     function fallback() { img.hidden = true; img.nextElementSibling.hidden = false; }
     img.addEventListener('error', fallback);
     if (img.complete && !img.naturalWidth) fallback();
@@ -199,7 +199,7 @@
   }
   browse.addEventListener('click', () => {
     strip.hidden = !strip.hidden; browse.setAttribute('aria-expanded', String(!strip.hidden));
-    browse.textContent = strip.hidden ? 'Browse' : 'Hide';
+    browse.setAttribute('aria-label', strip.hidden ? 'Show thumbnails' : 'Hide thumbnails');
     if (!strip.hidden) refreshThumbnails();
   });
   strip.addEventListener('keydown', event => {
@@ -248,7 +248,7 @@
   function closeInternal() {
     if (!dialog.open) return;
     cancelLoad(); more.open = false; strip.hidden = true;
-    browse.setAttribute('aria-expanded', 'false'); browse.textContent = 'Browse'; resetCopy();
+    browse.setAttribute('aria-expanded', 'false'); browse.setAttribute('aria-label', 'Show thumbnails'); resetCopy();
     dialog.close(); document.body.classList.remove('viewer-open'); resetTilt(image); resetZoom();
     if (scrollToOpener) opener?.closest('.artwork')?.scrollIntoView({ block: 'center', behavior: 'instant' });
     opener?.focus({ preventScroll: true }); scrollToOpener = false; active = -1;

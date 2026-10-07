@@ -41,7 +41,8 @@ Official documentation and source were checked on 7 October 2026.
 
 - [UseLayouts Expandable Gallery](https://uselayouts.com/docs/components/expandable-gallery):
   three image cards, slight rotation, hover lift and gallery expansion. Its deck
-  composition is adapted into the hero; the archive stays immediately browsable.
+  composition is adapted into the hero with unframed artwork at each original
+  aspect ratio and keyboard/touch image links; the archive stays immediately browsable.
 - [UseLayouts Pop Tilt Cards](https://uselayouts.com/docs/components/pop-tilt-cards):
   stable hit slots and a separate moving visual layer prevent hover thrashing.
   Used as the structural basis for the hero/card motion. Pointer-driven X/Y tilt
@@ -125,7 +126,7 @@ measurement. Existing analytics can report page visits and contact/source link
 clicks; no new analytics events or collection of search terms is introduced.
 
 Initial gallery verification: all 18 gallery scenarios and all 17 existing Explore
-scenarios passed. The follow-up audit and 32-scenario repair verification are
+scenarios passed. The follow-up audit and expanded repair verification are
 recorded in `design-ux-audit-2026-10-07.md`. Source inventory IDs matched all 67 imported catalog entries.
 Primary, muted and accent text contrast checks passed at 7.51:1 or above on their
 applicable backgrounds. Screenshots were inspected for desktop, mobile and viewer
