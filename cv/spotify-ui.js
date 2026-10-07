@@ -13,11 +13,12 @@
     note: find('note'), refresh: find('refresh'),
   };
   const STORAGE_KEY = 'pkm.spotify.snapshot.v2';
-  const PLAYING_INTERVAL = 30000;
-  const IDLE_INTERVAL = 60000;
+  const PLAYING_INTERVAL = 10000;
+  const IDLE_INTERVAL = 20000;
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   let snapshot = null, retryAt = 0, nextCheckAt = 0, lastRequestAt = 0;
   let timer = 0, frame = 0, loading = false, nearViewport = false;
+  let progressTimer = 0, manualLoading = false, failures = 0;
   let artworkVersion = 0, historySignature = '';
 
   function trackUrl(value) {
@@ -39,6 +40,7 @@
   const artists = track => Array.isArray(track?.artists) ? track.artists.join(', ') : String(track?.artist || '');
   function stopProgress() {
     cancelAnimationFrame(frame);
+    clearTimeout(progressTimer);
     frame = 0;
     if (ui.progressWrap) ui.progressWrap.hidden = true;
   }
@@ -57,6 +59,7 @@
       ui.progress.style.width = (position / duration * 100) + '%';
       if (live && position < duration) {
         if (!reducedMotion?.matches) frame = requestAnimationFrame(tick);
+        else progressTimer = setTimeout(() => tick(performance.now()), 1000);
       } else if (live) {
         // Track-end extrapolation cannot tell us what is playing next.
         ui.label.textContent = 'Last checked';
@@ -73,9 +76,11 @@
     if (!image || !/^https:\/\//.test(image)) {
       ui.art.hidden = true; ui.fallback.hidden = false; return;
     }
-    if (ui.art.getAttribute('src') === image) {
+    if (ui.art.getAttribute('src') === image && ui.art.complete && ui.art.naturalWidth > 0) {
       ui.art.hidden = false; ui.fallback.hidden = true; return;
     }
+    // A changed title must never be paired with the previous album cover.
+    ui.art.hidden = true; ui.fallback.hidden = false;
     const preload = new Image();
     preload.onload = () => {
       if (version !== artworkVersion) return;
@@ -159,7 +164,7 @@
     panel.setAttribute('aria-busy', String(loading));
     if (ui.refresh) {
       ui.refresh.disabled = loading || retryAt > Date.now();
-      ui.refresh.textContent = loading ? 'Checking…' : retryAt > Date.now() ? 'Updates paused' : 'Refresh';
+      ui.refresh.textContent = loading && (manualLoading || !snapshot) ? 'Checking…' : retryAt > Date.now() ? 'Updates paused' : 'Refresh';
     }
   }
   function save() {
@@ -201,12 +206,13 @@
       else if (manual && ui.note) ui.note.textContent = 'Recently checked. Listening updates automatically.';
       schedule(); return;
     }
-    loading = true; lastRequestAt = now; updateControls();
+    loading = true; manualLoading = manual; lastRequestAt = now; updateControls();
     try {
       // One stable URL allows all visitors to share the Vercel CDN snapshot.
       // Neither refresh clicks nor lifecycle events add cache-busting parameters.
-      const response = await fetch(endpoint, {headers:{accept:'application/json'}, signal:AbortSignal.timeout(10000)});
+      const response = await fetch(endpoint, {headers:{accept:'application/json'}, signal:AbortSignal.timeout(20000)});
       const state = await response.json();
+      failures = 0;
       if (response.status === 429 || state.status === 'rate_limited') {
         const absolute = Number(state.retryAt);
         const seconds = Number(state.retryAfter) || Number(response.headers.get('retry-after')) || 60;
@@ -224,47 +230,69 @@
         } else {
           retryAt = 0;
           const failed = ['unavailable', 'needs_reconnect', 'not_connected'].includes(state.status);
-          if (!failed || !snapshot?.track) snapshot = state;
+          const newer = !snapshot || !Number.isFinite(Date.parse(snapshot.updatedAt)) ||
+            !Number.isFinite(Date.parse(state.updatedAt)) || Date.parse(state.updatedAt) >= Date.parse(snapshot.updatedAt);
+          if (!newer) { draw(snapshot, !!snapshot.stale); return; }
+          if ((!failed || !snapshot?.track) && newer) snapshot = state;
           if (failed) markSaved();
-          const interval = state.status === 'playing' ? PLAYING_INTERVAL : failed ? (state.status === 'unavailable' ? 120000 : 900000) : IDLE_INTERVAL;
+          const interval = state.status === 'playing' ? PLAYING_INTERVAL : failed ? (state.status === 'unavailable' ? 30000 : 900000) : IDLE_INTERVAL;
           // Honor the remaining shared snapshot lifetime rather than adding
           // a fresh full interval to an already-cached idle result.
           const serverNext = Number(state.nextCheckAt);
-          nextCheckAt = Math.max(now + 1000, Number.isFinite(serverNext) && serverNext > now
-            ? serverNext : now + interval);
+          // A CDN result can expire while it is travelling to the browser.
+          // Recheck it shortly instead of adding another full polling interval.
+          nextCheckAt = Math.max(Date.now() + 1000, Number.isFinite(serverNext) && serverNext > 0
+            ? serverNext : Date.now() + interval);
           draw(snapshot, failed);
         }
       }
       save();
     } catch {
-      nextCheckAt = Date.now() + 120000;
+      failures += 1;
+      nextCheckAt = Date.now() + Math.min(30000, 5000 * 2 ** Math.min(failures - 1, 3));
       markSaved();
       draw(snapshot, true);
       save();
     } finally {
-      loading = false; updateControls(); schedule();
+      loading = false; manualLoading = false; updateControls(); schedule();
     }
+  }
+
+  function revalidate() {
+    if (retryAt <= Date.now() && Date.now() - lastRequestAt >= 1000) nextCheckAt = 0;
+    update();
   }
 
   restore();
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(entries => {
       nearViewport = entries.some(entry => entry.isIntersecting);
-      if (nearViewport) { if (snapshot) draw(snapshot, !!snapshot.stale); update(); }
+      if (nearViewport) { if (snapshot) draw(snapshot, !!snapshot.stale); revalidate(); }
       else { clearTimeout(timer); stopProgress(); }
     }, {rootMargin:'300px'}).observe(panel);
   } else { nearViewport = true; update(); }
   ui.refresh?.addEventListener('click', () => update(true));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { clearTimeout(timer); stopProgress(); }
-    else { if (snapshot) draw(snapshot, !!snapshot.stale); update(); }
+    else { if (snapshot) draw(snapshot, !!snapshot.stale); revalidate(); }
   });
-  window.addEventListener('online', () => update());
+  window.addEventListener('online', revalidate);
   window.addEventListener('offline', () => { clearTimeout(timer); markSaved(); draw(snapshot, true); save(); });
-  window.addEventListener('pageshow', () => update());
+  window.addEventListener('pageshow', revalidate);
   window.addEventListener('storage', event => {
     if (event.key !== STORAGE_KEY) return;
-    // A cooldown discovered in another tab must also pause this tab.
-    restore(); schedule();
+    try {
+      const saved = JSON.parse(event.newValue || 'null');
+      if (!saved || Date.now() - saved.savedAt > 604800000) return;
+      retryAt = Math.max(retryAt, Number(saved.retryAt) || 0);
+      const incoming = saved.snapshot;
+      if (incoming && (!snapshot || Date.parse(incoming.updatedAt) > Date.parse(snapshot.updatedAt))) {
+        snapshot = incoming;
+        nextCheckAt = Number(saved.nextCheckAt) || nextCheckAt;
+      }
+      if (retryAt > Date.now()) { markSaved(); nextCheckAt = Math.max(nextCheckAt, retryAt); }
+      if (snapshot) draw(snapshot, !!snapshot.stale);
+      schedule();
+    } catch { /* Ignore malformed snapshots from another tab. */ }
   });
 })();

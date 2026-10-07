@@ -5,9 +5,12 @@ const {
   spotifyRequest,
 } = require("../lib/spotify");
 
-const PLAYING_SECONDS = 30;
-// Bound idle detection: starting a song should not stay hidden for five minutes.
-const IDLE_SECONDS = 60;
+const { readSnapshot, getSharedCooldown, restoreSharedSnapshots } = require("../lib/listening-cache");
+const { waitUntil } = require("@vercel/functions");
+
+const PLAYING_SECONDS = 10;
+// Pausing or starting playback should become visible without a minute-long wait.
+const IDLE_SECONDS = 20;
 const HISTORY_SECONDS = 900;
 const currentSnapshot = { value: null, expiresAt: 0, pending: null };
 const recentSnapshot = { value: null, expiresAt: 0, pending: null };
@@ -25,19 +28,6 @@ function send(response, status, payload, seconds, retryAfter) {
 
 function remaining(snapshot) {
   return Math.max(1, Math.ceil((snapshot.expiresAt - Date.now()) / 1000));
-}
-
-async function readSnapshot(snapshot, read, lifetime) {
-  if (snapshot.value && Date.now() < snapshot.expiresAt) return snapshot.value;
-  if (snapshot.pending) return snapshot.pending;
-  snapshot.pending = (async () => {
-    const value = await read();
-    snapshot.value = value;
-    snapshot.expiresAt = Date.now() + lifetime(value) * 1000;
-    return value;
-  })();
-  try { return await snapshot.pending; }
-  finally { snapshot.pending = null; }
 }
 
 function imageFrom(images) {
@@ -117,7 +107,7 @@ async function requestWithFreshToken(path, options = {}) {
 }
 
 async function recentlyPlayed() {
-  return readSnapshot(recentSnapshot, async () => {
+  return readSnapshot(recentSnapshot, "recent", async () => {
     const response = await requestWithFreshToken("/v1/me/player/recently-played?limit=50");
     const items = response.data?.items || [];
     const ranked = rankedRecentTracks(items);
@@ -131,7 +121,7 @@ async function recentlyPlayed() {
 async function currentPlayback() {
   // Keep using the endpoint authorized by the site's existing Spotify scopes.
   // It returns the current item, is_playing and progress_ms, including paused state.
-  return readSnapshot(currentSnapshot, async () => {
+  return readSnapshot(currentSnapshot, "current", async () => {
     const current = await requestWithFreshToken("/v1/me/player/currently-playing", {allowNoContent: true});
     const track = trackPayload(current?.data?.item);
     if (!track) return basePayload("offline", null, {source: "currently_playing"});
@@ -144,6 +134,7 @@ async function currentPlayback() {
 }
 
 function newestKnownTrack(recent) {
+  lastKnownTrack = currentSnapshot.lastKnown || lastKnownTrack;
   if (!lastKnownTrack?.track) return recent;
   return Date.parse(recent?.track?.playedAt) > Date.parse(lastKnownTrack.updatedAt) ? recent : lastKnownTrack;
 }
@@ -176,7 +167,10 @@ module.exports = async function handler(request, response) {
   }
   const view = requestedView(request);
   try {
-    const cooldown = getRateLimit();
+    const sharedCooldown = await getSharedCooldown();
+    const localCooldown = getRateLimit();
+    const retryAt = Math.max(sharedCooldown?.retryAt || 0, localCooldown?.retryAt || 0);
+    const cooldown = retryAt > Date.now() ? {retryAt, retryAfter:Math.ceil((retryAt - Date.now()) / 1000)} : null;
     if (cooldown) throw Object.assign(new Error("Spotify cooldown"), {status: 429, ...cooldown});
     if (view === "current") {
       const playback = await currentPlayback();
@@ -191,7 +185,16 @@ module.exports = async function handler(request, response) {
     let playback = null;
     try { playback = await currentPlayback(); }
     catch (error) { if (error.status !== 403) throw error; }
-    const recent = await recentlyPlayed();
+    // History refreshes independently and cannot hold a fresh song hostage.
+    // waitUntil keeps the shared history refresh alive after the response ends.
+    const historyTask = recentlyPlayed().catch(() => recentSnapshot.value);
+    waitUntil(historyTask);
+    let historyTimer;
+    const historyWait = Promise.race([historyTask, new Promise(resolve => {
+      historyTimer = setTimeout(() => resolve(recentSnapshot.value), 250);
+    })]);
+    const recent = (await (playback?.track || currentSnapshot.lastKnown?.track ? historyWait : historyTask)) || basePayload("offline");
+    clearTimeout(historyTimer);
     let state = playback?.track ? playback : recent;
     // History may predate a song we just observed. Keep that newer track when
     // playback stops, without pretending it is still playing.
@@ -208,7 +211,9 @@ module.exports = async function handler(request, response) {
       return send(response, 200, {...basePayload("not_connected"), provider: null, updatedAt: null}, HISTORY_SECONDS);
     }
     if (error.status === 429) {
-      const limit = getRateLimit() || {retryAfter: Math.max(30, error.retryAfter || 60), retryAt: error.retryAt};
+      await restoreSharedSnapshots(currentSnapshot, recentSnapshot).catch(() => {});
+      const retryAt = Math.max(getRateLimit()?.retryAt || 0, error.retryAt || Date.now() + Math.max(30, error.retryAfter || 60) * 1000);
+      const limit = {retryAt, retryAfter:Math.ceil((retryAt - Date.now()) / 1000)};
       // Vercel caches HTTP 200 metadata snapshots. A 429 HTTP response cannot
       // be relied on for CDN caching, leaving each new visitor to hit Spotify.
       return send(response, 200, {...savedSnapshot(view), status: "rate_limited", isPlaying: false,
@@ -221,6 +226,7 @@ module.exports = async function handler(request, response) {
       return send(response, 200, basePayload("needs_reconnect"), HISTORY_SECONDS);
     }
     return send(response, 200, {...savedSnapshot(view), status: "unavailable", stale: true,
-      isPlaying: false, progressMs: null, nextCheckAt: Date.now() + 120000}, 120);
+      isPlaying: false, progressMs: null, nextCheckAt: error.nextCheckAt || Date.now() + 30000},
+      Math.max(1, Math.ceil(((error.nextCheckAt || Date.now() + 30000) - Date.now()) / 1000)));
   }
 };

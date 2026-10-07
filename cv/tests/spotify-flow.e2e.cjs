@@ -91,9 +91,9 @@ async function api(view='') {
     const {body}=await api('current');assert.equal(body.status,'offline');assert.equal(count('recently-played'),0);
   });
   reset('idle');
-  await check('Idle combined snapshot retains last played song and allows a fresh check within one minute',async()=>{
+  await check('Idle combined snapshot retains last played song and allows a fresh check within twenty seconds',async()=>{
     const first=await api();await api();assert.equal(first.body.track.name,'Last Fixture Song');
-    assert.match(first.response.headers.get('vercel-cdn-cache-control'),/s-maxage=60/);
+    assert.match(first.response.headers.get('vercel-cdn-cache-control'),/s-maxage=20/);
     assert.equal(count('currently-playing'),1);assert.equal(count('recently-played'),1);
   });
   reset('limited');
@@ -130,7 +130,7 @@ async function api(view='') {
     await page.locator('[data-listening]').scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>document.querySelector('[data-listening-current-title]').textContent==='Last Fixture Song');
     assert.deepEqual(browserRequests,['']);
-    await page.clock.runFor(10000);assert.equal(browserRequests.length,1,'Idle panel must not poll every few seconds');
+    await page.clock.runFor(5000);assert.equal(browserRequests.length,1,'Idle panel must not poll every few seconds');
     assert.equal(await page.locator('[data-listening-current-label]').textContent(),'Last played');
     await page.locator('[data-listening-history]').evaluate(el=>el.open=true);
     await page.screenshot({path:path.join(evidence,'idle-desktop.png'),fullPage:true});
@@ -210,7 +210,7 @@ async function api(view='') {
   // Backend warm-cache expiry is tested in listening-api.test.cjs. These
   // controller fixtures timestamp responses against Chromium's virtual clock
   // so fake timer advancement does not mislabel fresh data as older than 60s.
-  for(const remaining of [60000,20000]) {
+  for(const remaining of [20000,8000,-1000]) {
     const transition=await browser.newContext({viewport:{width:1280,height:900}});
     await transition.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.fulfill({status:204,body:''}));
     const t=await transition.newPage();await t.clock.install();let requests=0;
@@ -222,12 +222,12 @@ async function api(view='') {
         source:playing?'currently_playing':'recently_played',
         track:{name:playing?'Newly Started Song':'Previously Played Song',artists:['Fixture Artist'],url:'https://open.spotify.com/track/fixture',durationMs:240000},
         tracks:[],progressMs:playing?10000:null,updatedAt:new Date(now).toISOString(),
-        nextCheckAt:now+(playing?30000:remaining)})});
+        nextCheckAt:now+(playing?10000:remaining)})});
     });
-    await check(remaining===60000?'Starting playback after idle updates the visible panel within one minute':'Cached idle response uses its remaining lifetime without adding another minute',async()=>{
+    await check(remaining===20000?'Starting playback after idle updates the visible panel within twenty seconds':remaining>0?'Cached idle response uses its remaining lifetime without adding another full interval':'An already expired CDN snapshot is rechecked in one second without another full delay',async()=>{
       await t.goto(origin);await t.locator('[data-listening]').scrollIntoViewIfNeeded();
       await t.waitForFunction(()=>document.querySelector('[data-listening-current-title]').textContent==='Previously Played Song');
-      await t.clock.runFor(remaining-1000);assert.equal(requests,1);
+      await t.clock.runFor(Math.max(0,remaining-1000));assert.equal(requests,1);
       await t.clock.runFor(2000);
       await t.waitForFunction(()=>document.querySelector('[data-listening-current-label]').textContent==='Playing now');
       assert.equal(await t.locator('[data-listening-current-title]').textContent(),'Newly Started Song');
@@ -250,6 +250,66 @@ async function api(view='') {
     assert.equal(count('currently-playing'),1);await restoredPage.close();
   });
   await restoredContext.close();
+  // Controller lifecycle fixtures use browser time; provider/cache protections
+  // are independently exercised by the real HTTP handler and cache tests.
+  const smooth=await browser.newContext({viewport:{width:375,height:812},reducedMotion:'reduce'});
+  await smooth.route('**/*',r=>r.request().url().startsWith(origin)?r.continue():r.fulfill({status:204,body:''}));
+  const smoothPage=await smooth.newPage();await smoothPage.clock.install();let smoothRequests=0, rejectNext=false;
+  const makeState=(now,name='First Song')=>({status:'playing',isPlaying:true,progressMs:60000,
+    track:{name,artists:['Fixture Artist'],durationMs:240000,url:'https://open.spotify.com/track/fixture'},
+    tracks:[],updatedAt:new Date(now).toISOString(),nextCheckAt:now+10000});
+  await smoothPage.route('**/api/listening',async r=>{
+    smoothRequests++;
+    if(rejectNext){rejectNext=false;return r.abort('failed');}
+    const now=await smoothPage.evaluate(()=>Date.now());
+    await r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(makeState(now,smoothRequests>1?'Skipped To Song':'First Song'))});
+  });
+  await check('Skipping songs updates within ten seconds without manual refresh',async()=>{
+    await smoothPage.goto(origin);await smoothPage.locator('[data-listening]').scrollIntoViewIfNeeded();
+    await smoothPage.waitForFunction(()=>document.querySelector('[data-listening-current-title]').textContent==='First Song');
+    await smoothPage.clock.runFor(9000);assert.equal(smoothRequests,1);
+    await smoothPage.clock.runFor(2000);
+    await smoothPage.waitForFunction(()=>document.querySelector('[data-listening-current-title]').textContent==='Skipped To Song');
+    assert.equal(smoothRequests,2);
+  });
+  await check('Reduced motion preserves functional progress updates without extra requests',async()=>{
+    const before=smoothRequests;
+    const width=await smoothPage.locator('[data-listening-progress]').evaluate(el=>parseFloat(el.style.width));
+    await smoothPage.clock.runFor(2000);
+    assert.ok(await smoothPage.locator('[data-listening-progress]').evaluate(el=>parseFloat(el.style.width))>width);
+    assert.equal(smoothRequests,before);
+  });
+  await check('Older tab storage cannot downgrade live playback, while a newer song appears immediately',async()=>{
+    const stamp=await smoothPage.evaluate(()=>Date.parse(JSON.parse(localStorage.getItem('pkm.spotify.snapshot.v2')).snapshot.updatedAt));
+    const old=makeState(stamp-5000,'Older Song');
+    await smoothPage.evaluate(value=>window.dispatchEvent(new StorageEvent('storage',{key:'pkm.spotify.snapshot.v2',
+      newValue:JSON.stringify({snapshot:value,savedAt:Date.now(),nextCheckAt:Date.now()+10000,retryAt:0})})),old);
+    assert.equal(await smoothPage.locator('[data-listening-current-title]').textContent(),'Skipped To Song');
+    assert.equal(await smoothPage.locator('[data-listening-status]').textContent(),'live');
+    const fresh=makeState(stamp+1000,'Newer Tab Song');
+    await smoothPage.evaluate(value=>window.dispatchEvent(new StorageEvent('storage',{key:'pkm.spotify.snapshot.v2',
+      newValue:JSON.stringify({snapshot:value,savedAt:Date.now(),nextCheckAt:Date.now()+10000,retryAt:0})})),fresh);
+    assert.equal(await smoothPage.locator('[data-listening-current-title]').textContent(),'Newer Tab Song');
+    assert.equal(await smoothPage.locator('[data-listening-status]').textContent(),'live');
+  });
+  await check('Returning to the tab revalidates promptly through the canonical cacheable URL',async()=>{
+    const before=smoothRequests;
+    await smoothPage.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+    await smoothPage.waitForFunction(()=>document.querySelector('[data-listening]').getAttribute('aria-busy')==='false');
+    assert.equal(smoothRequests,before+1);
+  });
+  await check('A brief network failure retries after five seconds instead of leaving a two-minute stale song',async()=>{
+    rejectNext=true;await smoothPage.clock.runFor(11000);
+    await smoothPage.waitForFunction(()=>document.querySelector('[data-listening-status]').textContent==='saved');
+    const before=smoothRequests;
+    const remaining=await smoothPage.evaluate(()=>JSON.parse(localStorage.getItem('pkm.spotify.snapshot.v2')).nextCheckAt-Date.now());
+    assert.ok(remaining>0 && remaining<=5000);
+    await smoothPage.clock.runFor(Math.max(0,remaining-1000));assert.equal(smoothRequests,before);
+    await smoothPage.clock.runFor(2000);
+    await smoothPage.waitForFunction(()=>document.querySelector('[data-listening-status]').textContent==='live');
+    assert.equal(smoothRequests,before+1);
+  });
+  await smooth.close();
   const legacyContext=await browser.newContext({viewport:{width:375,height:812}});
   await legacyContext.route('**/*',route=>route.request().url().startsWith(origin)?route.continue():route.fulfill({status:204,body:''}));
   await legacyContext.addInitScript(()=>{

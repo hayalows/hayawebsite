@@ -101,7 +101,7 @@ async function runScenario(currentResponse, view = "combined") {
   assert.equal(playing.body.tracks.length, 2);
   assert.equal(playing.body.tracks[0].plays, 2);
   assert.equal(playing.headers["cache-control"], "public, max-age=0, must-revalidate");
-  assert.match(playing.headers["vercel-cdn-cache-control"], /s-maxage=30/);
+  assert.match(playing.headers["vercel-cdn-cache-control"], /s-maxage=10/);
 
   const fallback = await runScenario(new Response(null, { status: 204 }));
 
@@ -132,7 +132,7 @@ async function runScenario(currentResponse, view = "combined") {
   assert.equal(currentOffline.body.source, "currently_playing");
 
   // A real warm-instance idle -> playing transition must become observable
-  // within a minute, while concurrent visitors still share upstream work.
+  // within twenty seconds, while concurrent visitors still share upstream work.
   const realNow = Date.now;
   try {
     let now = realNow(); Date.now = () => now;
@@ -148,8 +148,8 @@ async function runScenario(currentResponse, view = "combined") {
       }
       return fixtureFetch(url);
     };
-    assert.ok(idle.body.nextCheckAt <= now + 60000);
-    now += 59999;
+    assert.ok(idle.body.nextCheckAt <= now + 20000);
+    now += 19999;
     const cached = createResponse();
     await warmHandler({method: "GET", query: {}}, cached);
     assert.equal(cached.body.status, "recent");
@@ -177,6 +177,24 @@ async function runScenario(currentResponse, view = "combined") {
   assert.equal(rateLimited.headers["retry-after"], "42");
   assert.equal(rateLimited.headers["cache-control"], "public, max-age=0, must-revalidate");
   assert.match(rateLimited.headers["vercel-cdn-cache-control"], /s-maxage=42/);
+
+  // A slow or failed history request must never hide an available live song.
+  delete require.cache[require.resolve("../api/listening")];
+  delete require.cache[require.resolve("../lib/spotify")];
+  const fixtureFetch = global.fetch;
+  let finishHistory;
+  global.fetch = async url => {
+    if (String(url).includes('recently-played')) return new Promise(resolve=>finishHistory=resolve);
+    if (String(url).includes('currently-playing')) return jsonResponse({is_playing:true,progress_ms:10000,item:track('fast','Current Song')});
+    return fixtureFetch(url);
+  };
+  const fast = createResponse();
+  const start = performance.now();
+  await require('../api/listening')({method:'GET',query:{}},fast);
+  assert.equal(fast.body.track.name,'Current Song');
+  assert.ok(performance.now()-start<1000,'History must not block live playback');
+  finishHistory(jsonResponse({error:{status:500}},500));
+  await new Promise(resolve=>setImmediate(resolve));
 
   const recentOnly = await runScenario(new Response(null, { status: 204 }), "recent");
 
