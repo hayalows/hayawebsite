@@ -213,3 +213,22 @@ Run the browser scenarios and collect screenshots/report with:
 ```sh
 ACCORDION_EVIDENCE_DIR=/tmp/pkm-accordion node cv/tests/accordion-flow.e2e.cjs
 ```
+
+## Graphic design archive
+
+`design/` presents all 67 image files from the owner’s provided design folder,
+imported on 7 October 2026. The graphic design experience, its archive invitation
+and both Explore menus link to it. Artwork uses local, uncropped WebP previews;
+`design/catalog.json` preserves original filenames, Drive links and source hashes.
+This is a snapshot: future Drive additions need importing.
+
+UseLayouts Expandable Gallery and Pop Tilt Cards are adapted for the existing
+vanilla stack with visible/source attribution. Filters and search, a native modal
+viewer, zoom, category-scoped navigation, deep links and pointer depth support
+desktop and mobile. Reduced motion, no-JavaScript image links, missing-image retry,
+focus return and browser history are covered by the browser harness. See
+`docs/design-gallery.md` for sources, content inventory and implementation decisions.
+
+```sh
+DESIGN_EVIDENCE_DIR=/tmp/pkm-design node cv/tests/design-gallery-flow.e2e.cjs
+```
