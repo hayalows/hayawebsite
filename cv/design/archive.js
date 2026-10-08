@@ -82,13 +82,13 @@ function renderIndex(sketch=false){
  let selectedFilter='All';
  const params=new URLSearchParams(location.search);
  let view=params.get('view')==='grid'?'grid':sketch?'grid':'list';
- const description=sketch?'Smaller graphics and experiments I’ve worked on over the years.':'Brand identities, posters, campaigns and other graphic work I’ve done over the years.';
- app.innerHTML=heading('PAPA KOJO MENSAH / ICONKA DESIGNS',sketch?'Sketchbook':'My design work',description)+
+ const description=sketch?'Smaller graphics and experiments I’ve worked on over the years.':"I’m Papa Kojo Mensah, a graphic designer based in Kumasi, Ghana. I create brand identities, event posters and campaign graphics, and I’m open to design projects in Accra and across Ghana.";
+ app.innerHTML=heading(sketch?'ICONKA DESIGNS / SKETCHBOOK':'ICONKA DESIGNS / KUMASI, GHANA',sketch?'Sketchbook':'Graphic design work',description)+
  '<div class="tools" aria-label="Browse designs"><label class="sr-only" for="find-project">Search designs</label><input class="search" id="find-project" type="search" placeholder="Search designs…" autocomplete="off">'+
  (sketch?'':'<div class="filter-controls" role="group" aria-label="Filter designs">'+filters.map(([label,test])=>'<button type="button" class="filter-button" data-category="'+label+'" aria-pressed="'+(label==='All')+'">'+label+'</button>').join('')+'</div>')+
  '<div class="view-controls" role="group" aria-label="Choose how to browse">'+['list','grid'].map(v=>'<button type="button" class="view-button" data-view="'+v+'" aria-pressed="'+(v===view)+'">'+(v==='list'?'List':'Grid')+'</button>').join('')+'</div></div>'+
  '<div class="results-row"><span id="result-status" role="status" aria-live="polite"></span><button type="button" id="clear-search" hidden>Clear</button></div>'+
- '<div id="projects-results"></div>'+
+ '<div id="projects-results"></div>'+(sketch?'':"<section class=\"design-service-intro\" aria-labelledby=\"designer-ghana\"><div><p class=\"eyebrow\">WORKING TOGETHER</p><h2 id=\"designer-ghana\">Graphic design from Kumasi, Ghana</h2><p>I work on brand identities, event posters, promotional designs and social graphics. The aim is to make the message easy to understand, whether someone is discovering a business, checking event details or looking for a way to get in touch.</p><p>I'm based in Kumasi and can work with people in Accra and other parts of Ghana remotely. If you have a project in mind, tell me what you need and what the artwork should help people do.</p></div><a class=\"service-contact\" href=\"mailto:mpapakojo@gmail.com?subject=Graphic%20design%20enquiry\">Discuss a design project ↗</a></section>")+
  (sketch?'':'<div class="archive-bottom"><a class="text-link" href="/design/sketchbook">See the Sketchbook ↗</a></div>');
  const field=document.querySelector('#find-project'),target=document.querySelector('#projects-results'),status=document.querySelector('#result-status'),clear=document.querySelector('#clear-search');
  function thumb(p){return '<img src="'+text(p.pieces[0].preview)+'" alt="'+text(p.title)+' artwork" loading="lazy" decoding="async">';}
