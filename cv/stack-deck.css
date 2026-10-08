@@ -1,0 +1,9 @@
+/* Scroll Stack Deck adapted to the existing PKM selected-work cards. */
+@media (min-width:980px) and (min-height:720px) and (prefers-reduced-motion:no-preference){
+ .project-stack-deck{display:flex;flex-direction:column;gap:3.5rem;isolation:isolate;position:relative;padding-bottom:3rem}
+ .project-stack-deck>.project-card{position:sticky;top:calc(5.9rem + (var(--card-stack,0) * 1.05rem));transform:scale(var(--deck-scale,1));transform-origin:center top;filter:brightness(var(--deck-dim,1));transition:transform 220ms cubic-bezier(.23,1,.32,1),filter 220ms cubic-bezier(.23,1,.32,1)}
+ .project-stack-deck>.project-card:nth-child(1){--card-stack:0;z-index:1}
+ .project-stack-deck>.project-card:nth-child(2){--card-stack:1;z-index:2}
+ .project-stack-deck>.project-card:nth-child(3){--card-stack:2;z-index:3}
+}
+@media (prefers-reduced-motion:reduce){.project-stack-deck>.project-card{filter:none!important;transform:none!important}}
