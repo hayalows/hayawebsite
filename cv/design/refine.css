@@ -179,3 +179,34 @@
 .detail-note{border-top-color:var(--rule)}
 .feature-carousel__choice[aria-pressed=true]{border-left-color:var(--accent)}
 .work-progress{border-color:var(--rule)}
+
+/* The design collection is the entry point. Keep the work above the controls. */
+.archive-heading{padding:clamp(36px,5vw,58px) 0 26px}
+.archive-heading h1{font-size:clamp(2.75rem,7vw,5rem);line-height:1.08;letter-spacing:-.055em;margin:10px 0 16px}
+.archive-heading .lede{max-width:690px;font-size:clamp(15px,1.5vw,18px);line-height:1.65}
+.tools{position:relative;top:auto;padding:16px 0;gap:13px}
+.tools .search{flex:1 1 200px;min-width:0}
+.filter-controls{display:flex;gap:5px;flex-wrap:wrap}
+.filter-button{padding:9px 13px}
+.filter-button[aria-pressed=true]{border-color:var(--secondary);color:var(--text);font-weight:650}
+.view-controls{display:flex;flex:0 0 auto;margin-left:auto;align-items:center;gap:5px}
+.view-button{border:1px solid var(--rule);min-height:43px;padding:8px 15px}
+.results-row{min-height:56px;padding-block:18px}
+.index-row{grid-template-columns:minmax(0,1fr) auto 24px}
+.index-row .row-title{grid-column:1}
+.index-preview__open img{transition:transform 260ms cubic-bezier(.23,1,.32,1)}
+.kente-line,.archive-stats{display:none}
+@media(max-width:650px){
+ .archive-heading{padding:29px 0 22px}
+ .archive-heading h1{font-size:clamp(2.55rem,11vw,4.6rem);margin:10px 0 12px}
+ .archive-heading .lede{font-size:15px}
+ .tools{gap:10px;padding:12px 0}
+ .tools .search{flex:1 1 100%;width:100%;font-size:16px}
+ .tools .filter-controls{gap:6px;width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;padding:2px 0 5px}
+ .tools .filter-button{min-height:44px;flex:none}
+ .view-controls{width:auto;margin:0 0 0 auto;display:flex;gap:6px}
+ .view-controls .view-button{min-width:58px}
+ .index-row .row-title{font-size:clamp(21px,6vw,32px)}
+ .index-row .preview-toggle{min-width:44px;min-height:44px}
+ .results-row{min-height:55px}
+}

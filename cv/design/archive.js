@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const BASE='/design/', app=document.querySelector('#archive-app'), themeButton=document.querySelector('#theme-toggle');
 const categories=['All','Identity','Campaign','Print','Social','Education','Sketchbook'];
-const featuredKeys=['iconka-identity','styled-couture','kente-pa','fries-haven','nabis-diary','food-maps','el-festin-elegante','actex-learning','ldssa-colour-week','picnic-palooza'];
+const featuredKeys=['iconka-identity','styled-couture','nabis-diary','food-maps','kente-pa','fries-haven','ldssa-colour-week','el-festin-elegante','actex-learning','picnic-palooza'];
 const evidenceSummaries={
 'iconka-identity':'Identity artwork for Iconka Designs, including a wordmark, a mockup and an apparel graphic.',
 'styled-couture':'A brand identity design for Styled Couture.',
@@ -12,8 +12,8 @@ const evidenceSummaries={
 'food-maps':'Brand identity artwork for Food Maps.',
 'el-festin-elegante':'An event poster and a five-part countdown series for El Festín Elegante.',
 'ldssa-colour-week':'Event artwork and activity information for LDSSA Colour Week.',
-'annual-temple-trip':'Two related designs for the annual temple trip.',
-'hisok-journeys':'Two versions of the Hisok journeys to the West campaign.',
+'annual-temple-trip':'A design for the annual temple trip.',
+'hisok-journeys':'A campaign design for Hisok journeys to the West.',
 'vaiv-launch':'Two VAIV launch promotion graphics.',
 'just-be-kind':'Three variations of the Just be kind graphic.',
 'actex-learning':'Educational artwork for Actex Learning.',
@@ -25,10 +25,10 @@ const mappings=[
 {key:'kente-pa',title:'Kente Pa',numbers:[4,54],category:'Campaign'},
 {key:'fries-haven',title:'Fries Haven',numbers:[2,52],category:'Campaign'},
 {key:'nabis-diary',title:'Nabis Diary',numbers:[11,27],category:'Identity'},
-{key:'el-festin-elegante',title:'El Festín Elegante',numbers:[7,57,58,59,60,61],category:'Campaign'},
+{key:'el-festin-elegante',title:'El Festín Elegante',numbers:[7,57,58,61,59,60],category:'Campaign'},
 {key:'ldssa-colour-week',title:'LDSSA Colour Week',numbers:[9,48,65],category:'Campaign'},
-{key:'annual-temple-trip',title:'Annual temple trip',numbers:[15,66],category:'Campaign'},
-{key:'hisok-journeys',title:'Hisok journeys to the West',numbers:[13,16],category:'Campaign'},
+{key:'annual-temple-trip',title:'Annual temple trip',numbers:[15],category:'Campaign'},
+{key:'hisok-journeys',title:'Hisok journeys to the West',numbers:[13],category:'Campaign'},
 {key:'vaiv-launch',title:'VAIV launch',numbers:[32,33],category:'Campaign'},
 {key:'just-be-kind',title:'Just be kind',numbers:[49,50,51],category:'Sketchbook'},
 {key:'picnic-palooza',title:'Picnic Palooza',numbers:[1],category:'Campaign'},
@@ -44,7 +44,8 @@ const url=p=>BASE+p.key+'/';
 const mkPiece=(p)=>({title:p.title,preview:image(p),full:image(p,'full'),id:p.id,alt:p.alt||p.title});
 let projects=[], byKey=new Map(), allPieces=[], currentProject=null, lightboxItems=[], lightboxIndex=0;
 function group(data){
- const claimed=new Set(), output=[];
+ const hiddenIds=new Set([data[16]?.id,data[66]?.id].filter(Boolean));
+ const claimed=new Set(hiddenIds), output=[];
  const make=(config,idx,items)=>{
   const first=items[0], typed=config.category||(sketchIndices.has(idx)?'Sketchbook':idx===31?'Print':first.category==='Brand identities'?'Identity':first.category==='Education'?'Education':first.category==='Social & editorial'?'Social':'Campaign');
   const key=config.key||slug(first.title.replace(/\s*[·:].*$/,''));
@@ -67,52 +68,64 @@ function group(data){
 }
 function heroImage(p,loading='lazy'){return '<img src="'+text(p.pieces[0].preview)+'" alt="'+text(p.pieces[0].alt)+'" loading="'+loading+'" decoding="async">';}
 function heading(label,title,description){return '<section class="archive-heading"><p class="eyebrow">'+text(label)+'</p><h1>'+text(title)+'</h1><p class="lede">'+text(description)+'</p></section>';}
-function selected(){
- const chosen=['iconka-identity','styled-couture','nabis-diary','food-maps','kente-pa','fries-haven','ldssa-colour-week','el-festin-elegante','actex-learning','picnic-palooza'].map(key=>byKey.get(key)).filter(Boolean);
- app.innerHTML='<section class="intro"><p class="eyebrow">PAPA KOJO MENSAH / ICONKA DESIGNS / GHANA</p><h1>Ideas made <span>visible.</span></h1><p class="lede">Here’s some design work I’ve done, from brand identities to event graphics. Open a project to see how I approached it.</p><div class="intro-bottom"><a href="#selected" class="button-primary">See my work <span aria-hidden="true">↓</span></a><a href="/design/index" class="text-link">Browse all designs ↗</a></div></section>'+
- '<section id="selected"><div class="section-heading"><h2>Selected work</h2><span>'+String(chosen.length)+' PROJECTS</span></div><div class="selected-grid">'+chosen.map(p=>'<article class="selected-card"><a href="'+url(p)+'"><div class="selected-media">'+heroImage(p,chosen.indexOf(p)<2?'eager':'lazy')+'</div><div class="selected-meta"><h3>'+text(p.title)+' ↗</h3><span>'+text(p.category)+(p.pieces.length>1?' · '+p.pieces.length+' pieces':'')+'</span></div></a></article>').join('')+'</div></section>'+
- '<section class="section-end"><div class="section-heading"><h2>More design work</h2><span>MORE TO EXPLORE</span></div><p class="lede">There are more flyers, graphics and ideas in the collection. Browse them by type or see the smaller pieces in my Sketchbook.</p><a href="/design/index" class="button-primary">See all designs ↗</a></section>';
-}
+/* The portfolio opens with everything visible. Featured and category filters are optional. */
 function renderIndex(sketch=false){
- const base=sketch?projects.filter(p=>p.category==='Sketchbook'):projects.filter(p=>p.category!=='Sketchbook');
- let filter='All', view=sketch?'grid':(new URLSearchParams(location.search).get('view')||'list');if(!['list','grid','wall'].includes(view))view='list';if(matchMedia('(max-width:650px)').matches&&view==='wall')view='grid';
- app.innerHTML=heading(sketch?'SMALLER DESIGNS':'MY DESIGN WORK',sketch?'Sketchbook':'All designs',sketch?'Smaller graphics, experiments and ideas I’ve worked on over the years.':'Browse my designs by category, search for something specific, or choose the view you prefer.')+
- '<div class="archive-stats"><span>'+base.length+' PROJECTS</span><span>'+base.reduce((n,p)=>n+p.pieces.length,0)+' DESIGNS</span></div></section>'.replace('</section></section>','</section>')+
- '<div class="kente-line" aria-hidden="true"></div><div class="tools"><label class="mono" for="find-project" style="position:absolute;left:-9999px">Search all projects</label><input id="find-project" class="search" type="search" placeholder="Search designs…" autocomplete="off">'+
- '<div class="filter-controls" aria-label="Filter by discipline" role="group">'+(sketch?'':categories.filter(c=>c!=='Sketchbook'&&(c==='All'||base.some(p=>p.category===c))).map(c=>'<button class="filter-button" type="button" aria-pressed="'+(c==='All')+'" data-category="'+c+'">'+c+' <span class="filter-count">'+(c==='All'?base.length:base.filter(p=>p.category===c).length)+'</span></button>').join(''))+'</div>'+
- '<div class="view-controls" role="group" aria-label="Choose archive view">'+['list','grid','wall'].map(v=>'<button type="button" class="view-button" data-view="'+v+'" aria-pressed="'+(v===view)+'">'+v[0].toUpperCase()+v.slice(1)+'</button>').join('')+'</div></div><div class="results-row"><span id="result-status" role="status" aria-live="polite"></span><button id="clear-search" type="button" hidden>Clear filters</button></div><div id="projects-results"></div><div class="archive-bottom"><a class="text-link" href="'+(sketch?'/design/index':'/design/sketchbook')+'">'+(sketch?'Browse the complete index':'Open the Sketchbook')+' ↗</a></div>';
- const search=document.querySelector('#find-project'), target=document.querySelector('#projects-results'), status=document.querySelector('#result-status'), clear=document.querySelector('#clear-search');
- function cards(list,wall=false){return (wall?'<div class="wall-shell"><div class="wall-tools"><span class="mono">SPATIAL VIEW · DRAG THE EMPTY SPACE</span><button type="button" data-wall-zoom="out" aria-label="Zoom out">−</button><output id="wall-scale">100%</output><button type="button" data-wall-zoom="in" aria-label="Zoom in">+</button><button type="button" data-wall-reset>Reset view</button></div><div class="wall-viewport" tabindex="0" aria-label="Artwork wall, pan with arrow keys or drag empty space">':'')+'<div class="'+(wall?'archive-wall':'archive-grid')+'">'+list.map(p=>'<a class="index-card" href="'+url(p)+'"><div class="thumb">'+heroImage(p)+'</div><div class="card-info"><h3>'+text(p.title)+'</h3></div><p class="mono">'+text(p.category)+(p.pieces.length>1?' · '+p.pieces.length+' designs':'')+'</p></a>').join('')+'</div>'+(wall?'</div></div>':'');}
- function rows(list){return '<div class="index-list"><div class="rows">'+list.map(p=>'<div class="index-row" data-key="'+text(p.key)+'"><a href="'+url(p)+'" class="row-title">'+text(p.title)+'</a><span class="row-cat">'+text(p.category)+'</span><span class="row-arrow" aria-hidden="true">↗</span><button type="button" class="preview-toggle" aria-label="Preview '+text(p.title)+'" aria-expanded="false">+</button><div class="mobile-preview">'+heroImage(p)+'</div></div>').join('')+'</div><aside class="index-preview" aria-hidden="true"><img id="index-preview-image" src="'+(list[0]?text(list[0].pieces[0].preview):'')+'" alt=""><span class="preview-label">OPEN PROJECT ↗</span></aside></div>';}
- function setupWall(){
- const viewport=target.querySelector('.wall-viewport'), wall=target.querySelector('.archive-wall');
- if(!viewport||!wall)return;
- let zoom=1,x=0,y=0,drag=null;
- const output=target.querySelector('#wall-scale');
- const update=()=>{wall.style.transform='translate('+x+'px,'+y+'px) scale('+zoom+')';output.textContent=Math.round(zoom*100)+'%';};
- const clamp=n=>Math.max(.65,Math.min(1.6,n));
- const setZoom=delta=>{zoom=clamp(Math.round((zoom+delta)*100)/100);update();};
- target.querySelectorAll('[data-wall-zoom]').forEach(button=>button.addEventListener('click',()=>setZoom(button.dataset.wallZoom==='in'?.1:-.1)));
- target.querySelector('[data-wall-reset]').addEventListener('click',()=>{zoom=1;x=0;y=0;update();viewport.focus();});
- viewport.addEventListener('pointerdown',event=>{if(event.target.closest('a,button')||event.pointerType==='touch'||matchMedia('(max-width:650px)').matches)return;drag={id:event.pointerId,x:event.clientX,y:event.clientY,sx:x,sy:y};viewport.setPointerCapture(event.pointerId);viewport.classList.add('is-panning');});
- viewport.addEventListener('pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;x=drag.sx+event.clientX-drag.x;y=drag.sy+event.clientY-drag.y;update();});
- const end=()=>{drag=null;viewport.classList.remove('is-panning');};viewport.addEventListener('pointerup',end);viewport.addEventListener('pointercancel',end);
- viewport.addEventListener('keydown',event=>{const moves={ArrowLeft:[-30,0],ArrowRight:[30,0],ArrowUp:[0,-30],ArrowDown:[0,30]};if(moves[event.key]){event.preventDefault();x+=moves[event.key][0];y+=moves[event.key][1];update();}if(event.key==='+'||event.key==='='){event.preventDefault();setZoom(.1);}if(event.key==='-'){event.preventDefault();setZoom(-.1);}});
- update();
+ const base=sketch?projects.filter(p=>p.category==='Sketchbook'):projects;
+ const featured=new Set(featuredKeys);
+ const filters=sketch?[]:[
+  ['All',()=>true],
+  ['Featured',p=>featured.has(p.key)],
+  ['Identity',p=>p.category==='Identity'],
+  ['Campaign',p=>p.category==='Campaign'],
+  ['Other',p=>!['Identity','Campaign'].includes(p.category)]
+ ];
+ let selectedFilter='All';
+ const params=new URLSearchParams(location.search);
+ let view=params.get('view')==='grid'?'grid':sketch?'grid':'list';
+ const description=sketch?'Smaller graphics and experiments I’ve worked on over the years.':'Brand identities, posters, campaigns and other graphic work I’ve done over the years.';
+ app.innerHTML=heading('PAPA KOJO MENSAH / ICONKA DESIGNS',sketch?'Sketchbook':'My design work',description)+
+ '<div class="tools" aria-label="Browse designs"><label class="sr-only" for="find-project">Search designs</label><input class="search" id="find-project" type="search" placeholder="Search designs…" autocomplete="off">'+
+ (sketch?'':'<div class="filter-controls" role="group" aria-label="Filter designs">'+filters.map(([label,test])=>'<button type="button" class="filter-button" data-category="'+label+'" aria-pressed="'+(label==='All')+'">'+label+'</button>').join('')+'</div>')+
+ '<div class="view-controls" role="group" aria-label="Choose how to browse">'+['list','grid'].map(v=>'<button type="button" class="view-button" data-view="'+v+'" aria-pressed="'+(v===view)+'">'+(v==='list'?'List':'Grid')+'</button>').join('')+'</div></div>'+
+ '<div class="results-row"><span id="result-status" role="status" aria-live="polite"></span><button type="button" id="clear-search" hidden>Clear</button></div>'+
+ '<div id="projects-results"></div>'+
+ (sketch?'':'<div class="archive-bottom"><a class="text-link" href="/design/sketchbook">See the Sketchbook ↗</a></div>');
+ const field=document.querySelector('#find-project'),target=document.querySelector('#projects-results'),status=document.querySelector('#result-status'),clear=document.querySelector('#clear-search');
+ function thumb(p){return '<img src="'+text(p.pieces[0].preview)+'" alt="'+text(p.title)+' artwork" loading="lazy" decoding="async">';}
+ function grid(items){return '<div class="archive-grid">'+items.map(p=>'<a class="index-card" href="'+url(p)+'"><div class="thumb">'+thumb(p)+'</div><div class="card-info"><h3>'+text(p.title)+'</h3></div><p class="mono">'+text(p.category)+'</p></a>').join('')+'</div>';}
+ function list(items){
+ return '<div class="index-list"><div class="rows">'+items.map(p=>'<article class="index-row" data-key="'+text(p.key)+'"><a href="'+url(p)+'" class="row-title">'+text(p.title)+'</a><span class="row-cat">'+text(p.category)+'</span><span class="row-arrow" aria-hidden="true">↗</span><button type="button" class="preview-toggle" aria-label="Preview '+text(p.title)+'" aria-expanded="false">+</button><div class="mobile-preview">'+thumb(p)+'</div></article>').join('')+'</div>'+
+ '<aside class="index-preview" aria-hidden="true"><img id="index-preview-image" src="'+(items[0]?text(items[0].pieces[0].preview):'')+'" alt=""><span class="preview-label">VIEW PROJECT ↗</span></aside></div>';
  }
  function draw(){
-  const terms=search.value.trim().normalize('NFKD').toLowerCase().split(/\s+/).filter(Boolean), matched=base.filter(p=>(filter==='All'||p.category===filter)&&terms.every(t=>[p.title,p.key,p.category,p.keywords,p.client,p.year,p.kind,(p.tags||[]).join(' ')].join(' ').normalize('NFKD').toLowerCase().includes(t))), q=terms.join(' ');
-  status.textContent=matched.length+' of '+base.length+' designs';
-  clear.hidden=!q&&filter==='All';document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(filter===b.dataset.category)));
-  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(view===b.dataset.view)));
-  target.innerHTML=matched.length?(view==='list'?rows(matched):cards(matched,view==='wall')):'<div class="no-results"><h2>No designs found.</h2><p>Try a different search or clear your filters.</p><button class="small-control" id="reset-now">Show all projects ↗</button></div>';
-  const reset=target.querySelector('#reset-now');if(reset)reset.addEventListener('click',()=>{filter='All';search.value='';draw();search.focus();});
-  if(view==='wall')setupWall();
-  if(view==='list'){const preview=target.querySelector('#index-preview-image');target.querySelectorAll('.index-row').forEach(row=>{const p=byKey.get(row.dataset.key);const show=()=>{if(preview)preview.src=p.pieces[0].preview;};row.addEventListener('pointerenter',show);row.querySelector('.row-title').addEventListener('focus',show);const button=row.querySelector('.preview-toggle');button.addEventListener('click',()=>{const expanded=row.classList.toggle('is-peek');button.setAttribute('aria-expanded',String(expanded));button.textContent=expanded?'−':'+';});});}
+  const terms=field.value.normalize('NFKD').toLowerCase().trim().split(/\s+/).filter(Boolean);
+  const chosen=filters.find(x=>x[0]===selectedFilter);
+  const matches=base.filter(p=>(!chosen||chosen[1](p))&&terms.every(term=>[p.title,p.key,p.category,p.client,p.year,p.keywords,(p.tags||[]).join(' ')].join(' ').normalize('NFKD').toLowerCase().includes(term)));
+  status.textContent=matches.length+' design'+(matches.length===1?'':'s');
+  clear.hidden=!terms.length&&selectedFilter==='All';
+  document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.category===selectedFilter)));
+  document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
+  target.innerHTML=matches.length?(view==='list'?list(matches):grid(matches)):'<div class="no-results"><h2>No designs found</h2><p>Try another search or clear the filter.</p><button type="button" class="small-control" id="reset-now">Show all designs</button></div>';
+  target.querySelector('#reset-now')?.addEventListener('click',reset);
+  if(view==='list')target.querySelectorAll('.index-row').forEach(row=>{
+   const p=byKey.get(row.dataset.key),toggle=row.querySelector('.preview-toggle');
+   toggle.addEventListener('click',()=>{
+    const willOpen=!row.classList.contains('is-peek');
+    target.querySelectorAll('.index-row.is-peek').forEach(other=>{other.classList.remove('is-peek');other.querySelector('.preview-toggle')?.setAttribute('aria-expanded','false');other.querySelector('.preview-toggle').textContent='+';});
+    row.classList.toggle('is-peek',willOpen);toggle.setAttribute('aria-expanded',String(willOpen));toggle.textContent=willOpen?'−':'+';
+   });
+  });
  }
- search.addEventListener('input',draw);clear.addEventListener('click',()=>{search.value='';filter='All';draw();search.focus();});
- document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.category;search.value='';draw();}));
- document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{if(view===b.dataset.view)return;view=b.dataset.view;const switchView=()=>{history.replaceState(null,'',location.pathname+'?view='+view);draw();};if(document.startViewTransition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.startViewTransition(switchView);else switchView();}));
+ function reset(){field.value='';selectedFilter='All';draw();field.focus();}
+ field.addEventListener('input',draw);
+ clear.addEventListener('click',reset);
+ document.querySelectorAll('[data-category]').forEach(b=>b.addEventListener('click',()=>{selectedFilter=b.dataset.category;draw();}));
+ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{
+  if(view===b.dataset.view)return;
+  view=b.dataset.view;history.replaceState(null,'',location.pathname+(view==='grid'?'?view=grid':''));
+  const render=()=>draw();
+  if(document.startViewTransition&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.startViewTransition(render);else render();
+ }));
  draw();
 }
 function detail(p){
@@ -147,8 +160,8 @@ Promise.all([fetch('/design/catalog.json').then(response=>{if(!response.ok)throw
  allPieces=data;projects=group(data);projects.forEach(p=>{const story=stories[p.key];if(story){p.title=story.title||p.title;p.year=story.period||'';p.client=story.client||'';p.kind=story.kind||p.category;p.tags=story.tags||[];p.story=story;p.summary=story.brief||p.summary;}});byKey=new Map(projects.map(p=>[p.key,p]));
  const hash=new URLSearchParams(location.hash.replace(/^#/,''));const legacyId=hash.get('view');if(legacyId){const match=projects.find(p=>p.pieces.some(i=>i.id===legacyId));if(match){location.replace(url(match));return;}}
  const tail=decodeURIComponent(location.pathname.replace(/^\/design\/?/,'').replace(/\/+$/,''));
- let active='selected';
- if(tail==='index'){active='index';renderIndex(false);}else if(tail==='sketchbook'){active='sketchbook';renderIndex(true);}else if(!tail||tail==='index.html'){selected();}else{const p=byKey.get(tail);if(p){active='index';detail(p);}else{document.title='Project not found — Iconka Index';app.innerHTML=heading('ARCHIVE / NOT FOUND','This project isn’t here.','The link may have changed. Browse the full index to find the work.')+'<div class="section-end"><a href="/design/index" class="button-primary">Open index ↗</a></div>';}}
+ let active='index';
+ if(!tail||tail==='index'||tail==='index.html'){renderIndex(false);}else if(tail==='sketchbook'){active='sketchbook';renderIndex(true);}else{const p=byKey.get(tail);if(p){active='index';detail(p);}else{document.title='Project not found — Iconka Index';app.innerHTML=heading('ARCHIVE / NOT FOUND','This project isn’t here.','The link may have changed. Browse the full index to find the work.')+'<div class="section-end"><a href="/design/index" class="button-primary">Open index ↗</a></div>';}}
  document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});const renderState={projects,byKey,active};window.__iconkaRenderState=renderState;document.dispatchEvent(new CustomEvent('iconka:rendered',{detail:renderState}));
 }).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Please reload the page or return to the portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
 })();
