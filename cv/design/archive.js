@@ -121,7 +121,7 @@ function detail(p){
  const year=p.year||'';
  document.title=p.title+' — Iconka Index';setMeta('description',p.title+' — '+p.category+' artwork from Iconka Designs by Papa Kojo Mensah.');
  app.innerHTML='<article class="detail"><div class="detail-head"><a class="text-link" href="/design/index">← All projects</a><p class="eyebrow" style="margin-top:36px">'+text(p.category.toUpperCase())+'</p><h1>'+text(p.title)+'</h1><dl class="meta-strip">'+
- '<div><dt>Project</dt><dd>'+text(p.title)+'</dd></div>'+(year?'<div><dt>Year</dt><dd>'+text(year)+'</dd></div>':'')+'<div><dt>Role</dt><dd>'+text(p.role)+'</dd></div><div><dt>Client / type</dt><dd>'+text(p.client||sourceTitle)+'</dd></div></dl></div>'+
+ '<div><dt>Project</dt><dd>'+text(p.title)+'</dd></div>'+(year?'<div><dt>Year</dt><dd>'+text(year)+'</dd></div>':'')+'<div><dt>Role</dt><dd>'+text(p.role)+'</dd></div><div><dt>Type</dt><dd>'+text(p.client||sourceTitle)+'</dd></div></dl></div>'+
  '<div class="detail-explainer"><h2>The work.</h2><p>'+text(p.summary||(p.pieces.length>1?'Several pieces from the same project.':'One design from my collection.'))+'</p></div>'+
  '<div class="detail-gallery">'+p.pieces.map((i,n)=>'<button type="button" data-image="'+n+'" aria-label="View '+text(i.title)+' at full size"><img src="'+text(i.preview)+'" alt="'+text(i.alt)+'" loading="'+(n===0?'eager':'lazy')+'" decoding="async"><span>VIEW '+String(n+1).padStart(2,'0')+' ↗</span></button>').join('')+'</div>'+
  '<div class="detail-note"><p>More about this design will be added as the project comes together.</p></div>'+
