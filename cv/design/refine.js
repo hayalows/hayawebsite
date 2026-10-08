@@ -15,12 +15,12 @@ function enhanceCase(project){
  head.querySelector('h1').textContent=project.title;
  const old=doc.querySelector('.detail-explainer');
  const intro=document.createElement('section');intro.className='case-brief';
- intro.innerHTML='<div>'+cardHead('THE BRIEF',story.brief||'A graphic design piece from my archive. I’m still adding the background to this project.')+'</div><div>'+cardHead('THE APPROACH',story.approach||'The original artwork is presented below. I’ll add the decisions and process behind it as I organise more of the project material.')+'</div>';
+ intro.innerHTML='<div>'+cardHead('THE BRIEF',story.brief||'A design from my collection.')+'</div><div>'+cardHead('THE APPROACH',story.approach||'I’ll add more about my approach when I have the details ready.')+'</div>';
  old.replaceWith(intro);
  const gallery=doc.querySelector('.detail-gallery');
  gallery.classList.add('case-original-gallery');
  const hero=document.createElement('section');hero.className='case-hero';
- hero.innerHTML='<button type="button" class="case-hero__open" aria-label="View '+escape(project.title)+' in the image viewer"><img src="'+escape(pictures[0].full)+'" alt="'+escape(project.title)+' '+escape(project.category.toLowerCase())+' artwork" decoding="async"><span>VIEW LARGE ↗</span></button><p class="mono">'+project.number+' / '+escape(pictures[0].title)+'</p>';
+ hero.innerHTML='<button type="button" class="case-hero__open" aria-label="View '+escape(project.title)+' in the image viewer"><img src="'+escape(pictures[0].full)+'" alt="'+escape(project.title)+' '+escape(project.category.toLowerCase())+' artwork" decoding="async"><span>VIEW LARGE ↗</span></button><p class="mono">'+escape(pictures[0].title)+'</p>';
  gallery.before(hero);
  hero.querySelector('button').addEventListener('click',event=>{lastViewerTrigger=event.currentTarget;gallery.querySelector('[data-image="0"]')?.click();});
  if(pictures.length>1){
@@ -42,7 +42,7 @@ function enhanceCase(project){
  }
  const note=doc.querySelector('.detail-note');
  if(story.note||story.effect)note.innerHTML=(story.note?'<div><p class="eyebrow">DESIGNER’S NOTE</p><blockquote>'+escape(story.note)+'</blockquote></div>':'')+(story.effect?'<div><p class="eyebrow">LOOKING AT THE WORK</p><p>'+escape(story.effect)+'</p></div>':'');
- else note.innerHTML='<p>I’m still adding background, process material and project details as this archive grows.</p>';
+ else note.remove();
  const actions=doc.querySelector('.detail-actions');
  const start=document.createElement('a');start.className='case-start';start.href='mailto:mpapakojo@gmail.com?subject='+encodeURIComponent('Design enquiry — '+project.title);start.textContent='Start a project like this ↗';actions.prepend(start);
  // Existing gallery buttons and handlers stay in the DOM as an accessible fallback to the viewer.
@@ -70,7 +70,7 @@ function makePreviewInteractive(container,byKey){
  const p=byKey.get(row.dataset.key);row.addEventListener('pointerenter',()=>pick(p));
  row.querySelector('.row-title')?.addEventListener('focus',()=>pick(p));
  const mobile=row.querySelector('.mobile-preview');
- if(mobile&&!mobile.querySelector('.mobile-project-link')){const link=document.createElement('a');link.className='mobile-project-link';link.href=HOME+p.key+'/';link.textContent='Read this project ↗';mobile.append(link);}
+ if(mobile&&!mobile.querySelector('.mobile-project-link')){const link=document.createElement('a');link.className='mobile-project-link';link.href=HOME+p.key+'/';link.textContent='See this design ↗';mobile.append(link);}
  });
  footer.querySelector('#preview-prev').addEventListener('click',()=>{index=(index-1+selected.pieces.length)%selected.pieces.length;update();});
  footer.querySelector('#preview-next').addEventListener('click',()=>{index=(index+1)%selected.pieces.length;update();});
