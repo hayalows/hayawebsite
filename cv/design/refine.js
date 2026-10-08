@@ -36,10 +36,11 @@ function enhanceCase(project){
   const move=delta=>{active=(active+delta+pictures.length)%pictures.length;draw();};
   carousel.querySelectorAll('[data-feature]').forEach(btn=>btn.addEventListener('click',()=>{active=Number(btn.dataset.feature);draw();}));
   carousel.querySelector('[data-feature-prev]').addEventListener('click',()=>move(-1));carousel.querySelector('[data-feature-next]').addEventListener('click',()=>move(1));
-  carousel.querySelector('.feature-carousel__image').addEventListener('click',event=>{lastViewerTrigger=event.currentTarget;gallery.querySelector('[data-image="'+active+'"]')?.click();});
+  let lastSwipe=0;
+  carousel.querySelector('.feature-carousel__image').addEventListener('click',event=>{if(Date.now()-lastSwipe<500){event.preventDefault();return;}lastViewerTrigger=event.currentTarget;gallery.querySelector('[data-image="'+active+'"]')?.click();});
   carousel.addEventListener('keydown',event=>{if(!carousel.contains(document.activeElement))return;if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();move(event.key==='ArrowLeft'?-1:1);}});
   image.addEventListener('touchstart',event=>{initialTouch=event.touches[0].clientX;},{passive:true});
-  image.addEventListener('touchend',event=>{if(initialTouch===null)return;const delta=event.changedTouches[0].clientX-initialTouch;initialTouch=null;if(Math.abs(delta)>55)move(delta<0?1:-1);},{passive:true});
+  image.addEventListener('touchend',event=>{if(initialTouch===null)return;const delta=event.changedTouches[0].clientX-initialTouch;initialTouch=null;if(Math.abs(delta)>55){lastSwipe=Date.now();move(delta<0?1:-1);}},{passive:true});
  }
  const note=doc.querySelector('.detail-note');
  if(story.note||story.effect)note.innerHTML=(story.note?'<div><p class="eyebrow">DESIGNER’S NOTE</p><blockquote>'+escape(story.note)+'</blockquote></div>':'')+(story.effect?'<div><p class="eyebrow">LOOKING AT THE WORK</p><p>'+escape(story.effect)+'</p></div>':'');
@@ -50,9 +51,8 @@ function enhanceCase(project){
  doc.querySelectorAll('.case-original-gallery img').forEach((img,i)=>{img.alt=project.title+': '+pictures[i].title;});
 }
 function makePreviewInteractive(container,byKey){
- if(container.dataset.enhanced==='true')return;
- container.dataset.enhanced='true';
- const aside=container.querySelector('.index-preview');if(!aside)return;
+ const aside=container.querySelector('.index-preview');if(!aside||aside.dataset.enhanced==='true')return;
+ aside.dataset.enhanced='true';
  aside.removeAttribute('aria-hidden');aside.setAttribute('aria-label','Project preview');
  const first=container.querySelector('.index-row');
  const firstProject=first?byKey.get(first.dataset.key):null;
