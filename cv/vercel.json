@@ -10,14 +10,6 @@
     {
       "source": "/design/sketchbook",
       "destination": "/design/"
-    },
-    {
-      "source": "/design/:slug",
-      "destination": "/design/"
-    },
-    {
-      "source": "/design/:slug/",
-      "destination": "/design/"
     }
   ]
 }
