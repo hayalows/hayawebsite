@@ -377,3 +377,11 @@ footer { display:flex; justify-content:space-between; gap:1rem; margin-block-sta
   .hero-proof p { min-height: 6.5rem; padding: .85rem; }
   .content-section { margin-block-start: 3.25rem; }
 }
+
+
+/* Wide project cards: one full-width metadata row, followed by aligned copy and illustration. */
+@container (min-width:38.01rem) {
+  .project-card__intro.has-folder { align-items:start; }
+  .project-card__intro.has-folder .project-card__summary { padding-block-start:1.75rem; }
+  .project-card__intro.has-folder .project-folder { height:19rem; }
+}
