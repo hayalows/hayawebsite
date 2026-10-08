@@ -370,6 +370,14 @@
     if (event.target.closest('input,textarea,.viewer-thumbnails,.viewer-more') || event.altKey || event.ctrlKey || event.metaKey || stage.classList.contains('is-zoomed')) return;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); move(event.key === 'ArrowLeft' ? -1 : 1); }
   });
+  // The curated canvas reuses this accessible viewer and its existing history, zoom and navigation.
+  window.addEventListener('pkm:canvas-open', event => {
+    const index = cards.findIndex(card => card.dataset.id === event.detail?.id);
+    if (index < 0) return;
+    scrollToOpener = false;
+    opener = event.detail.button;
+    show(index);
+  });
   function syncHash() {
     pushed = history.state?.pkmDesignViewer === true; priorHash = history.state?.pkmDesignPriorHash || '';
     if (!location.hash.startsWith('#view=')) { pushed = false; closeInternal(); return; }
