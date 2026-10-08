@@ -345,3 +345,35 @@ footer { display:flex; justify-content:space-between; gap:1rem; margin-block-sta
 .design-invitation:hover { border-color:var(--line-strong); }.design-invitation:is(:hover,:focus-visible) img:nth-child(1) { transform:rotate(-18deg) translateY(-4px); }.design-invitation:is(:hover,:focus-visible) img:nth-child(3) { transform:rotate(18deg) translateY(-4px); }
 @media(max-width:480px) { .design-invitation { gap:1rem;padding:1rem; flex-wrap:wrap; }.design-invitation__copy { flex:1 1 10rem; }.design-invitation__arrow { display:none; } }
 @media(prefers-reduced-motion:reduce) { .design-invitation__art img { transition:none; }.design-invitation:is(:hover,:focus-visible) img:nth-child(1) { transform:rotate(-13deg); }.design-invitation:is(:hover,:focus-visible) img:nth-child(3) { transform:rotate(12deg); } }
+
+/* Short-desktop layout: balance laptop-height viewports without changing the wide-screen design. */
+@media (min-width: 52.01rem) and (max-height: 56rem) {
+  main { padding-block-start: clamp(2.25rem, 5vh, 4rem); }
+  .side-rail { top: 1.5rem; height: calc(100dvh - 3rem); padding-block-start: 1.5rem; }
+  .side-rail__navigation { margin-block-start: clamp(1.5rem, 4vh, 3rem); }
+  .hero-stamp { margin-block-end: clamp(1.25rem, 3.4vh, 2rem); }
+  .positioning { margin-block-start: clamp(1.5rem, 4vh, 2.15rem); }
+  .hero-actions { margin-block-start: 1.3rem; }
+  .hero-proof { margin-block-start: 1.8rem; }
+  .content-section { margin-block-start: clamp(4rem, 8vh, 5rem); }
+}
+
+/* A shorter CSS viewport is common on laptops at 125–150% display scaling or browser zoom. */
+@media (min-width: 52.01rem) and (max-height: 42rem) {
+  main { padding-block-start: 1.75rem; }
+  .side-rail { top: 1rem; height: calc(100dvh - 2rem); padding-block-start: .65rem; }
+  .side-rail__navigation { margin-block-start: 1.35rem; }
+  .section-nav a { min-height: 2.45rem; }
+  .side-rail__meta { display: none; }
+  .hero-stamp { margin-block-end: .9rem; }
+  .identity-row { gap: 1rem; }
+  .portrait { width: 4.75rem; height: 4.75rem; }
+  h1 { font-size: clamp(2.1rem, 3.6vw, 2.85rem); }
+  .positioning { margin-block-start: 1.35rem; font-size: clamp(1.7rem, 3vw, 2.2rem); }
+  .intro-copy { margin-block-start: .85rem; line-height: 1.55; }
+  .availability-note { margin-block-start: .9rem; line-height: 1.5; }
+  .hero-actions { margin-block-start: 1.1rem; }
+  .hero-proof { margin-block-start: 1.5rem; }
+  .hero-proof p { min-height: 6.5rem; padding: .85rem; }
+  .content-section { margin-block-start: 3.25rem; }
+}
