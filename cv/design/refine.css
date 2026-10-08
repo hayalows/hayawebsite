@@ -78,8 +78,8 @@
 .work-progress{padding:10px 14px;margin-top:18px;gap:11px;align-items:center;border-radius:10px}
 .work-progress strong{font-size:12px;font-weight:650}
 .work-progress p{font-size:12px;margin-top:1px;line-height:1.4}
-.progress-light{width:9px;height:9px;flex:0 0 9px;margin-top:0;background:var(--highlight);box-shadow:0 0 0 0 rgb(232 182 80 / .4);animation:iconka-status 2.2s ease-out infinite}
-@keyframes iconka-status{0%,100%{opacity:1;box-shadow:0 0 0 0 rgb(232 182 80 / .32)}55%{opacity:.64;box-shadow:0 0 0 6px rgb(232 182 80 / 0)}}
+.progress-light{width:9px;height:9px;flex:0 0 9px;margin-top:0;background:var(--highlight);box-shadow:0 0 0 0 rgb(187 167 131 / .4);animation:iconka-status 2.2s ease-out infinite}
+@keyframes iconka-status{0%,100%{opacity:1;box-shadow:0 0 0 0 rgb(187 167 131 / .32)}55%{opacity:.64;box-shadow:0 0 0 6px rgb(187 167 131 / 0)}}
 .intro{padding-top:clamp(45px,6vw,80px);padding-bottom:56px}
 .intro h1{font-size:clamp(2.8rem,9.5vw,8rem);line-height:1.07;letter-spacing:-.055em;margin:18px 0 24px;text-wrap:balance;overflow-wrap:normal}
 .intro h1 span{display:block;white-space:normal;margin-top:.035em}
@@ -172,3 +172,10 @@
 /* Short projects focus on the actual work rather than unsupported process notes. */
 .case-brief--single{grid-template-columns:minmax(0,1fr);max-width:740px}
 .case-brief--single p:last-child{max-width:65ch}
+
+/* Focused portfolio browsing */
+:root{--case-accent:var(--accent)}
+.case-hero__open:focus-visible,.index-preview__open:focus-visible{outline-color:var(--focus)}
+.detail-note{border-top-color:var(--rule)}
+.feature-carousel__choice[aria-pressed=true]{border-left-color:var(--accent)}
+.work-progress{border-color:var(--rule)}

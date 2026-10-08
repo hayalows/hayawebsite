@@ -8,7 +8,7 @@ function cardHead(label,body){return '<div class="case-prose"><p class="eyebrow"
 function enhanceCase(project){
  const doc=document.querySelector('.detail');if(!doc||doc.dataset.enriched)return;doc.dataset.enriched='true';
  const story=project.story||{},pictures=project.pieces;
- document.documentElement.style.setProperty('--case-accent',story.accent||'#e0a100');
+ document.documentElement.style.setProperty('--case-accent','var(--accent)');
  const head=doc.querySelector('.detail-head'),metadata=head.querySelector('.meta-strip');
  const fields=[['Project',project.title],['Role','Graphic design'],...(story.period?[['Period',story.period]]:project.year?[['Year',project.year]]:[]),...(story.client?[['For',story.client]]:[]),...(story.relation?[['Type',story.relation]]:[])];
  metadata.innerHTML=fields.map(([label,val])=>'<div><dt>'+escape(label)+'</dt><dd>'+escape(val)+'</dd></div>').join('');
