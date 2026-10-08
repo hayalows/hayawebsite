@@ -1,3 +1,23 @@
 {
-  "regions": ["iad1"]
+  "regions": [
+    "iad1"
+  ],
+  "rewrites": [
+    {
+      "source": "/design/index",
+      "destination": "/design/"
+    },
+    {
+      "source": "/design/sketchbook",
+      "destination": "/design/"
+    },
+    {
+      "source": "/design/:slug",
+      "destination": "/design/"
+    },
+    {
+      "source": "/design/:slug/",
+      "destination": "/design/"
+    }
+  ]
 }
