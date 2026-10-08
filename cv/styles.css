@@ -379,9 +379,9 @@ footer { display:flex; justify-content:space-between; gap:1rem; margin-block-sta
 }
 
 
-/* Wide project cards: one full-width metadata row, followed by aligned copy and illustration. */
+/* Wide project cards: balance the description with the folder, without changing stacked layouts. */
 @container (min-width:38.01rem) {
-  .project-card__intro.has-folder { align-items:start; }
-  .project-card__intro.has-folder .project-card__summary { padding-block-start:1.75rem; }
-  .project-card__intro.has-folder .project-folder { height:19rem; }
+  .project-card__intro.has-folder { align-items:center; }
+  .project-card__intro.has-folder .project-card__summary { padding-block-start:0; }
+  .project-card__intro.has-folder .project-folder { height:15.5rem; }
 }
