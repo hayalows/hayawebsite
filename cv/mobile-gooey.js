@@ -53,7 +53,7 @@
     const separated=seam=>seam===0||seam===tiles.length||seam===next||seam-1===next;
     tiles.forEach((tile,i)=>{
       tile.classList.toggle('is-gooey-selected',i===next);
-      if(stops[i])stops[i].forEach((stop,k)=>stop.setAttribute('stop-color',i-1+k===next?'#afd0e8':'#262626'));
+      if(stops[i])stops[i].forEach((stop,k)=>stop.setAttribute('stop-color',i-1+k===next?'#e8b650':'#262626'));
     });
     const target=tiles.map((_,i)=>({gap:wrapped||i===0?0:separated(i)?span:-1,left:wrapped||separated(i)?corner:0,right:wrapped||separated(i+1)?corner:0}));
     if(reduced.matches||!mobile.matches||wrapped||document.hidden){draw(target);nav.dataset.gooeyAnimating='false';return;}
