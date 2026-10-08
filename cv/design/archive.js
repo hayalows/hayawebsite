@@ -117,16 +117,16 @@ function renderIndex(sketch=false){
 }
 function detail(p){
  currentProject=p;const next=projects[(projects.indexOf(p)+1)%projects.length];
- const sourceTitle=p.type|| (p.client?'Design project':'Project details not supplied');
+ const sourceTitle=p.type||p.category;
  const year=p.year||'';
  document.title=p.title+' — Iconka Index';setMeta('description',p.title+' — '+p.category+' artwork from Iconka Designs by Papa Kojo Mensah.');
  app.innerHTML='<article class="detail"><div class="detail-head"><a class="text-link" href="/design/index">← All projects</a><p class="eyebrow" style="margin-top:36px">'+text(p.category.toUpperCase())+'</p><h1>'+text(p.title)+'</h1><dl class="meta-strip">'+
- '<div><dt>Project</dt><dd>'+text(p.title)+'</dd></div><div><dt>Year</dt><dd>'+text(year)+'</dd></div><div><dt>Role</dt><dd>'+text(p.role)+'</dd></div><div><dt>Client / type</dt><dd>'+text(p.client||sourceTitle)+'</dd></div></dl></div>'+
+ '<div><dt>Project</dt><dd>'+text(p.title)+'</dd></div>'+(year?'<div><dt>Year</dt><dd>'+text(year)+'</dd></div>':'')+'<div><dt>Role</dt><dd>'+text(p.role)+'</dd></div><div><dt>Client / type</dt><dd>'+text(p.client||sourceTitle)+'</dd></div></dl></div>'+
  '<div class="detail-explainer"><h2>The work.</h2><p>'+text(p.summary||(p.pieces.length>1?'Several pieces from the same project.':'One design from my collection.'))+'</p></div>'+
  '<div class="detail-gallery">'+p.pieces.map((i,n)=>'<button type="button" data-image="'+n+'" aria-label="View '+text(i.title)+' at full size"><img src="'+text(i.preview)+'" alt="'+text(i.alt)+'" loading="'+(n===0?'eager':'lazy')+'" decoding="async"><span>VIEW '+String(n+1).padStart(2,'0')+' ↗</span></button>').join('')+'</div>'+
  '<div class="detail-note"><p>More about this design will be added as the project comes together.</p></div>'+
  '<div class="detail-actions"><button id="copy-project" type="button">Copy project link ↗</button></div>'+
- '<a class="next-project" href="'+url(next)+'"><span><span class="mono">NEXT PROJECT / '+next.number+'</span><strong>'+text(next.title)+'</strong></span><span class="arrow" aria-hidden="true">↗</span></a></article>';
+ '<a class="next-project" href="'+url(next)+'"><span><span class="mono">UP NEXT</span><strong>'+text(next.title)+'</strong></span><span class="arrow" aria-hidden="true">↗</span></a></article>';
  document.querySelectorAll('[data-image]').forEach(b=>b.addEventListener('click',()=>openLightbox(p.pieces,Number(b.dataset.image),p.title)));
  document.querySelector('#copy-project').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);document.querySelector('#copy-project').textContent='Link copied ✓';}catch{document.querySelector('#copy-project').textContent='Copy from address bar';}});
 }
@@ -150,5 +150,5 @@ Promise.all([fetch('/design/catalog.json').then(response=>{if(!response.ok)throw
  let active='selected';
  if(tail==='index'){active='index';renderIndex(false);}else if(tail==='sketchbook'){active='sketchbook';renderIndex(true);}else if(!tail||tail==='index.html'){selected();}else{const p=byKey.get(tail);if(p){active='index';detail(p);}else{document.title='Project not found — Iconka Index';app.innerHTML=heading('ARCHIVE / NOT FOUND','This project isn’t here.','The link may have changed. Browse the full index to find the work.')+'<div class="section-end"><a href="/design/index" class="button-primary">Open index ↗</a></div>';}}
  document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});document.dispatchEvent(new CustomEvent('iconka:rendered',{detail:{projects,byKey,active}}));
-}).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Try reloading or return to the main portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
+}).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Please reload the page or return to the portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
 })();
