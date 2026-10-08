@@ -15,8 +15,9 @@ function enhanceCase(project){
  head.querySelector('h1').textContent=project.title;
  const old=doc.querySelector('.detail-explainer');
  const intro=document.createElement('section');intro.className='case-brief';
- intro.innerHTML='<div>'+cardHead('THE BRIEF',story.brief||'A design from my collection.')+'</div><div>'+cardHead('THE APPROACH',story.approach||'I’ll add more about my approach when I have the details ready.')+'</div>';
- old.replaceWith(intro);
+ if(story.brief){intro.innerHTML='<div>'+cardHead('THE BRIEF',story.brief)+'</div>'+(story.approach?'<div>'+cardHead('THE APPROACH',story.approach)+'</div>':'');old.replaceWith(intro);}
+ else if(project.summary){intro.classList.add('case-brief--single');intro.innerHTML='<div>'+cardHead('ABOUT THIS DESIGN',project.summary)+'</div>';old.replaceWith(intro);}
+ else old.remove();
  const gallery=doc.querySelector('.detail-gallery');
  gallery.classList.add('case-original-gallery');
  const hero=document.createElement('section');hero.className='case-hero';

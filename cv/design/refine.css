@@ -168,3 +168,7 @@
  .intro h1{font-size:clamp(2.3rem,11vw,2.6rem)}
 }
 @media(prefers-reduced-motion:reduce){.progress-light{animation:none;box-shadow:none}}
+
+/* Short projects focus on the actual work rather than unsupported process notes. */
+.case-brief--single{grid-template-columns:minmax(0,1fr);max-width:740px}
+.case-brief--single p:last-child{max-width:65ch}
