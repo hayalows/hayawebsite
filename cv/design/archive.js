@@ -35,7 +35,7 @@ const mappings=[
 {key:'food-maps',title:'Food Maps',numbers:[10],category:'Identity'},
 {key:'actex-learning',title:'Actex Learning',numbers:[47],category:'Education'}
 ];
-const sketchIndices=new Set([14,23,25,28,29,30,34,35,36,37,38,41,42,43,44,46,49,50,51,53]);
+const sketchIndices=new Set([5,14,23,25,28,29,30,34,35,36,37,38,41,42,43,44,46,49,50,51,53,62]);
 const text=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,55);
 const imagePath=s=>'/'+String(s||'').replace(/^(\.\.\/)+/,'');
@@ -49,7 +49,7 @@ function group(data){
   const first=items[0], typed=config.category||(sketchIndices.has(idx)?'Sketchbook':idx===31?'Print':first.category==='Brand identities'?'Identity':first.category==='Education'?'Education':first.category==='Social & editorial'?'Social':'Campaign');
   const key=config.key||slug(first.title.replace(/\s*[·:].*$/,''));
   const names=items.map(i=>i.title);
-  const exactYear=names.join(' ').match(/\b(20[1-3][0-9])\b/)||items.map(i=>i.sourceFile||'').join(' ').match(/(?:photo_)(20[1-3][0-9])/);
+  const exactYear=names.join(' ').match(/\b(20[1-3][0-9])\b/);
   return {key,title:config.title||first.title,category:typed,client:config.client||'',type:config.type||'',year:exactYear?exactYear[1]:'',role:'Graphic design',pieces:items.map(mkPiece),keywords:names.join(' '),summary:evidenceSummaries[key]||'',number:0};
  };
  for(const entry of mappings){let items=entry.numbers.map(n=>data[n]).filter(Boolean);items.forEach(i=>claimed.add(i.id));if(items.length)output.push(make(entry,entry.numbers[0],items));}
@@ -68,18 +68,18 @@ function group(data){
 function heroImage(p,loading='lazy'){return '<img src="'+text(p.pieces[0].preview)+'" alt="'+text(p.pieces[0].alt)+'" loading="'+loading+'" decoding="async">';}
 function heading(label,title,description){return '<section class="archive-heading"><p class="eyebrow">'+text(label)+'</p><h1>'+text(title)+'</h1><p class="lede">'+text(description)+'</p></section>';}
 function selected(){
- const chosen=featuredKeys.map(key=>byKey.get(key)).filter(Boolean);
+ const chosen=['iconka-identity','styled-couture','nabis-diary','food-maps','kente-pa','fries-haven','ldssa-colour-week','el-festin-elegante','actex-learning','picnic-palooza'].map(key=>byKey.get(key)).filter(Boolean);
  app.innerHTML='<section class="intro"><p class="eyebrow">PAPA KOJO MENSAH / ICONKA DESIGNS / GHANA</p><h1>Ideas made<br><span>visible.</span></h1><p class="lede">An independent collection of brand identities, campaigns and graphic work. Selected projects are presented first, with the complete archive close by.</p><div class="intro-bottom"><a href="#selected" class="button-primary">Explore selected work <span aria-hidden="true">↓</span></a><a href="/design/index" class="text-link">View the full index ↗</a></div></section>'+
  '<section id="selected"><div class="section-heading"><h2>Selected work</h2><span>01—'+String(chosen.length).padStart(2,'0')+' / CURATED PROJECTS</span></div><div class="selected-grid">'+chosen.map(p=>'<article class="selected-card"><a href="'+url(p)+'"><div class="selected-media">'+heroImage(p,chosen.indexOf(p)<2?'eager':'lazy')+'<span class="selected-number">'+p.number+'</span></div><div class="selected-meta"><h3>'+text(p.title)+' ↗</h3><span>'+text(p.category)+(p.pieces.length>1?' · '+p.pieces.length+' pieces':'')+'</span></div></a></article>').join('')+'</div></section>'+
  '<section class="section-end"><div class="section-heading"><h2>Every piece has a place.</h2><span>FULL ARCHIVE / '+projects.length+' PROJECTS</span></div><p class="lede">Explore the entire catalogue by name, discipline or image. Smaller experiments live in the Sketchbook.</p><a href="/design/index" class="button-primary">Open the full index ↗</a></section>';
 }
 function renderIndex(sketch=false){
- const base=sketch?projects.filter(p=>p.category==='Sketchbook'):projects;
+ const base=sketch?projects.filter(p=>p.category==='Sketchbook'):projects.filter(p=>p.category!=='Sketchbook');
  let filter='All', view=sketch?'grid':(new URLSearchParams(location.search).get('view')||'list');if(!['list','grid','wall'].includes(view))view='list';
  app.innerHTML=heading(sketch?'ICONKA / EXPERIMENTS':'ICONKA / COMPLETE CATALOGUE',sketch?'Sketchbook.':'The index.',sketch?'Smaller ideas, personal explorations and everyday graphics. Kept visible, without mixing them into selected client-facing work.':'A numbered catalogue of graphic work. Browse every project in the collection, switch the view or search across the archive.')+
  '<div class="archive-stats"><span>'+base.length+' PROJECTS</span><span>'+base.reduce((n,p)=>n+p.pieces.length,0)+' ORIGINAL ARTWORK FILES</span><span>GROUPED VARIANTS</span></div></section>'.replace('</section></section>','</section>')+
  '<div class="kente-line" aria-hidden="true"></div><div class="tools"><label class="mono" for="find-project" style="position:absolute;left:-9999px">Search all projects</label><input id="find-project" class="search" type="search" placeholder="Search the archive…" autocomplete="off">'+
- '<div class="filter-controls" aria-label="Filter by discipline" role="group">'+(sketch?'':categories.map(c=>'<button class="filter-button" type="button" aria-pressed="'+(c==='All')+'" data-category="'+c+'">'+c+'</button>').join(''))+'</div>'+
+ '<div class="filter-controls" aria-label="Filter by discipline" role="group">'+(sketch?'':categories.filter(c=>c!=='Sketchbook'&&(c==='All'||base.some(p=>p.category===c))).map(c=>'<button class="filter-button" type="button" aria-pressed="'+(c==='All')+'" data-category="'+c+'">'+c+' <span class="filter-count">'+(c==='All'?base.length:base.filter(p=>p.category===c).length)+'</span></button>').join(''))+'</div>'+
  '<div class="view-controls" role="group" aria-label="Choose archive view">'+['list','grid','wall'].map(v=>'<button type="button" class="view-button" data-view="'+v+'" aria-pressed="'+(v===view)+'">'+v[0].toUpperCase()+v.slice(1)+'</button>').join('')+'</div></div><div class="results-row"><span id="result-status" role="status" aria-live="polite"></span><button id="clear-search" type="button" hidden>Clear search</button></div><div id="projects-results"></div><div class="archive-bottom"><a class="text-link" href="'+(sketch?'/design/index':'/design/sketchbook')+'">'+(sketch?'Browse the complete index':'Open the Sketchbook')+' ↗</a></div>';
  const search=document.querySelector('#find-project'), target=document.querySelector('#projects-results'), status=document.querySelector('#result-status'), clear=document.querySelector('#clear-search');
  function cards(list,wall=false){return (wall?'<div class="wall-shell"><div class="wall-tools"><span class="mono">SPATIAL VIEW · DRAG THE EMPTY SPACE</span><button type="button" data-wall-zoom="out" aria-label="Zoom out">−</button><output id="wall-scale">100%</output><button type="button" data-wall-zoom="in" aria-label="Zoom in">+</button><button type="button" data-wall-reset>Reset view</button></div><div class="wall-viewport" tabindex="0" aria-label="Artwork wall, pan with arrow keys or drag empty space">':'')+'<div class="'+(wall?'archive-wall':'archive-grid')+'">'+list.map(p=>'<a class="index-card" href="'+url(p)+'"><div class="thumb">'+heroImage(p)+'</div><div class="card-info"><h3>'+text(p.title)+'</h3><span class="mono">'+p.number+'</span></div><p class="mono">'+text(p.category)+(p.pieces.length>1?' · '+p.pieces.length+' files':'')+'</p></a>').join('')+'</div>'+(wall?'</div></div>':'');}
@@ -101,7 +101,7 @@ function renderIndex(sketch=false){
  update();
  }
  function draw(){
-  const q=search.value.trim().normalize('NFKD').toLowerCase(), matched=base.filter(p=>(q?([p.title,p.key,p.category,p.keywords].join(' ').normalize('NFKD').toLowerCase().includes(q)):(filter==='All'||p.category===filter)));
+  const terms=search.value.trim().normalize('NFKD').toLowerCase().split(/\s+/).filter(Boolean), matched=base.filter(p=>(filter==='All'||p.category===filter)&&terms.every(t=>[p.title,p.key,p.category,p.keywords,p.client,p.year,p.kind,(p.tags||[]).join(' ')].join(' ').normalize('NFKD').toLowerCase().includes(t))), q=terms.join(' ');
   status.textContent='SHOWING '+matched.length+' OF '+base.length+' PROJECTS'+(q?' · SEARCHING ALL CATEGORIES':filter!=='All'?' · '+filter.toUpperCase():'');
   clear.hidden=!q&&filter==='All';document.querySelectorAll('[data-category]').forEach(b=>b.setAttribute('aria-pressed',String(filter===b.dataset.category)));
   document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(view===b.dataset.view)));
@@ -143,12 +143,12 @@ box.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();m
 function setMeta(name,value){const el=document.querySelector('meta[name="'+name+'"]');if(el)el.setAttribute('content',value);}
 function themeUpdate(){const light=document.documentElement.dataset.theme==='light';themeButton.setAttribute('aria-label','Switch to '+(light?'dark':'light')+' theme');document.querySelector('#theme-name').textContent=light?'Dark':'Light';document.querySelector('.theme-glyph').textContent=light?'☾':'☀';document.querySelector('meta[name="theme-color"]').content=light?'#f5f3ee':'#111111';}
 themeButton.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='light'?'dark':'light';document.documentElement.dataset.theme=next;try{localStorage.setItem('iconka.theme',next);}catch{}themeUpdate();});themeUpdate();document.querySelector('#year').textContent=new Date().getFullYear();
-fetch('/design/catalog.json').then(response=>{if(!response.ok)throw Error('Catalogue is unavailable');return response.json();}).then(data=>{
- allPieces=data;projects=group(data);byKey=new Map(projects.map(p=>[p.key,p]));
+Promise.all([fetch('/design/catalog.json').then(response=>{if(!response.ok)throw Error('Catalogue unavailable');return response.json();}),fetch('/design/stories.json').then(response=>response.ok?response.json():{})]).then(([data,stories])=>{
+ allPieces=data;projects=group(data);projects.forEach(p=>{const story=stories[p.key];if(story){p.title=story.title||p.title;p.year=story.period||'';p.client=story.client||'';p.kind=story.kind||p.category;p.tags=story.tags||[];p.story=story;p.summary=story.brief||p.summary;}});byKey=new Map(projects.map(p=>[p.key,p]));
  const hash=new URLSearchParams(location.hash.replace(/^#/,''));const legacyId=hash.get('view');if(legacyId){const match=projects.find(p=>p.pieces.some(i=>i.id===legacyId));if(match){location.replace(url(match));return;}}
  const tail=decodeURIComponent(location.pathname.replace(/^\/design\/?/,'').replace(/\/+$/,''));
  let active='selected';
  if(tail==='index'){active='index';renderIndex(false);}else if(tail==='sketchbook'){active='sketchbook';renderIndex(true);}else if(!tail||tail==='index.html'){selected();}else{const p=byKey.get(tail);if(p){active='index';detail(p);}else{document.title='Project not found — Iconka Index';app.innerHTML=heading('ARCHIVE / NOT FOUND','This project isn’t here.','The link may have changed. Browse the full index to find the work.')+'<div class="section-end"><a href="/design/index" class="button-primary">Open index ↗</a></div>';}}
- document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});
-}).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Try reloading or use the original gallery, which retains the artwork.</p><a href="/design/legacy.html" class="button-primary">Open original gallery ↗</a></section>';});
+ document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});document.dispatchEvent(new CustomEvent('iconka:rendered',{detail:{projects,byKey,active}}));
+}).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Try reloading or return to the main portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
 })();
