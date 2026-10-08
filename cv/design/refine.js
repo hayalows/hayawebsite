@@ -91,9 +91,11 @@ function enhanceIndex(byKey){
  if(saved){if(saved.category!=='All')document.querySelector('[data-category="'+CSS.escape(saved.category)+'"]')?.click();if(search){search.value=saved.search||'';search.dispatchEvent(new Event('input',{bubbles:true}));}document.querySelector('[data-view="'+saved.view+'"]')?.click();requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:saved.scroll||0,behavior:'instant'})));}
 }
 document.getElementById('lightbox')?.addEventListener('close',()=>{lastViewerTrigger?.focus({preventScroll:true});lastViewerTrigger=null;});
-document.addEventListener('iconka:rendered',event=>{
- const {projects,byKey,active}=event.detail;
+function onArchiveReady(event){
+ const {byKey,active}=event.detail;
  if(active==='index'&&document.querySelector('.detail')){const slug=location.pathname.replace(/^\/design\/?/,'').replace(/\/+$/,'');const p=byKey.get(slug);if(p)enhanceCase(p);}
  else if(document.querySelector('#projects-results'))enhanceIndex(byKey);
-});
+}
+document.addEventListener('iconka:rendered',onArchiveReady);
+if(window.__iconkaRenderState)onArchiveReady({detail:window.__iconkaRenderState});
 })();

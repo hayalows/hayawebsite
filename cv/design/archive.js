@@ -149,6 +149,6 @@ Promise.all([fetch('/design/catalog.json').then(response=>{if(!response.ok)throw
  const tail=decodeURIComponent(location.pathname.replace(/^\/design\/?/,'').replace(/\/+$/,''));
  let active='selected';
  if(tail==='index'){active='index';renderIndex(false);}else if(tail==='sketchbook'){active='sketchbook';renderIndex(true);}else if(!tail||tail==='index.html'){selected();}else{const p=byKey.get(tail);if(p){active='index';detail(p);}else{document.title='Project not found — Iconka Index';app.innerHTML=heading('ARCHIVE / NOT FOUND','This project isn’t here.','The link may have changed. Browse the full index to find the work.')+'<div class="section-end"><a href="/design/index" class="button-primary">Open index ↗</a></div>';}}
- document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});document.dispatchEvent(new CustomEvent('iconka:rendered',{detail:{projects,byKey,active}}));
+ document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});const renderState={projects,byKey,active};window.__iconkaRenderState=renderState;document.dispatchEvent(new CustomEvent('iconka:rendered',{detail:renderState}));
 }).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Please reload the page or return to the portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
 })();
