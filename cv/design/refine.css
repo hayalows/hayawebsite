@@ -55,9 +55,14 @@
 .feature-carousel__image .preview-label{color:var(--text)}
 .feature-carousel__footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0}
 .feature-carousel__footer>p{font-size:13px;font-weight:600}
-@view-transition{navigation:auto}
+@media(prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}
 .index-preview__open img,.case-hero__open img{view-transition-name:iconka-artwork}
 @media(max-width:800px){.feature-carousel__layout{grid-template-columns:1fr}.feature-carousel__choices{display:flex;overflow-x:auto;scrollbar-width:thin;gap:8px;padding-bottom:6px}.feature-carousel__choice{flex:0 0 auto;width:auto;min-height:48px;max-width:220px;border:1px solid var(--rule);border-radius:6px;grid-template-columns:auto 1fr;gap:8px}.feature-carousel__choice>span:last-child{display:none}.case-brief{gap:30px}}
 @media(max-width:650px){.brand--pkm .brand-suffix{display:none}.work-progress{padding:12px;margin-top:18px}.case-brief{grid-template-columns:1fr;gap:24px;padding:28px 0}.case-hero{margin-bottom:44px}.case-hero__open{min-height:220px;padding:14px}.feature-carousel__image{aspect-ratio:4/4.5}.detail .meta-strip>div{flex:0 1 calc(50% - 20px)}.nav-return{font-size:11px!important}.detail-note{padding:20px}.feature-carousel{margin-bottom:50px}}
 @media(max-width:360px){.brand--pkm img{width:24px;height:24px}.brand--pkm{gap:5px}.nav-return{display:none}}
 @media(prefers-reduced-motion:reduce){.index-preview__open img,.feature-carousel__image img{transition:none!important;transform:none!important}}
+
+/* Clear keyboard feedback, photo fallback, and legible narrow-screen actions. */
+.feature-carousel__choice:focus-visible,.feature-carousel__image:focus-visible,.case-hero__open:focus-visible,.index-preview__open:focus-visible,.index-preview__controls button:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+:root[data-theme=light] .brand--pkm .brand-suffix,:root[data-theme=light] .filter-count{color:#51504a}
+@media(max-width:650px){.feature-carousel__footer>p{font-size:12px;line-height:1.35}.feature-carousel__footer>div{gap:6px}.feature-carousel__choice{font-size:12px}}

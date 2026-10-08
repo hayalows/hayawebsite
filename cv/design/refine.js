@@ -3,7 +3,7 @@
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 const fine=matchMedia('(hover:hover) and (pointer:fine)');
-const HOME='/design/';
+const HOME='/design/';let lastViewerTrigger=null;
 function cardHead(label,body){return '<div class="case-prose"><p class="eyebrow">'+label+'</p><p>'+escape(body)+'</p></div>';}
 function enhanceCase(project){
  const doc=document.querySelector('.detail');if(!doc||doc.dataset.enriched)return;doc.dataset.enriched='true';
@@ -22,7 +22,7 @@ function enhanceCase(project){
  const hero=document.createElement('section');hero.className='case-hero';
  hero.innerHTML='<button type="button" class="case-hero__open" aria-label="View '+escape(project.title)+' in the image viewer"><img src="'+escape(pictures[0].full)+'" alt="'+escape(project.title)+' '+escape(project.category.toLowerCase())+' artwork" decoding="async"><span>VIEW LARGE ↗</span></button><p class="mono">'+project.number+' / '+escape(pictures[0].title)+'</p>';
  gallery.before(hero);
- hero.querySelector('button').addEventListener('click',()=>gallery.querySelector('[data-image="0"]')?.click());
+ hero.querySelector('button').addEventListener('click',event=>{lastViewerTrigger=event.currentTarget;gallery.querySelector('[data-image="0"]')?.click();});
  if(pictures.length>1){
   const carousel=document.createElement('section');carousel.className='feature-carousel';carousel.setAttribute('aria-label','Project applications');
   carousel.innerHTML='<div class="section-heading"><h2>Applications and variations</h2><span>'+pictures.length+' PIECES</span></div>'+
@@ -35,7 +35,7 @@ function enhanceCase(project){
   const move=delta=>{active=(active+delta+pictures.length)%pictures.length;draw();};
   carousel.querySelectorAll('[data-feature]').forEach(btn=>btn.addEventListener('click',()=>{active=Number(btn.dataset.feature);draw();}));
   carousel.querySelector('[data-feature-prev]').addEventListener('click',()=>move(-1));carousel.querySelector('[data-feature-next]').addEventListener('click',()=>move(1));
-  carousel.querySelector('.feature-carousel__image').addEventListener('click',()=>gallery.querySelector('[data-image="'+active+'"]')?.click());
+  carousel.querySelector('.feature-carousel__image').addEventListener('click',event=>{lastViewerTrigger=event.currentTarget;gallery.querySelector('[data-image="'+active+'"]')?.click();});
   carousel.addEventListener('keydown',event=>{if(!carousel.contains(document.activeElement))return;if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();move(event.key==='ArrowLeft'?-1:1);}});
   image.addEventListener('touchstart',event=>{initialTouch=event.touches[0].clientX;},{passive:true});
   image.addEventListener('touchend',event=>{if(initialTouch===null)return;const delta=event.changedTouches[0].clientX-initialTouch;initialTouch=null;if(Math.abs(delta)>55)move(delta<0?1:-1);},{passive:true});
@@ -89,6 +89,7 @@ function enhanceIndex(byKey){
  let saved=null;try{saved=JSON.parse(sessionStorage.getItem('iconka.return.v2')||'null');if(saved?.route===location.pathname)sessionStorage.removeItem('iconka.return.v2');else saved=null;}catch{}
  if(saved){if(saved.category!=='All')document.querySelector('[data-category="'+CSS.escape(saved.category)+'"]')?.click();if(search){search.value=saved.search||'';search.dispatchEvent(new Event('input',{bubbles:true}));}document.querySelector('[data-view="'+saved.view+'"]')?.click();requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo({top:saved.scroll||0,behavior:'instant'})));}
 }
+document.getElementById('lightbox')?.addEventListener('close',()=>{lastViewerTrigger?.focus({preventScroll:true});lastViewerTrigger=null;});
 document.addEventListener('iconka:rendered',event=>{
  const {projects,byKey,active}=event.detail;
  if(active==='index'&&document.querySelector('.detail')){const slug=location.pathname.replace(/^\/design\/?/,'').replace(/\/+$/,'');const p=byKey.get(slug);if(p)enhanceCase(p);}
