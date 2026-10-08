@@ -41,7 +41,7 @@ const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().r
 const imagePath=s=>'/'+String(s||'').replace(/^(\.\.\/)+/,'');
 const image=(piece,size='preview')=>imagePath(piece[size]||piece.preview);
 const url=p=>BASE+p.key+'/';
-const mkPiece=(p)=>({title:p.title,preview:image(p),full:image(p,'full'),source:p.sourceUrl,id:p.id,alt:p.alt||p.title});
+const mkPiece=(p)=>({title:p.title,preview:image(p),full:image(p,'full'),id:p.id,alt:p.alt||p.title});
 let projects=[], byKey=new Map(), allPieces=[], currentProject=null, lightboxItems=[], lightboxIndex=0;
 function group(data){
  const claimed=new Set(), output=[];
@@ -77,7 +77,7 @@ function renderIndex(sketch=false){
  const base=sketch?projects.filter(p=>p.category==='Sketchbook'):projects.filter(p=>p.category!=='Sketchbook');
  let filter='All', view=sketch?'grid':(new URLSearchParams(location.search).get('view')||'list');if(!['list','grid','wall'].includes(view))view='list';
  app.innerHTML=heading(sketch?'SMALLER DESIGNS':'MY DESIGN WORK',sketch?'Sketchbook':'All designs',sketch?'Smaller graphics, experiments and ideas I’ve worked on over the years.':'Browse my designs by category, search for something specific, or choose the view you prefer.')+
- '<div class="archive-stats"><span>'+base.length+' PROJECTS</span><span>'+base.reduce((n,p)=>n+p.pieces.length,0)+' ORIGINAL ARTWORK FILES</span><span>GROUPED VARIANTS</span></div></section>'.replace('</section></section>','</section>')+
+ '<div class="archive-stats"><span>'+base.length+' PROJECTS</span><span>'+base.reduce((n,p)=>n+p.pieces.length,0)+' DESIGNS</span></div></section>'.replace('</section></section>','</section>')+
  '<div class="kente-line" aria-hidden="true"></div><div class="tools"><label class="mono" for="find-project" style="position:absolute;left:-9999px">Search all projects</label><input id="find-project" class="search" type="search" placeholder="Search designs…" autocomplete="off">'+
  '<div class="filter-controls" aria-label="Filter by discipline" role="group">'+(sketch?'':categories.filter(c=>c!=='Sketchbook'&&(c==='All'||base.some(p=>p.category===c))).map(c=>'<button class="filter-button" type="button" aria-pressed="'+(c==='All')+'" data-category="'+c+'">'+c+' <span class="filter-count">'+(c==='All'?base.length:base.filter(p=>p.category===c).length)+'</span></button>').join(''))+'</div>'+
  '<div class="view-controls" role="group" aria-label="Choose archive view">'+['list','grid','wall'].map(v=>'<button type="button" class="view-button" data-view="'+v+'" aria-pressed="'+(v===view)+'">'+v[0].toUpperCase()+v.slice(1)+'</button>').join('')+'</div></div><div class="results-row"><span id="result-status" role="status" aria-live="polite"></span><button id="clear-search" type="button" hidden>Clear filters</button></div><div id="projects-results"></div><div class="archive-bottom"><a class="text-link" href="'+(sketch?'/design/index':'/design/sketchbook')+'">'+(sketch?'Browse the complete index':'Open the Sketchbook')+' ↗</a></div>';
@@ -118,20 +118,20 @@ function renderIndex(sketch=false){
 function detail(p){
  currentProject=p;const next=projects[(projects.indexOf(p)+1)%projects.length];
  const sourceTitle=p.type|| (p.client?'Design project':'Project details not supplied');
- const year=p.year||'Not recorded';
+ const year=p.year||'';
  document.title=p.title+' — Iconka Index';setMeta('description',p.title+' — '+p.category+' artwork from Iconka Designs by Papa Kojo Mensah.');
- app.innerHTML='<article class="detail"><div class="detail-head"><a class="text-link" href="/design/index">← All projects</a><p class="eyebrow" style="margin-top:36px">'+p.number+' / '+text(p.category.toUpperCase())+'</p><h1>'+text(p.title)+'</h1><dl class="meta-strip">'+
+ app.innerHTML='<article class="detail"><div class="detail-head"><a class="text-link" href="/design/index">← All projects</a><p class="eyebrow" style="margin-top:36px">'+text(p.category.toUpperCase())+'</p><h1>'+text(p.title)+'</h1><dl class="meta-strip">'+
  '<div><dt>Project</dt><dd>'+text(p.title)+'</dd></div><div><dt>Year</dt><dd>'+text(year)+'</dd></div><div><dt>Role</dt><dd>'+text(p.role)+'</dd></div><div><dt>Client / type</dt><dd>'+text(p.client||sourceTitle)+'</dd></div></dl></div>'+
- '<div class="detail-explainer"><h2>The work.</h2><p>'+text(p.summary||(p.pieces.length>1?'A series of '+p.pieces.length+' related artwork files, gathered under one project.':'One published design from the Iconka archive.'))+' The finished artwork is shown below. Where a client brief, process or measured outcome has not been verified, it is left undocumented rather than invented.</p></div>'+
+ '<div class="detail-explainer"><h2>The work.</h2><p>'+text(p.summary||(p.pieces.length>1?'Several pieces from the same project.':'One design from my collection.'))+'</p></div>'+
  '<div class="detail-gallery">'+p.pieces.map((i,n)=>'<button type="button" data-image="'+n+'" aria-label="View '+text(i.title)+' at full size"><img src="'+text(i.preview)+'" alt="'+text(i.alt)+'" loading="'+(n===0?'eager':'lazy')+'" decoding="async"><span>VIEW '+String(n+1).padStart(2,'0')+' ↗</span></button>').join('')+'</div>'+
- '<div class="detail-note"><p><strong>Archive note.</strong> '+text(p.pieces.length)+' original file'+(p.pieces.length===1?'':'s')+' preserved. Project brief, tools and outcomes will appear here once confirmed. Original images remain accessible from the artwork viewer.</p></div>'+
- '<div class="detail-actions"><button id="copy-project" type="button">Copy project link ↗</button><a href="'+text(p.pieces[0].source)+'" target="_blank" rel="noopener noreferrer">View original file ↗</a></div>'+
+ '<div class="detail-note"><p>More about this design will be added as the project comes together.</p></div>'+
+ '<div class="detail-actions"><button id="copy-project" type="button">Copy project link ↗</button></div>'+
  '<a class="next-project" href="'+url(next)+'"><span><span class="mono">NEXT PROJECT / '+next.number+'</span><strong>'+text(next.title)+'</strong></span><span class="arrow" aria-hidden="true">↗</span></a></article>';
  document.querySelectorAll('[data-image]').forEach(b=>b.addEventListener('click',()=>openLightbox(p.pieces,Number(b.dataset.image),p.title)));
  document.querySelector('#copy-project').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);document.querySelector('#copy-project').textContent='Link copied ✓';}catch{document.querySelector('#copy-project').textContent='Copy from address bar';}});
 }
 const box=document.querySelector('#lightbox');
-function displayLightbox(){let p=lightboxItems[lightboxIndex];document.querySelector('#lightbox-image').src=p.full;document.querySelector('#lightbox-image').alt=p.alt;document.querySelector('#lightbox-title').textContent=p.title;document.querySelector('#lightbox-count').textContent=(lightboxIndex+1)+' of '+lightboxItems.length;document.querySelector('#lightbox-source').href=p.source||'#';document.querySelector('#lightbox-image').hidden=false;document.querySelector('#lightbox-error').hidden=true;}
+function displayLightbox(){let p=lightboxItems[lightboxIndex];document.querySelector('#lightbox-image').src=p.full;document.querySelector('#lightbox-image').alt=p.alt;document.querySelector('#lightbox-title').textContent=p.title;document.querySelector('#lightbox-count').textContent=(lightboxIndex+1)+' of '+lightboxItems.length;document.querySelector('#lightbox-image').hidden=false;document.querySelector('#lightbox-error').hidden=true;}
 function openLightbox(items,i,title){lightboxItems=items;lightboxIndex=i;box.showModal();document.body.style.overflow='hidden';displayLightbox();}
 function move(n){lightboxIndex=(lightboxIndex+n+lightboxItems.length)%lightboxItems.length;displayLightbox();}
 document.querySelector('#lightbox-close').addEventListener('click',()=>box.close());document.querySelector('#lightbox-prev').addEventListener('click',()=>move(-1));document.querySelector('#lightbox-next').addEventListener('click',()=>move(1));
