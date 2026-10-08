@@ -227,3 +227,19 @@
 .design-service-intro .service-contact{display:inline-flex;flex:none;text-align:center;align-items:center;justify-content:center;padding:13px 18px;border:1px solid var(--rule);border-radius:8px;font-size:12px;font-weight:650;color:var(--text);text-decoration:none}
 .design-service-intro .service-contact:hover{border-color:var(--accent)}
 @media(max-width:700px){.seo-preloaded__projects{grid-template-columns:1fr}.design-service-intro{display:grid;gap:12px;margin:32px 0 48px}.design-service-intro .service-contact{width:max-content;max-width:100%}}
+
+/* Pre-rendered project content is visible to visitors and search crawlers before JavaScript loads. */
+.seo-case{padding:30px 0 70px;max-width:950px}
+.seo-case nav{font-size:13px;color:var(--secondary);margin-bottom:24px;display:flex;gap:10px}
+.seo-case nav a{color:inherit}
+.seo-case header h1{font-size:clamp(2.55rem,7vw,5rem);margin:10px 0 18px;line-height:1.1}
+.seo-case .lede{max-width:780px;font-size:clamp(16px,1.65vw,19px);line-height:1.6}
+.seo-case section{margin:35px 0;max-width:760px}
+.seo-case section h2{font-size:clamp(21px,2.4vw,28px);margin-bottom:10px}
+.seo-case section p{color:var(--secondary);line-height:1.8}
+.seo-case__images{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px;margin-top:25px}
+.seo-case__images figure{margin:0;min-width:0}
+.seo-case__images img{display:block;object-fit:contain;width:100%;height:auto;max-height:740px;aspect-ratio:4/5;background:var(--media);border-radius:8px;padding:8%}
+.seo-case__images figcaption{font:12px/1.5 ui-monospace,monospace;color:var(--secondary);margin-top:9px}
+.seo-case__links{display:flex;gap:20px;flex-wrap:wrap;margin-top:32px;font-size:13px}
+.seo-case__links a{color:var(--text)}

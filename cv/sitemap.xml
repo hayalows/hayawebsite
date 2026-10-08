@@ -1,60 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://pkm.hayalows.com/</loc><lastmod>2026-10-01</lastmod><priority>1.0</priority></url>
-  <url><loc>https://pkm.hayalows.com/resume/</loc><lastmod>2026-09-26</lastmod><priority>0.8</priority></url>
-  <url><loc>https://pkm.hayalows.com/projects/</loc><lastmod>2026-09-26</lastmod><priority>0.9</priority></url>
-  <url><loc>https://pkm.hayalows.com/playground/</loc><lastmod>2026-09-30</lastmod><priority>0.7</priority></url>
-  <url><loc>https://pkm.hayalows.com/design/</loc><lastmod>2026-10-08</lastmod><priority>0.9</priority></url>
-<url><loc>https://pkm.hayalows.com/design/index</loc><lastmod>2026-10-08</lastmod><priority>0.8</priority></url>
-<url><loc>https://pkm.hayalows.com/design/sketchbook</loc><lastmod>2026-10-08</lastmod><priority>0.6</priority></url>
-<url><loc>https://pkm.hayalows.com/design/iconka-identity/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/styled-couture/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/kente-pa/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/fries-haven/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/nabis-diary/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/food-maps/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/el-festin-elegante/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/actex-learning/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/ldssa-colour-week/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/picnic-palooza/</loc><lastmod>2026-10-08</lastmod><priority>0.7</priority></url>
-<url><loc>https://pkm.hayalows.com/design/annual-temple-trip/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/hisok-journeys/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/vaiv-launch/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/assa-passport-registration/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/hisok-leadership-campaign/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/abish/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/samuel/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/assa-dinner-awards-night/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/welcome-back-to-school/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/iconka-s-cake/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/juliana-gyasi/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/e-zwich-card-registration/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/assa-week-celebrations/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/university-stake/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/bortianor-ysa-sportyfest/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/wedding-thank-you-card/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/data-crunch-masterclass/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/data-science-mastery/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/women-in-national-growth/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/iconka-design-masterclass/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/just-be-kind/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/take-your-mental-health-seriously/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/do-more/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/merry-christmas/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/international-men-s-day/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/design-is-art/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/a-work-in-progress/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/hello-november/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/welcome-to-june/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/letter-from-overseas/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/spartans/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/a-lot-of-things-don-t-make-sense/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/if-i-do-99-good/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/remember-why-you-started/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/just-start/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/iconka/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/practice-the-law-of-action/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/thank-god-it-s-friday/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/grace-nketia/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
-<url><loc>https://pkm.hayalows.com/design/suicide-prevention/</loc><lastmod>2026-10-08</lastmod><priority>0.5</priority></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<url><loc>https://pkm.hayalows.com/resume/</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://pkm.hayalows.com/projects/</loc><lastmod>2026-09-26</lastmod></url>
+<url><loc>https://pkm.hayalows.com/playground/</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://pkm.hayalows.com/design/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1-1ap-jkSOm_h4CdCtChG3ZYLMdCUkIq2-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1-0nh43nlotae8zI5hbeCN_HYsfJInWFl-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/104hdSREnYPJWM5Hs0uldnjT9MWB1EuMA-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1Q-mzA_QXgT1BWD--i1YUqAZjR1eXv13w-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1hGDkGk4G3hBqKncZS6SVkezvA8FDf8ur-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1utWEpN2rZlXJ6VZaW5i6qSu9QOzvIbsk-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/13x5CY3n1jjH4nXz1j_OGhYiDcJIfSMHs-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1LDGi1pIpzeIseUrPyRd69wioNfBncZ3b-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/sketchbook</loc><lastmod>2026-10-08</lastmod></url>
+  <url><loc>https://pkm.hayalows.com/design/iconka-identity/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1-1ap-jkSOm_h4CdCtChG3ZYLMdCUkIq2-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1He1vbmdssSc9i3YDDWbNjajbeg91R91L-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1xT9wUJ1iBz47YxbD5NLxfiVt39Q867DJ-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/styled-couture/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1-0nh43nlotae8zI5hbeCN_HYsfJInWFl-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/nabis-diary/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/104hdSREnYPJWM5Hs0uldnjT9MWB1EuMA-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/19RPBNvdVmd_-Ozo96V7bwo5MKpCWZLtG-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/food-maps/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1Q-mzA_QXgT1BWD--i1YUqAZjR1eXv13w-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/kente-pa/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1hGDkGk4G3hBqKncZS6SVkezvA8FDf8ur-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1Hwcii-IzNXNbgSWjejCF1YQYC_vRBa0X-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/fries-haven/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1utWEpN2rZlXJ6VZaW5i6qSu9QOzvIbsk-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1AzxuXlVk96zvxRpxzOxotiUuDkQGEEaY-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/ldssa-colour-week/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/13x5CY3n1jjH4nXz1j_OGhYiDcJIfSMHs-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1jzesAlfKnf3z-d0yskb2oZayiBb_JKLf-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1-3dHobzNAS5r2oKy0V3X0mTLubNEfvhg-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/el-festin-elegante/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1LDGi1pIpzeIseUrPyRd69wioNfBncZ3b-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1dEo2UVWmNHLbyxmWI81bbb63yp6lGdyu-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1RGUHV6zmdx6CMjdq002rboB-BrPNgyeO-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1vF0vsjYUunR8DsHsGWcRiL5goNubL_w7-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/1wJnpbGQvnlW3MYq2Cj147rRGVpwnjdor-640.webp</image:loc></image:image><image:image><image:loc>https://pkm.hayalows.com//assets/design/15Of9xaQeN-TtS2UfoZkb-SdoEG_sj18c-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/actex-learning/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1F7pgBHvEaj12TZb18Z29QOLoPisnSHF3-640.webp</image:loc></image:image></url>
+  <url><loc>https://pkm.hayalows.com/design/picnic-palooza/</loc><lastmod>2026-10-08</lastmod><image:image><image:loc>https://pkm.hayalows.com//assets/design/1yVU9o4aFJk5BYZWlh2q0rOSmLTKSiINa-640.webp</image:loc></image:image></url>
 </urlset>
