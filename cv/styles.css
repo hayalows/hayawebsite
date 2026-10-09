@@ -86,6 +86,7 @@ h2 { font-size:clamp(1.8rem,4vw,2.45rem); letter-spacing:-.045em; }
 .project-card__intro.has-folder { display:grid; grid-template-columns:minmax(0,1fr) 15rem; gap:1.25rem; align-items:center; }
 .project-card__summary { min-width:0; }
 .project-folder { --folder-light:#BBA783; --folder-dark:#5A4A35; --folder-edge:#D2C5AD; position:relative; display:block; width:100%; height:20rem; padding:0; border:0; border-radius:12px; background:radial-gradient(ellipse at 50% 68%,rgb(187 167 131 / .06),transparent 65%); color:var(--text); font:inherit; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.project-folder--brass { --folder-light:#c4ab78; --folder-dark:#564429; --folder-edge:#ddc99a; }
 .project-folder--paper { --folder-light:#8b887f; --folder-dark:#343630; --folder-edge:#a1a397; }
 .project-folder--sage { --folder-light:#699a8e; --folder-dark:#244e46; --folder-edge:#86b3a5; }
 .folder-drawing { position:absolute; left:50%; bottom:3.65rem; width:321px; height:270px; transform:translateX(-50%) scale(.62); transform-origin:bottom center; perspective:800px; pointer-events:none; }
