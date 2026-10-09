@@ -5,5 +5,6 @@
  .project-stack-deck>.project-card:nth-child(1){--card-stack:0;z-index:1}
  .project-stack-deck>.project-card:nth-child(2){--card-stack:1;z-index:2}
  .project-stack-deck>.project-card:nth-child(3){--card-stack:2;z-index:3}
+ .project-stack-deck>.project-card:nth-child(4){--card-stack:3;z-index:4}
 }
 @media (prefers-reduced-motion:reduce){.project-stack-deck>.project-card{filter:none!important;transform:none!important}}
