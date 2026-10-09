@@ -2,6 +2,7 @@
 [hidden]{display:none!important}
 summary:focus-visible,button:focus-visible{outline:2px solid #e5f3fd;outline-offset:4px;border-radius:12px}
 .project-story{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:2rem;align-items:center;margin-top:1.5rem;padding:clamp(1rem,3vw,1.75rem);border:1px solid var(--line);border-radius:18px;background:radial-gradient(ellipse at right top,#263947,transparent 70%),#101519}
+.project-story[data-project="design-lab"]{background:radial-gradient(ellipse at right top,#3a3022,transparent 70%),#191713}
 .project-story[data-project="hayalows"]{background:radial-gradient(ellipse at right top,#303c31,transparent 70%),#141714}
 .project-story[data-project="english-chat"]{background:radial-gradient(ellipse at right top,#343142,transparent 70%),#15131b}
 .story-controls{min-width:0}
