@@ -6,7 +6,7 @@
 
 - [Professional portfolio](https://pkm.hayalows.com/): Selected work, experience, skills, education, contact information and a small personal listening panel.
 - [One-page CV](https://pkm.hayalows.com/resume/): Concise, printable curriculum vitae.
-- [Selected work](https://pkm.hayalows.com/projects/): Problem, approach and evidence notes for three published projects.
+- [Selected work](https://pkm.hayalows.com/projects/): Problem, approach and evidence notes for four published projects.
 - [PKM Playground](https://pkm.hayalows.com/playground/): An optional illustrated workspace, fictional calendar challenge inspired by English Chat Finder, and a locally downloadable postcard. Puzzle sessions are examples, not bookable events. Saved listening in this room is not a live playback claim.
 - [LinkedIn](https://www.linkedin.com/in/papakojomensah): Public professional profile.
 
@@ -27,6 +27,8 @@
 
 ## Selected projects
 
+- [Design Lab](https://ui.hayalows.com/): A published library of 64 original React components with interactive previews, copyable source and setup guidance.
+
 - [RouteLab](https://maps.hayalows.com/): A map-first tool for planning, remembering and exploring everyday movement in a calmer flow.
 - [Hayalows Ventures](https://hayalows.com/): Brand communication, customer journeys, operations and practical digital systems considered together.
 - [English Chat Finder](https://englishchatsession.vercel.app/): A search tool across availability from more than 200 conversation calendars.
@@ -41,7 +43,7 @@
 - `get_papa_kojo_skills` returns published capability groups.
 - `get_papa_kojo_experience` returns published work history.
 - `get_papa_kojo_education` returns published education and training.
-- `get_papa_kojo_projects` returns the three published projects with canonical live links.
+- `get_papa_kojo_projects` returns the four published projects with canonical live links.
 - `prepare_papa_kojo_email` prepares a reversible email draft link but never sends a message or books time.
 - Stable result contracts: https://pkm.hayalows.com/webmcp/results.schema.json
 
