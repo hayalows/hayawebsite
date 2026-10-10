@@ -21,8 +21,9 @@ The public design portfolio at https://pkm.hayalows.com/design/ opens to **All D
 1. Add and optimise the artwork image(s) with accurate titles and alt text in `catalog.json`.
 2. Group variations under one stable project slug in `archive.js`; keep the curated first ten intentional.
 3. Add verified context in `stories.json` if a project merits a case study. Short projects can stay image-led.
-4. Run `node cv/design/generate-pages.cjs` locally to refresh the project-specific OG meta pages and sitemap.
-5. Check `/design/`, `/design/index`, `/design/sketchbook`, a featured case study and an unfeatured case study on desktop and phone; test both themes, filters, focus, images and direct links.
-6. Push and verify Vercel is READY.
+4. Run `node cv/design/generate-pages.cjs` locally to refresh the project-specific OG meta pages and sitemap. URLs must be `/assets/design/...` in HTML and `https://pkm.hayalows.com/assets/design/...` in metadata.
+5. Run `node cv/design/verify-assets.cjs` to check source images, HTML, robots and sitemap. Image-led projects without verified case-study material intentionally remain `noindex` and out of the sitemap.
+6. Check `/design/`, `/design/index`, `/design/sketchbook`, a featured case study and an unfeatured case study on desktop and phone; test both themes, filters, focus, images and direct links.
+7. Push and verify Vercel is READY. Test archive, Sketchbook, sample cases, standalone images and sitemap over HTTP.
 
 The work-in-progress notice stays visible because the catalogue and case studies will grow over time.

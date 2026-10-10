@@ -11,7 +11,7 @@ const stories=JSON.parse(fs.readFileSync(path.join(dir,'stories.json'),'utf8'));
 const code=js.slice(js.indexOf('const featuredKeys='),js.indexOf('let projects='))+js.slice(js.indexOf('function group(data){'),js.indexOf('function heroImage('));
 const projects=new Function('data',code+'return group(data);')(catalog);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const abs=s=>domain+'/'+String(s).replace(/^(\.\.\/)+/,'');
+const abs=s=>{const relative=String(s||'').replace(/^(?:\.\.\/)+/,'').replace(/^\/+/, '');if(!/^assets\/design\/[\w.-]+\.webp$/.test(relative))throw Error('Unexpected design image path: '+s);return domain+'/'+relative;};
 const metadata=(html,p,story,loc,img)=>{
 const title=story.title||p.title,summary=(story.brief||p.summary||'Original graphic design by Papa Kojo Mensah.').slice(0,285);
 const tags=[[/<title>[^<]*<\/title>/,'<title>'+esc(title)+' | Iconka Designs Graphic Design Portfolio</title>'],[/<meta name="description" content="[^"]*">/,'<meta name="description" content="'+esc(summary)+'">'],[/<meta name="robots" content="[^"]*">/,'<meta name="robots" content="'+(stories[p.key]?'index, follow, max-image-preview:large, max-snippet:-1':'noindex, follow, max-image-preview:large')+'">'],[/<link rel="canonical" href="[^"]*">/,'<link rel="canonical" href="'+loc+'">'],[/<meta property="og:type" content="[^"]*">/,'<meta property="og:type" content="article">'],[/<meta property="og:title" content="[^"]*">/,'<meta property="og:title" content="'+esc(title)+' | Iconka Designs">'],[/<meta property="og:description" content="[^"]*">/,'<meta property="og:description" content="'+esc(summary)+'">'],[/<meta property="og:image" content="[^"]*">/,'<meta property="og:image" content="'+img+'">'],[/<meta name="twitter:card" content="[^"]*">/,'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+esc(title)+' | Iconka Designs"><meta name="twitter:description" content="'+esc(summary)+'"><meta name="twitter:image" content="'+img+'">']];
@@ -34,17 +34,19 @@ const projectBody=(p,story)=>{
  (story.effect?'<section><h2>Looking at the finished work</h2><p>'+esc(story.effect)+'</p></section>':'')+
  '<p class="seo-case__links"><a href="mailto:mpapakojo@gmail.com?subject='+encodeURIComponent('Design enquiry — '+title)+'">Discuss a design project ↗</a> <a href="/design/">Explore more graphic design work ↗</a></p></article>';
 };
+const oldMap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
+const oldDates=new Map([...oldMap.matchAll(/<url><loc>([^<]+)<\/loc>(?:<lastmod>([^<]+)<\/lastmod>)?/g)].map(x=>[x[1],x[2]]));
+const modifiedPages=new Set();
 for(const p of projects){
  const story=stories[p.key]||{},loc=domain+'/design/'+p.key+'/',pic=abs(p.pieces[0].preview);
  let html=metadata(template,p,story,loc,pic);
  html=html.replace(/<div id="archive-app">[\s\S]*?<\/div><\/main>/,'<div id="archive-app">'+projectBody(p,story)+'</div></main>');
- const dest=path.join(dir,p.key,'index.html');fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,html);
+ const dest=path.join(dir,p.key,'index.html');if(!fs.existsSync(dest)||fs.readFileSync(dest,'utf8')!==html)modifiedPages.add(loc);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,html);
 }
-const oldMap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
 const keep=(oldMap.match(/<url>[\s\S]*?<\/url>/g)||[]).filter(x=>!x.includes('/design/'));
 const today=new Date().toISOString().slice(0,10),feat=projects.filter(p=>stories[p.key]);
-const entry=(loc,images=[])=>'<url><loc>'+loc+'</loc><lastmod>'+today+'</lastmod>'+images.map(i=>'<image:image><image:loc>'+i+'</image:loc></image:image>').join('')+'</url>';
+const entry=(loc,images=[])=>{const lastmod=modifiedPages.has(loc)?today:(oldDates.get(loc)||today);return '<url><loc>'+loc+'</loc><lastmod>'+lastmod+'</lastmod>'+images.map(i=>'<image:image><image:loc>'+i+'</image:loc></image:image>').join('')+'</url>';};
 const others=keep.map(x=>x.replace(/<priority>[^<]*<\/priority>/g,''));
 const vals=[entry(domain+'/design/',feat.slice(0,8).map(p=>abs(p.pieces[0].preview))),entry(domain+'/design/sketchbook'),...feat.map(p=>entry(domain+'/design/'+p.key+'/',p.pieces.map(x=>abs(x.preview))))];
 fs.writeFileSync(path.join(root,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+others.concat(vals).join('\n')+'\n</urlset>\n');
-console.log('Generated '+projects.length+' project pages; '+feat.length+' detailed case studies remain indexable.');
+console.log('Generated '+projects.length+' project pages; '+feat.length+' detailed case studies remain indexable. Run `node cv/design/verify-assets.cjs` before publishing.');

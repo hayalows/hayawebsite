@@ -38,7 +38,7 @@ const mappings=[
 const sketchIndices=new Set([5,14,23,25,28,29,30,34,35,36,37,38,41,42,43,44,46,49,50,51,53,62]);
 const text=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const slug=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,55);
-const imagePath=s=>'/'+String(s||'').replace(/^(\.\.\/)+/,'');
+const imagePath=s=>'/'+String(s||'').replace(/^(?:\.\.\/)+/,'').replace(/^\/+/, '');
 const image=(piece,size='preview')=>imagePath(piece[size]||piece.preview);
 const url=p=>BASE+p.key+'/';
 const mkPiece=(p)=>({title:p.title,preview:image(p),full:image(p,'full'),id:p.id,alt:p.alt||p.title});
@@ -163,5 +163,5 @@ Promise.all([fetch('/design/catalog.json').then(response=>{if(!response.ok)throw
  let active='index';
  if(!tail||tail==='index'||tail==='index.html'){renderIndex(false);}else if(tail==='sketchbook'){active='sketchbook';renderIndex(true);}else{const p=byKey.get(tail);if(p){active='index';detail(p);}else{document.title='Project not found — Iconka Index';app.innerHTML=heading('ARCHIVE / NOT FOUND','This project isn’t here.','The link may have changed. Browse the full index to find the work.')+'<div class="section-end"><a href="/design/index" class="button-primary">Open index ↗</a></div>';}}
  document.querySelectorAll('[data-nav]').forEach(a=>{if(a.dataset.nav===active)a.setAttribute('aria-current','page');});const renderState={projects,byKey,active};window.__iconkaRenderState=renderState;document.dispatchEvent(new CustomEvent('iconka:rendered',{detail:renderState}));
-}).catch(()=>{app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Please reload the page or return to the portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
+}).catch(()=>{if(app.querySelector('.seo-preloaded,.seo-case')){app.insertAdjacentHTML('afterbegin','<p role="status" class="archive-load-notice">The interactive archive is unavailable right now. You can still browse the projects below.</p>');return;}app.innerHTML='<section class="no-results"><h2>The archive couldn’t load.</h2><p>Please reload the page or return to the portfolio.</p><a href="/" class="button-primary">Main portfolio ↗</a></section>';});
 })();
