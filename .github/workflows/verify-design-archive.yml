@@ -1,0 +1,26 @@
+name: Verify design archive
+on:
+  push:
+    paths:
+      - 'cv/design/**'
+      - 'cv/assets/design/**'
+      - 'cv/sitemap.xml'
+      - '.github/workflows/verify-design-archive.yml'
+  pull_request:
+    paths:
+      - 'cv/design/**'
+      - 'cv/assets/design/**'
+      - 'cv/sitemap.xml'
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate images, generated pages and sitemap
+        run: node cv/design/verify-assets.cjs
