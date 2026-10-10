@@ -28,3 +28,27 @@ jobs:
           git diff --exit-code -- cv/design cv/sitemap.xml
       - name: Validate images, generated pages and sitemap
         run: node cv/design/verify-assets.cjs
+
+  production_smoke:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Wait for Vercel and smoke-test public pages
+        run: |
+          for attempt in $(seq 1 15); do
+            echo "Public website check attempt ${attempt}/15"
+            if node cv/design/smoke-live.cjs; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Production HTTP checks did not pass within the deployment window"
+          exit 1
