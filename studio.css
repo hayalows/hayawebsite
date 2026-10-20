@@ -2253,3 +2253,46 @@ to {
   .site-header .header-contact {
   display:none}
 }
+
+/* Builder compaction + balance (Oct 2026) */
+@media(min-width:761px) {
+  .studio-hero-builder {
+  align-items:center;
+  padding-top:40px}
+  .eb {
+  padding:24px}
+  .eb-head {
+  margin-bottom:16px}
+  .eb .builder-title {
+  font-size:24px}
+  .eb-kicker {
+  margin-bottom:10px}
+  .eb-group,.eb-row,.eb-preview {
+  margin-bottom:14px}
+  .eb-group legend,.eb-field label,.eb-preview label {
+  margin-bottom:8px;
+  font-size:14px}
+  .eb-chips {
+  gap:6px}
+  .eb-chip span {
+  min-height:38px;
+  padding:7px 14px;
+  font-size:14px}
+  .eb input[type=text],.eb input:not([type]) {
+  min-height:44px;
+  padding:9px 12px;
+  font-size:15px}
+  .eb textarea {
+  min-height:80px;
+  font-size:15px}
+  .eb-preview {
+  padding:12px}
+  .eb-help {
+  display:none}
+  .eb .eb-send {
+  min-height:52px}
+  .eb-alt {
+  margin-top:10px}
+}
+.hero-action-note {
+  margin-top:18px!important}
