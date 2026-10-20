@@ -1999,3 +1999,52 @@ to {
 /* Keep the founder's whole face visible at every card width. */
 .studio .founder-image { background: #fff; }
 .studio .founder-image img { object-fit: contain; object-position: center bottom; }
+
+/* Hero: one clear primary action (Oct 2026) */
+.studio-hero-single {
+  grid-template-columns:1fr}
+.studio-hero-single>div {
+  max-width:760px}
+.studio-hero-single .studio-lead {
+  max-width:560px}
+.hero-actions {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:16px 28px;
+  margin-top:8px}
+.hero-actions .hero-work-link {
+  display:inline-flex;
+  margin-top:0}
+.hero-action-note {
+  margin:14px 0 0;
+  color:#5d6459;
+  font-size:14px}
+
+/* Header: one contact button on every screen size */
+@media(max-width:960px) {
+  .site-header .header-contact {
+  display:inline-flex;
+  min-width:0;
+  min-height:40px;
+  padding:9px 16px;
+  font-size:15px;
+  gap:8px}
+}
+@media(max-width:480px) {
+  .hero-actions {
+  flex-direction:column;
+  align-items:stretch;
+  gap:12px}
+  .hero-actions .studio-button {
+  justify-content:space-between}
+  .hero-actions .hero-work-link {
+  align-self:flex-start}
+  .site-header .header-contact {
+  padding:8px 14px;
+  font-size:14px}
+}
+@media(max-width:340px) {
+  .site-header .header-contact {
+  display:none}
+}
