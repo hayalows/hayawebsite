@@ -484,7 +484,7 @@ img {
   margin:6px 0 0}
 .work-number {
   font-size:14px;
-  color:#7d846f}
+  color:#52634a}
 .work-card>p {
   font-size:17px;
   color:#6b7366;
@@ -492,7 +492,7 @@ img {
   max-width:270px}
 .work-note {
   font-size:14px;
-  color:#6e7668;
+  color:#52634a;
   margin:24px 0 0}
 .work-note a {
   color:#254d3a}
@@ -519,7 +519,7 @@ img {
   display:flex;
   justify-content:space-between;
   font-size:16px;
-  color:#66765e;
+  color:#52634a;
   padding-bottom:28px}
 .service-number>span {
   font-size:22px}
@@ -583,7 +583,7 @@ img {
   padding:20px 0}
 .studio-steps li>span {
   font-size:14px;
-  color:#7a816d;
+  color:#52634a;
   padding-top:4px}
 .studio-steps h3 {
   font-size:20px;
@@ -638,7 +638,7 @@ img {
   margin-bottom:6px}
 .founder-role {
   font-size:14px;
-  color:#68765d;
+  color:#52634a;
   margin:0 0 16px}
 .founder-copy>p:not(.label):not(.founder-role) {
   font-size:18px;
@@ -707,7 +707,7 @@ img {
   display:none}
 .studio-faq summary>span {
   font-size:20px;
-  color:#697960}
+  color:#52634a}
 .studio-faq details[open] summary>span {
   transform:rotate(45deg)}
 .studio-faq details>p {
@@ -776,7 +776,7 @@ img {
 .studio-footer .label {
   font-size:12px;
   margin-bottom:10px;
-  color:#6e7964}
+  color:#52634a}
 .studio-footer-top nav a,.studio-footer-contact a {
   display:flex;
   align-items:center;
@@ -794,7 +794,7 @@ img {
   margin-top:40px;
   padding-top:20px;
   font-size:13px;
-  color:#76816b}
+  color:#52634a}
 .enquiry-disclosure {
   padding-block:0}
 .enquiry-disclosure>details>summary {
@@ -920,14 +920,14 @@ img {
 .contact-sidebar dt {
   font-size:13px;
   text-transform:uppercase;
-  color:#69795f;
+  color:#52634a;
   margin-top:24px}
 .contact-sidebar dd {
   margin:8px 0 0;
   font-size:17px}
 .contact-sidebar p {
   font-size:17px;
-  color:#68795d}
+  color:#52634a}
 .case-image {
   width:100%;
   max-height:640px;
@@ -943,7 +943,7 @@ img {
   padding:32px 0;
   border-bottom:1px solid #d5dbcc;
   font-size:14px;
-  color:#68795e}
+  color:#52634a}
 .case-meta strong {
   display:block;
   color:#344b2e;
