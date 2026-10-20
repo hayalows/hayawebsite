@@ -10,10 +10,11 @@
     function message() {
       return `Hello Hayalows. I run a ${business.value} in ${place.value.trim() || 'my area'} and I need ${goal.value}. Can we talk about what would help?`;
     }
-    form.addEventListener('input', () => { preview.textContent = message(); status.textContent = ''; });
+    form.addEventListener('input', () => { place.setCustomValidity(''); preview.textContent = message(); status.textContent = ''; });
     form.addEventListener('change', () => { preview.textContent = message(); });
     form.addEventListener('submit', event => {
       event.preventDefault();
+      place.setCustomValidity(place.value.trim() ? '' : 'Enter your city or town.');
       if (!form.reportValidity()) return;
       const url = `${window.HAYALOWS_SITE_CONFIG.whatsappUrl}?text=${encodeURIComponent(message())}`;
       const opened = window.open(url, '_blank');

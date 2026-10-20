@@ -38,3 +38,10 @@ Run `python3 scripts/build-studio.py` from the repository root. It generates the
 `node --import ./tests/register-webmcp-loader.mjs --test ./tests/webmcp-tools.test.mjs ./tests/profile-structured-data.test.mjs`
 
 An unrelated CV test already fails on the base commit `1df8c1a`: it expects 3 project records, but the portfolio publishes 4. Reproduced from an untouched detached worktree. That test is preserved; the overhaul does not change CV source or tests.
+
+## Readability revision
+The user found the initial text too small on both phone and desktop. The measured version used many 9–11px labels and 12–14px descriptions. The revision raises body/supporting copy to 17–20px, navigation and actions to 16–17px, and secondary metadata to 12–15px. It relaxes tightly tracked headings and gives longer text more room instead of shrinking it at phone breakpoints.
+
+The hero enquiry now uses persistent labels with full-size native controls. The preview is a reversible disclosure, and the primary action explicitly reviews a draft in WhatsApp. The same three inputs and draft contract remain intact. Mobile service and work cards use one column where that protects readability.
+
+Acceptance: inspect at 320, 390, 768 and 1440px; check overflow and actual computed text sizes, long business option/city text, empty and whitespace-only city validation, keyboard preview disclosure, updated draft and review action. Check contact category and payment dialog for regressions. The optional preview may increase page height when opened; content is never compressed to enforce a screen-count target.
