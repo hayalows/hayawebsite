@@ -15,7 +15,7 @@ const copyResetTimers = new WeakMap();
 
 function setPaymentRouteLayout(viewport) {
   paymentRoutes.forEach((route) => {
-    route.open = !viewport.matches;
+    route.open = paymentRoutes.length === 1 || !viewport.matches;
   });
 }
 

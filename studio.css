@@ -22,3 +22,7 @@ html{scroll-padding-top:104px}body{font-family:var(--font-sans);background:var(-
 @media(max-width:480px){:root{--header-height:64px}.header-inner,.site-header{min-height:64px}.site-nav.is-open{height:calc(100dvh - 64px)}}
 .studio-services .studio-service:nth-child(2){box-shadow:none}.studio-service details li{font-size:12px;padding:5px 0;border:0}.studio-page-hero h1,.studio-hero h1{animation:studio-arrive .45s ease-out both}@keyframes studio-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.studio-page-hero h1,.studio-hero h1{animation:none}}
+.sentence-fields select{field-sizing:content}.sentence-fields input,.sentence-fields select{margin-inline:3px}.sentence-fields label{margin-right:3px}
+@media(max-width:960px){.menu-toggle{width:44px;height:44px;min-height:44px}.header-contact{min-height:44px}}
+@media(max-width:480px){.studio-footer-top nav a,.studio-footer-contact a{min-height:44px}}
+@media(max-width:360px){.header-contact{display:none}.studio h1{font-size:36px}.sentence-fields{font-size:18px}.founder-card{grid-template-columns:1fr}.founder-image{height:220px;min-height:0}.founder-image img{object-position:50% 25%}}
