@@ -1996,3 +1996,6 @@ to {
 .studio .studio-footer-top>div:first-child,.studio .studio-footer-contact {
   grid-column:auto}
 }
+/* Keep the founder's whole face visible at every card width. */
+.studio .founder-image { background: #fff; }
+.studio .founder-image img { object-fit: contain; object-position: center bottom; }
