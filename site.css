@@ -225,8 +225,8 @@ body.v3-page .payment-route {border:1px solid var(--line);border-radius:16px;bac
 body.v3-page .payment-option-kicker,body.v3-page .dialog-eyebrow {color:var(--muted);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
 body.v3-page .payment-route-title {color:var(--ink);font-weight:600;letter-spacing:-.015em}
 body.v3-page .payment-route-hint,body.v3-page .payment-route-body>p,body.v3-page .route-checks {color:var(--muted)}
-body.v3-page .ussd-option {border:1px solid var(--line);border-radius:16px;background:var(--surface)}
-body.v3-page .ussd-code {font-variant-numeric:tabular-nums;color:var(--ink);background:var(--raised);border:1px solid var(--line);border-radius:8px}
+body.v3-page .ussd-option {padding:20px 22px;gap:16px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+body.v3-page .ussd-code {padding:6px 12px;justify-self:start;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--raised);border:1px solid var(--line);border-radius:8px}
 body.v3-page .studio-ussd>.label {margin-bottom:12px}
 body.v3-page .payment-dialog {border:1px solid var(--line);background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 body.v3-page .payment-dialog::backdrop {background:rgb(15 26 21/.55)}
@@ -238,7 +238,8 @@ body.v3-page .policy-toc summary {color:var(--muted);font-size:12.5px;font-weigh
 body.v3-page .policy-toc nav {border-left:1px solid var(--line)}
 body.v3-page .policy-toc a {min-height:38px;padding-left:16px;margin-left:-1px;border-left:1px solid transparent;color:var(--muted);font-size:14.5px}
 body.v3-page .policy-toc a:hover {color:var(--ink);border-left-color:var(--accent);background:transparent}
-body.v3-page .policy-content {max-width:68ch}
+body.v3-page .policy-content {max-width:62ch}
+body.v3-page .policy-notice {max-width:62ch}
 body.v3-page .policy-content section {padding:0 0 40px}
 body.v3-page .policy-content section+section {padding-top:40px;border-top:1px solid var(--line)}
 body.v3-page .policy-content h2 {font-size:clamp(1.35rem,2vw,1.6rem);line-height:1.25;letter-spacing:-.018em;margin-bottom:14px}
