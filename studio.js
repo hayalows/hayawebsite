@@ -5,48 +5,90 @@
     const cfg = window.HAYALOWS_SITE_CONFIG || {};
     const waUrl = cfg.whatsappUrl || 'https://wa.me/233506201345';
     const email = cfg.email || 'info@hayalows.com';
+    const card = form.closest('.eb');
+    const panels = [...form.querySelectorAll('[data-step]')];
+    const count = card.querySelector('[data-eb-count]');
+    const bar = card.querySelector('[data-eb-bar]');
+    const summary = card.querySelector('[data-eb-summary]');
+    const back = form.querySelector('[data-eb-back]');
     const preview = form.querySelector('#quick-preview');
     const status = form.querySelector('#quick-status');
     const reset = form.querySelector('[data-quick-reset]');
-    let edited = false;
-    const val = name => (form.querySelector(`[name="${name}"]:checked`) || form.elements[name] || {}).value || '';
+    let step = 1, edited = false;
+    const picked = name => form.querySelector(`[name="${name}"]:checked`);
     function compose() {
-      const name = (form.elements.name.value || '').trim();
-      const place = (form.elements.place.value || '').trim() || 'my area';
-      const business = val('business');
+      const name = form.elements.name.value.trim();
+      const place = form.elements.place.value.trim() || 'my area';
+      const business = picked('business')?.value || 'small business';
+      const goal = picked('goal')?.value || 'help working out what to fix first';
       const article = /^[aeiou]/i.test(business) ? 'an' : 'a';
-      const hello = name ? `Hello Hayalows, I'm ${name}.` : 'Hello Hayalows.';
-      return `${hello} I run ${article} ${business} in ${place} and I'd like ${val('goal')}. Can we talk about what would help?`;
+      return `${name ? `Hello Hayalows, I'm ${name}.` : 'Hello Hayalows.'} I run ${article} ${business} in ${place} and I'd like ${goal}. Can we talk about what would help?`;
     }
-    function refresh(force) {
-      if (!edited || force) { preview.value = compose(); edited = false; reset.hidden = true; }
+    function syncMessage(force) {
+      if (force || !edited) { preview.value = compose(); edited = false; reset.hidden = true; }
+    }
+    function renderSummary() {
+      summary.replaceChildren();
+      [['business', 1], ['goal', 2]].forEach(([n, s]) => {
+        const input = picked(n);
+        if (!input || step <= s) return;
+        const chip = document.createElement('button');
+        chip.type = 'button'; chip.className = 'eb-pill';
+        chip.textContent = input.nextElementSibling.textContent;
+        chip.setAttribute('aria-label', `Change: ${chip.textContent}`);
+        chip.addEventListener('click', () => go(s));
+        summary.append(chip);
+      });
+      summary.hidden = !summary.children.length;
+    }
+    function go(n, focus = true) {
+      step = n;
+      panels.forEach(p => { p.hidden = Number(p.dataset.step) !== n; });
+      count.textContent = n;
+      bar.style.width = `${(n / 3) * 100}%`;
+      back.hidden = n === 1;
       status.textContent = '';
+      renderSummary();
+      if (n === 3) syncMessage(false);
+      if (focus) {
+        const panel = panels[n - 1];
+        const target = n === 3 ? form.querySelector('.eb-send') : (panel.querySelector('input:checked') || panel.querySelector('input'));
+        target?.focus({ preventScroll: true });
+      }
     }
-    preview.addEventListener('input', () => { edited = preview.value.trim() !== compose(); reset.hidden = !edited; status.textContent = ''; });
-    reset.addEventListener('click', () => { refresh(true); preview.focus(); });
-    form.addEventListener('change', e => { if (e.target !== preview) refresh(false); });
-    form.addEventListener('input', e => { if (e.target.name === 'name' || e.target.name === 'place') refresh(false); });
+    form.addEventListener('change', e => {
+      if (e.target.name === 'business') setTimeout(() => go(2), 160);
+      else if (e.target.name === 'goal') setTimeout(() => go(3), 160);
+    });
+    form.addEventListener('input', e => {
+      if (e.target === preview) { edited = preview.value.trim() !== compose(); reset.hidden = !edited; }
+      else if (e.target.name === 'name' || e.target.name === 'place') syncMessage(false);
+      status.textContent = '';
+    });
+    reset.addEventListener('click', () => { syncMessage(true); preview.focus(); });
+    back.addEventListener('click', () => go(step - 1));
     const text = () => preview.value.trim() || compose();
     function say(msg, link) {
       status.replaceChildren(document.createTextNode(msg));
-      if (link) { const a = document.createElement('a'); a.href = link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open it here'; status.append(' ', a); }
+      if (link) { const a = document.createElement('a'); a.href = link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open WhatsApp'; status.append(' ', a); }
     }
     form.addEventListener('submit', e => {
       e.preventDefault();
+      if (step !== 3) return;
       const url = `${waUrl}?text=${encodeURIComponent(text())}`;
       const w = window.open(url, '_blank');
-      if (w) { w.opener = null; say('Your message is ready in WhatsApp. Check it and tap send.'); }
+      if (w) { w.opener = null; say('Your message is ready in WhatsApp. Tap send there.'); }
       else say('Your browser blocked the new tab.', url);
     });
     form.querySelector('[data-quick-email]').addEventListener('click', () => {
       location.href = `mailto:${email}?subject=${encodeURIComponent('Project enquiry from hayalows.com')}&body=${encodeURIComponent(text())}`;
-      say(`Your email app should open. If not, write to ${email}.`);
+      say(`Opening your email app. If nothing happens, write to ${email}.`);
     });
     form.querySelector('[data-quick-copy]').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(text()); say('Copied. Paste it anywhere you like.'); }
+      try { await navigator.clipboard.writeText(text()); say('Copied. Paste it anywhere.'); }
       catch { preview.select(); say('Select the message and copy it.'); }
     });
-    refresh(true);
+    go(1, false);
   }
   const enquiry = document.querySelector('#contact-form');
   function revealEnquiry() {
