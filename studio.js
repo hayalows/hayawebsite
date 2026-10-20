@@ -2,25 +2,51 @@
 (() => {
   const form = document.querySelector('#quick-enquiry');
   if (form) {
-    const business = form.elements.business;
-    const place = form.elements.place;
-    const goal = form.elements.goal;
-    const preview = document.querySelector('#quick-preview');
-    const status = document.querySelector('#quick-status');
-    function message() {
-      return `Hello Hayalows. I run a ${business.value} in ${place.value.trim() || 'my area'} and I need ${goal.value}. Can we talk about what would help?`;
+    const cfg = window.HAYALOWS_SITE_CONFIG || {};
+    const waUrl = cfg.whatsappUrl || 'https://wa.me/233506201345';
+    const email = cfg.email || 'info@hayalows.com';
+    const preview = form.querySelector('#quick-preview');
+    const status = form.querySelector('#quick-status');
+    const reset = form.querySelector('[data-quick-reset]');
+    let edited = false;
+    const val = name => (form.querySelector(`[name="${name}"]:checked`) || form.elements[name] || {}).value || '';
+    function compose() {
+      const name = (form.elements.name.value || '').trim();
+      const place = (form.elements.place.value || '').trim() || 'my area';
+      const business = val('business');
+      const article = /^[aeiou]/i.test(business) ? 'an' : 'a';
+      const hello = name ? `Hello Hayalows, I'm ${name}.` : 'Hello Hayalows.';
+      return `${hello} I run ${article} ${business} in ${place} and I'd like ${val('goal')}. Can we talk about what would help?`;
     }
-    form.addEventListener('input', () => { place.setCustomValidity(''); preview.textContent = message(); status.textContent = ''; });
-    form.addEventListener('change', () => { preview.textContent = message(); });
-    form.addEventListener('submit', event => {
-      event.preventDefault();
-      place.setCustomValidity(place.value.trim() ? '' : 'Enter your city or town.');
-      if (!form.reportValidity()) return;
-      const url = `${window.HAYALOWS_SITE_CONFIG.whatsappUrl}?text=${encodeURIComponent(message())}`;
-      const opened = window.open(url, '_blank');
-      if (opened) { opened.opener = null; status.textContent = 'Your draft is ready in WhatsApp. Review it before sending.'; }
-      else { status.replaceChildren(document.createTextNode('Your browser blocked the new tab. ')); const link = document.createElement('a'); link.href = url; link.textContent = 'Open your WhatsApp draft'; status.append(link); }
+    function refresh(force) {
+      if (!edited || force) { preview.value = compose(); edited = false; reset.hidden = true; }
+      status.textContent = '';
+    }
+    preview.addEventListener('input', () => { edited = preview.value.trim() !== compose(); reset.hidden = !edited; status.textContent = ''; });
+    reset.addEventListener('click', () => { refresh(true); preview.focus(); });
+    form.addEventListener('change', e => { if (e.target !== preview) refresh(false); });
+    form.addEventListener('input', e => { if (e.target.name === 'name' || e.target.name === 'place') refresh(false); });
+    const text = () => preview.value.trim() || compose();
+    function say(msg, link) {
+      status.replaceChildren(document.createTextNode(msg));
+      if (link) { const a = document.createElement('a'); a.href = link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open it here'; status.append(' ', a); }
+    }
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const url = `${waUrl}?text=${encodeURIComponent(text())}`;
+      const w = window.open(url, '_blank');
+      if (w) { w.opener = null; say('Your message is ready in WhatsApp. Check it and tap send.'); }
+      else say('Your browser blocked the new tab.', url);
     });
+    form.querySelector('[data-quick-email]').addEventListener('click', () => {
+      location.href = `mailto:${email}?subject=${encodeURIComponent('Project enquiry from hayalows.com')}&body=${encodeURIComponent(text())}`;
+      say(`Your email app should open. If not, write to ${email}.`);
+    });
+    form.querySelector('[data-quick-copy]').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(text()); say('Copied. Paste it anywhere you like.'); }
+      catch { preview.select(); say('Select the message and copy it.'); }
+    });
+    refresh(true);
   }
   const enquiry = document.querySelector('#contact-form');
   function revealEnquiry() {
