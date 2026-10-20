@@ -114,4 +114,15 @@
   }
   const current = document.querySelector(`.site-nav a[href="${location.pathname}"]`);
   current?.setAttribute('aria-current','page');
+
+  // Homepage v3: gentle reveals, only when the head script set html.js
+  const reveals = document.querySelectorAll('.v3-reveal');
+  if (reveals.length) {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (still || !('IntersectionObserver' in window)) reveals.forEach(el => el.classList.add('is-in'));
+    else {
+      const io = new IntersectionObserver((entries) => entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+      reveals.forEach(el => io.observe(el));
+    }
+  }
 })();
