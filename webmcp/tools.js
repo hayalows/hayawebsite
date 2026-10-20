@@ -372,6 +372,9 @@ function enquiryResult(draft, navigationStarted) {
 }
 
 function fillEnquiryForm(form, draft) {
+  // The compact homepage keeps the full compatibility form in a disclosure.
+  const disclosure = form.closest?.("#guided-enquiry");
+  if (disclosure) disclosure.open = true;
   setFormValue(form, "helpType", draft.helpType);
   setFormValue(form, "message", draft.message);
   setFormValue(form, "name", draft.name);

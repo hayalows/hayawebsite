@@ -1,59 +1,18 @@
-# Hayalows
+# Hayalows Ventures
 
-Hayalows is the public-facing brand of Hayalows Ventures, a Ghanaian business that helps SMEs become easier to choose, trust and grow.
+Founder-led studio in Kumasi, Ashanti, Ghana. Papa Kojo Mensah combines brand identity, communication, websites, practical digital tools and business clarity.
 
-Brand promise:
-Make your business easier to choose, trust and grow.
+- Website: https://hayalows.com/
+- Services: https://hayalows.com/#what-we-do
+- Selected work: https://hayalows.com/work/
+- About and founder: https://hayalows.com/about/
+- Pricing and scope: https://hayalows.com/prices/
+- Guided enquiry: https://hayalows.com/contact/
+- Pay an agreed Hayalows invoice: https://hayalows.com/pay/
+- 50's Bliss venture and orders: https://hayalows.com/fiftys-bliss/
+- Payment policy: https://hayalows.com/payments-and-refunds/
+- Privacy: https://hayalows.com/privacy/
+- Terms: https://hayalows.com/terms/
+- Founder portfolio: https://pkm.hayalows.com/
 
-Who Hayalows helps:
-- Ghanaian SMEs with unclear offers or service descriptions
-- Businesses whose flyers, WhatsApp presence, website and customer experience feel inconsistent
-- Businesses that receive enquiries but lose customers through weak responses, records or follow-up
-
-Problems Hayalows helps solve:
-- Customers do not quickly understand what the business sells or why they should choose it
-- The business does not look, sound or respond consistently across customer touchpoints
-- Enquiries, orders and customer follow-up are buried in chats or memory
-
-Official website:
-https://hayalows.com/
-
-Public routes:
-- Main website: https://hayalows.com/
-- Payments: https://hayalows.com/pay/
-- Payments and refunds policy: https://hayalows.com/payments-and-refunds/
-- Privacy policy: https://hayalows.com/privacy/
-- Terms of use: https://hayalows.com/terms/
-
-Contact:
-info@hayalows.com
-+233 50 620 1345
-
-Services:
-- Business clarity and systems: offers, customer steps, records, trackers and follow-up processes
-- Brand and communication: brand direction, service descriptions, customer messages and consistent presentation
-- Websites and digital tools: business websites, enquiry pages, dashboards and simple internal tools
-
-How Hayalows works:
-- Understand where the customer or business process is breaking down
-- Build the smallest practical response that can improve it
-- Learn from real use and improve with evidence
-
-Important notes:
-- A new logo, website or app is not automatically the answer; Hayalows identifies the gap first
-- Small or early-stage businesses can begin with a clear, practical scope
-- Visitors can contact Hayalows by WhatsApp or email without preparing a perfect brief
-- Payments are completed on verified Paystack pages or through the public USSD options shown on the payment page
-- Hayalows.com does not collect card details or claim payment success
-
-Hayalows does not publish invented testimonials, client claims or venture links. Individual products and ventures receive public destinations only when they are ready.
-
-WebMCP browser tools:
-- `ask_hayalows` is available across the public site and retrieves relevant published sections with canonical source URLs.
-- `browse_hayalows_services` is available across the public site. It visibly opens the selected homepage service area or navigates there from a subpage.
-- `prepare_hayalows_enquiry` is available across the public site and fills a reversible guided-enquiry draft. It never sends a message; the visitor reviews and submits it.
-- `navigate_hayalows` opens an exact public destination: services, approach, enquiry, payments, refunds, privacy or terms. It never submits an enquiry or starts a payment.
-- Stable, versioned result contracts: https://hayalows.com/webmcp/results.schema.json
-- Every tool registers an `outputSchema` and returns matching `structuredContent`.
-
-Last updated: 2026-08-26.
+Contact info@hayalows.com or WhatsApp +233 50 620 1345. Project scope, cost in Ghana cedis, payment stages and timing are agreed before work begins. No fixed packages or starting prices are currently published. Enquiry tools prepare drafts only; visitors review and send their own messages. Payment processing takes place on Paystack.

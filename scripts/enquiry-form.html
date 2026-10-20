@@ -1,0 +1,69 @@
+<form class="contact-form" id="contact-form" novalidate data-reveal style="--reveal-delay: 80ms">
+            <div class="form-heading">
+              <span>Guided enquiry</span>
+              <div>
+                <h2>What would you like to improve?</h2>
+                <p>Start with two questions. Add contact details only if they will help.</p>
+              </div>
+            </div>
+            <p class="form-context" data-form-context aria-live="polite" hidden></p>
+
+            <div class="form-field">
+              <label for="help-type">What would you like help with? <span aria-hidden="true">*</span></label>
+              <select id="help-type" name="helpType" required aria-describedby="help-type-error">
+                <option value="" selected disabled>Choose one</option>
+                <option>Business clarity or systems</option>
+                <option>Brand and communication</option>
+                <option>Website or digital tool</option>
+                <option>Product or venture discussion</option>
+                <option>Partnership</option>
+                <option>General enquiry</option>
+              </select>
+              <p class="field-error" id="help-type-error"></p>
+            </div>
+
+            <div class="form-field">
+              <label for="message">What is happening now? <span aria-hidden="true">*</span></label>
+              <textarea id="message" name="message" rows="5" placeholder="For example: people ask for the price, but most do not reply after I send it." required aria-describedby="message-help message-error"></textarea>
+              <p class="field-help" id="message-help">A few sentences are enough. Mention what customers do and what you want to improve.</p>
+              <p class="field-error" id="message-error"></p>
+            </div>
+
+            <details class="form-contact-details">
+              <summary>Add your details <span>Optional</span></summary>
+              <div class="acc-body"><div class="acc-inner">
+                <div class="form-contact-fields">
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="name">Your name <span class="optional">Optional</span></label>
+                    <input id="name" name="name" type="text" autocomplete="name">
+                  </div>
+                  <div class="form-field">
+                    <label for="business">Business name <span class="optional">Optional</span></label>
+                    <input id="business" name="business" type="text" autocomplete="organization">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-field">
+                    <label for="phone">Phone or WhatsApp <span class="optional">Optional</span></label>
+                    <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" aria-describedby="phone-error">
+                    <p class="field-error" id="phone-error"></p>
+                  </div>
+                  <div class="form-field">
+                    <label for="email">Email <span class="optional">Optional</span></label>
+                    <input id="email" name="email" type="email" inputmode="email" autocomplete="email" aria-describedby="email-error">
+                    <p class="field-error" id="email-error"></p>
+                  </div>
+                </div>
+                </div>
+              </div></div>
+            </details>
+
+            <div class="form-actions">
+              <button class="button button-dark" type="submit">Review in WhatsApp</button>
+              <button class="text-action" type="button" data-email-message>Use email instead</button>
+              <button class="text-action" type="button" data-copy-message>Copy message</button>
+            </div>
+            <p class="form-note">Nothing is sent automatically. You can review and edit the message first.</p>
+            <p class="form-status" role="status" aria-live="polite" data-form-status></p>
+          </form>
