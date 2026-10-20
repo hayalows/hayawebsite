@@ -35,7 +35,7 @@
         const chip = document.createElement('button');
         chip.type = 'button'; chip.className = 'eb-pill';
         chip.textContent = input.nextElementSibling.textContent;
-        chip.setAttribute('aria-label', `Change: ${chip.textContent}`);
+        chip.setAttribute('aria-label', `${chip.textContent}, edit`);
         chip.addEventListener('click', () => go(s));
         summary.append(chip);
       });
@@ -56,9 +56,16 @@
         target?.focus({ preventScroll: true });
       }
     }
-    form.addEventListener('change', e => {
-      if (e.target.name === 'business') setTimeout(() => go(2), 160);
-      else if (e.target.name === 'goal') setTimeout(() => go(3), 160);
+    // click (not change) so re-tapping an already chosen option still moves forward
+    form.addEventListener('click', e => {
+      const t = e.target;
+      if (!(t instanceof HTMLInputElement) || t.type !== 'radio') return;
+      if (t.name === 'business' && step === 1) setTimeout(() => go(2), 160);
+      else if (t.name === 'goal' && step === 2) setTimeout(() => go(3), 160);
+    });
+    form.addEventListener('keydown', e => {
+      const t = e.target;
+      if (e.key === 'Enter' && t instanceof HTMLInputElement && t.type === 'radio') { e.preventDefault(); t.click(); }
     });
     form.addEventListener('input', e => {
       if (e.target === preview) { edited = preview.value.trim() !== compose(); reset.hidden = !edited; }
