@@ -3,10 +3,6 @@
    One layer. Tokens first, components second, motion last.
    ========================================================================== */
 
-@view-transition {
-  navigation: auto;
-}
-
 @font-face {
   font-family: "Inter";
   src: url("/assets/fonts/inter-latin-variable.woff") format("woff");

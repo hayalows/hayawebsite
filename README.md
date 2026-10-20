@@ -66,3 +66,9 @@ The WebMCP registration uses a documented compatibility build based on pinned `@
 - Review policy wording whenever payment, fulfilment or data-handling practices change.
 - Test desktop, mobile, keyboard navigation, contact actions and sharing metadata after important changes.
 - Never commit passwords, tokens or private business records.
+
+## Studio design system (October 2026)
+
+The public studio pages now use self-hosted Inter, `studio.css`, `studio.js` and a shared static-page generator. Run `python3 scripts/build-studio.py` from the repository root after editing shared content. The original homepage enquiry anchor remains available, and `/contact/` provides the complete form. `/prices/` describes written quotes in Ghana cedis; `/pay/` serves only Hayalows invoices. 50's Bliss is at `/fiftys-bliss/`.
+
+See `docs/studio-overhaul.md` for design decisions and compatibility details. `hayalows-studio.vercel.app` is a separate review deployment connected to this repository's root. It does not replace or reconfigure the existing Cloudflare domain or the portfolio's Vercel project.
