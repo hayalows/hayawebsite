@@ -84,3 +84,7 @@ UseLayouts revision `07cc4f4fb8e064643168e6fc8792127af92637f5`. The MIT
 notice above applies. Static hit targets, a three-image deck and pop/tilt feedback
 are translated to vanilla HTML/CSS/JavaScript. Artwork is the portfolio owner’s
 Drive content; upstream stock images are not included.
+
+# Portfolio Field Notes (24 October 2026)
+
+The Field Notes archive borrows **interaction patterns**, not unchanged TSX source, from the free component catalogs: [useLayouts](https://uselayouts.com), [Rare UI](https://rareui.com) and [beUI](https://beui.dev). See `portfolio-field-notes/README.md` for the 16 named inspirations and their functions. The dependency-free HTML/CSS/JavaScript adaptations were written for the existing static portfolio; no upstream PRO assets are included. The Rare UI MIT + Commons Clause + Attribution, UseLayouts MIT notices above continue to apply. beUI is MIT-licensed; original license: https://github.com/starc007/ui-components/blob/main/LICENSE (copyright Saurabh Chauhan and contributors).
