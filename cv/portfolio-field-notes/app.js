@@ -85,6 +85,8 @@
   document.addEventListener("keydown",event=>{if(event.key==="Escape")closeSort()});
   document.querySelector("[data-reset]").addEventListener("click",()=>{input.value="";setFilter("all");input.focus()});
   let view=previous?.view;
+  const requestedView=new URLSearchParams(location.search).get('view');
+  if(requestedView==='list'||requestedView==='grid')view=requestedView;
   if(view!=="list"&&view!=="grid"){try{view=localStorage.getItem("pkm.field-notes.view.v1")}catch{}}
   setView(view==="list"?"list":"grid");
   setSort(sort);
