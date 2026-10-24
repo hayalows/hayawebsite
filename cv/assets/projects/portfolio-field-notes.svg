@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">Portfolio Field Notes</title>
+  <desc id="desc">A quiet editorial cover for an independent review of 50 portfolios.</desc>
+  <rect width="1200" height="750" fill="#090908"/>
+  <path d="M72 80H1128M72 670H1128" stroke="#38362f" stroke-width="2"/>
+  <circle cx="1035" cy="192" r="130" fill="none" stroke="#5b513e" stroke-width="1"/>
+  <circle cx="1035" cy="192" r="90" fill="none" stroke="#34312a" stroke-width="1"/>
+  <path d="M905 192h260M1035 62v260" stroke="#34312a" stroke-width="1"/>
+  <text x="74" y="124" fill="#a69f93" font-family="Arial,sans-serif" font-size="20" letter-spacing="5">INDEPENDENT PORTFOLIO REVIEW · 2026</text>
+  <text x="70" y="302" fill="#f2f0ea" font-family="Georgia,serif" font-size="108" letter-spacing="-5">Portfolio</text>
+  <text x="70" y="405" fill="#bba783" font-family="Georgia,serif" font-size="108" font-style="italic" letter-spacing="-5">Field Notes</text>
+  <text x="76" y="470" fill="#c2bdb3" font-family="Arial,sans-serif" font-size="23">Good work, made legible.</text>
+  <g transform="translate(76 572)" font-family="Arial,sans-serif">
+    <text x="0" y="0" fill="#f2f0ea" font-family="Georgia,serif" font-size="37">50</text>
+    <text x="54" y="0" fill="#918a7d" font-size="15" letter-spacing="1">PORTFOLIOS</text>
+    <path d="M188 -29v43" stroke="#38362f"/>
+    <text x="218" y="0" fill="#f2f0ea" font-family="Georgia,serif" font-size="37">46</text>
+    <text x="272" y="0" fill="#918a7d" font-size="15" letter-spacing="1">ASSESSED</text>
+    <path d="M403 -29v43" stroke="#38362f"/>
+    <text x="434" y="0" fill="#f2f0ea" font-family="Georgia,serif" font-size="37">04</text>
+    <text x="488" y="0" fill="#918a7d" font-size="15" letter-spacing="1">TO REVISIT</text>
+  </g>
+  <text x="1124" y="708" fill="#8e8980" font-family="Arial,sans-serif" font-size="16" letter-spacing="2" text-anchor="end">BY PAPA KOJO MENSAH</text>
+</svg>

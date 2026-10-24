@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en-GH">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090908">
+    <meta name="description" content="A considered index of 50 portfolios, with practical notes for designers and hiring teams. Independent research by Papa Kojo Mensah.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Portfolio Field Notes — a closer look at the work">
+    <meta property="og:description" content="50 portfolios, read for clarity, craft, evidence and the decisions behind the work.">
+    <meta property="og:url" content="https://pkm.hayalows.com/portfolio-field-notes/">
+    <title>Portfolio Field Notes — Papa Kojo Mensah</title>
+    <link rel="canonical" href="https://pkm.hayalows.com/portfolio-field-notes/">
+    <link rel="stylesheet" href="styles.css?v=field-notes-1">
+    <script src="data.js?v=field-notes-1" defer></script>
+    <script src="app.js?v=field-notes-1" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to the field notes</a>
+    <header class="topbar">
+      <a class="wordmark" href="./" aria-label="Portfolio Field Notes home">
+        <span class="wordmark__mark" aria-hidden="true">FN</span>
+        <span class="wordmark__copy"><strong>Portfolio Field Notes</strong><small>An independent review by Papa Kojo Mensah</small></span>
+      </a>
+      <nav class="topnav" aria-label="Main navigation">
+        <a href="#close-reads">Close reads</a>
+        <a href="#index">The index</a>
+        <a href="#method">Method</a>
+        <a class="topnav__portfolio" href="https://pkm.hayalows.com/">Papa Kojo’s portfolio <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro__copy">
+          <p class="eyebrow"><span class="eyebrow__line" aria-hidden="true"></span> An independent reading · 24 October 2026</p>
+          <h1 id="page-title">Good work,<br><em>made legible.</em></h1>
+          <p class="intro__lead">A closer look at 50 portfolios found through one X thread and its replies. The useful question is bigger than “does it look good?” It is whether the work, thinking and contribution are clear.</p>
+          <a class="text-link" href="#close-reads">Start with the close reads <span aria-hidden="true">↓</span></a>
+        </div>
+        <aside class="intro__note" aria-label="Review principle">
+          <span class="intro__note-mark" aria-hidden="true">“</span>
+          <p>A strong portfolio gives you something real to believe in—and enough detail to understand why.</p>
+          <span class="intro__note-credit">The lens used throughout these notes</span>
+        </aside>
+      </section>
+
+      <section class="facts" aria-label="Review coverage">
+        <div><strong>50</strong><span>portfolios in the index</span></div>
+        <div><strong>46</strong><span>assessed in the saved review</span></div>
+        <div><strong>04</strong><span>could not be assessed at that time</span></div>
+        <p>Popularity did not enter the quality review.</p>
+      </section>
+
+      <section class="close-reads section-block" id="close-reads" aria-labelledby="close-reads-title">
+        <header class="section-heading">
+          <div><p class="eyebrow">01 / The closer reads</p><h2 id="close-reads-title">A few ways to make work easier to trust.</h2></div>
+          <p class="section-heading__aside">Twelve portfolios sit in the leading group of the earlier quality pass. Ties at the edge stay together; this is a reading list, not a numbered podium.</p>
+        </header>
+
+        <div class="lens-control" role="group" aria-label="Choose a reading lens">
+          <span class="lens-control__label">Read these as</span>
+          <button type="button" class="lens-button is-active" data-lens="designer" aria-pressed="true">A designer</button>
+          <button type="button" class="lens-button" data-lens="hiring" aria-pressed="false">A hiring team</button>
+        </div>
+        <p class="lens-explainer" data-lens-explainer aria-live="polite">Look for a decision you can learn from and a way to explain your own contribution more clearly.</p>
+        <div class="featured-list" id="featured-list" aria-live="polite"></div>
+      </section>
+
+      <section class="directory section-block" id="index" aria-labelledby="index-title">
+        <header class="section-heading section-heading--directory">
+          <div><p class="eyebrow">02 / The index</p><h2 id="index-title">Fifty ways into the work.</h2></div>
+          <p class="section-heading__aside">Search by name or portfolio address. Open the original site and make up your own mind.</p>
+        </header>
+
+        <div class="directory-tools">
+          <label class="search-field">
+            <span class="visually-hidden">Search portfolios by name or web address</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 4.3 4.3"></path></svg>
+            <input id="portfolio-search" type="search" autocomplete="off" placeholder="Find a name or site…" aria-controls="portfolio-list">
+            <kbd aria-hidden="true">/</kbd>
+          </label>
+          <div class="filter-row" role="group" aria-label="Filter the portfolio index">
+            <button type="button" class="filter-button is-active" data-filter="all" aria-pressed="true">All <span>50</span></button>
+            <button type="button" class="filter-button" data-filter="featured" aria-pressed="false">Leading group <span>12</span></button>
+            <button type="button" class="filter-button" data-filter="revisit" aria-pressed="false">Needs another look <span>4</span></button>
+          </div>
+          <p class="result-count" id="result-count" aria-live="polite"></p>
+        </div>
+        <ol class="portfolio-list" id="portfolio-list"></ol>
+        <div class="empty-state" id="empty-state" hidden>
+          <p>No portfolios match that search.</p>
+          <button type="button" data-clear-search>Clear the search</button>
+        </div>
+      </section>
+
+      <section class="method section-block" id="method" aria-labelledby="method-title">
+        <header class="section-heading">
+          <div><p class="eyebrow">03 / The method</p><h2 id="method-title">What I looked for.</h2></div>
+          <p class="section-heading__aside">A structured read of what the portfolio makes visible, with the original work kept one click away.</p>
+        </header>
+        <div class="method-layout">
+          <div class="method-criteria" aria-label="Review criteria and weights">
+            <div><span>01</span><strong>Role clarity</strong><small>15 points</small></div>
+            <div><span>02</span><strong>Work and case-study evidence</strong><small>20 points</small></div>
+            <div><span>03</span><strong>Contribution and decisions</strong><small>20 points</small></div>
+            <div><span>04</span><strong>Outcomes and credibility</strong><small>15 points</small></div>
+            <div><span>05</span><strong>Visual craft and originality</strong><small>20 points</small></div>
+            <div><span>06</span><strong>Usability and technical finish</strong><small>10 points</small></div>
+          </div>
+          <aside class="method-note">
+            <h3>Read this with care.</h3>
+            <p>The saved pass focused mainly on desktop presentation. Metrics are treated as claims made by the portfolio unless independently verified. It was not a systematic mobile, accessibility or performance audit.</p>
+            <p>Four sites could not be assessed at the time; that is an access note, not a quality judgment. One recorded address also needs confirmation.</p>
+            <p>The notes are prompts for your own review, not endorsements or hiring recommendations. Visit the source before drawing a conclusion.</p>
+            <a href="https://x.com/zarazhangrui/status/2113148949842534482" target="_blank" rel="noopener">See the original X post <span aria-hidden="true">↗</span></a>
+          </aside>
+        </div>
+      </section>
+
+      <section class="contribute" aria-labelledby="contribute-title">
+        <div><p class="eyebrow">Keep the field notes growing</p><h2 id="contribute-title">Know a portfolio worth studying?</h2></div>
+        <a href="mailto:mpapakojo@gmail.com?subject=Portfolio%20Field%20Notes">Send me the link <span aria-hidden="true">↗</span></a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a href="https://pkm.hayalows.com/">Papa Kojo Mensah</a>
+      <span>Independent notes on how people present their work.</span>
+      <a href="#main">Back to top ↑</a>
+    </footer>
+  </body>
+</html>

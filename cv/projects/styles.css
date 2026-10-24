@@ -63,3 +63,13 @@ summary:focus-visible,button:focus-visible{outline:2px solid #e5f3fd;outline-off
 .case__actions a:hover{text-decoration:underline;text-underline-offset:.2em}
 .project-story[data-project="hayalows"] .story-preview img{aspect-ratio:4/3}
 @media(max-width:46rem){.case-founder__visual{margin-top:1rem}}
+.case--field-notes{--field-accent:#bba783;border-color:#39352c;background:linear-gradient(145deg,#171613,#10100e 72%)}
+.case--field-notes .case__header{border-color:#3b382f}
+.case--field-notes .eyebrow,.case--field-notes .case__visit,.case--field-notes .case__actions a{color:var(--field-accent)}
+.case--field-notes .case__grid{border-color:#37342d;background:#37342d}
+.case--field-notes .case__grid section{background:#12110f}
+.case--field-notes .case__grid h3{color:var(--field-accent)}
+.case--field-notes .case__grid p,.case--field-notes .case__note span{color:#c7c2b8;line-height:1.65}
+.case--field-notes .case__note{border-left-color:var(--field-accent);background:#11100d}
+.case--field-notes .case-founder__visual{border-color:#3b382f;background:#090908}
+.case--field-notes .case-founder__visual img{aspect-ratio:8/5;object-fit:cover}
