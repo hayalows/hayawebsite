@@ -1,141 +1,45 @@
+/* Field Notes archive: sorting, layout, search and saved filters. */
 (() => {
-  const entries = window.PORTFOLIO_ENTRIES || [];
-  const featuredList = document.querySelector("#featured-list");
-  const portfolioList = document.querySelector("#portfolio-list");
-  const searchInput = document.querySelector("#portfolio-search");
-  const resultCount = document.querySelector("#result-count");
-  const emptyState = document.querySelector("#empty-state");
-  const lensExplainer = document.querySelector("[data-lens-explainer]");
-  const lensCopy = {
-    designer: "Look for a decision you can learn from and a way to explain your own contribution more clearly.",
-    hiring: "Look for evidence of ownership, judgment and outcomes—and note where a claim still needs a conversation to verify it."
-  };
-  let activeLens = "designer";
-  let activeFilter = "all";
-
-  const make = (tag, className, text) => {
-    const node = document.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined) node.textContent = text;
-    return node;
-  };
-  const hostFor = entry => entry.url ? new URL(entry.url).hostname.replace(/^www\./, "") : (entry.domain || "Portfolio link needs confirmation");
-  const makeLink = (href, label, className = "") => {
-    const link = make("a", className, label);
-    link.href = href;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    return link;
-  };
-
-  function renderFeatured() {
-    featuredList.replaceChildren();
-    const picks = entries.filter(entry => entry.featured);
-    picks.forEach((entry, index) => {
-      const card = make("article", "featured-card");
-      const top = make("div", "featured-card__top");
-      top.append(make("span", "featured-card__index", `FIELD NOTE ${String(index + 1).padStart(2, "0")}`));
-      top.append(make("span", "featured-card__label", "Leading group · ties kept"));
-      card.append(top);
-      card.append(make("h3", "", entry.name));
-      if (entry.subline) card.append(make("p", "featured-card__subline", entry.subline));
-      const note = make("p", "featured-card__note", entry[activeLens] || (activeLens === "designer" ? "Open the source and look for one decision that makes the work easier to understand." : "Use the source to check role, project context and the evidence behind any outcome claim."));
-      card.append(note);
-      const links = make("div", "featured-card__source");
-      if (entry.url) links.append(makeLink(entry.url, "Visit portfolio ↗"));
-      else links.append(make("span", "", "Link needs confirmation"));
-      if (entry.caseUrl && entry.caseUrl !== entry.url) links.append(makeLink(entry.caseUrl, "Open a project example ↗"));
-      card.append(links);
-      featuredList.append(card);
+  "use strict";
+  const grid=document.getElementById("portfolio-grid");
+  if(!grid)return;
+  const cards=[...grid.querySelectorAll(".portfolio-card")];
+  const input=document.getElementById("search"),count=document.getElementById("visible-count"),empty=document.getElementById("empty");
+  let filter="all",sort="az";
+  function saved(){try{const ids=JSON.parse(localStorage.getItem("pkm.field-notes.saved.v1")||"[]");return new Set(Array.isArray(ids)?ids:[])}catch{return new Set()}}
+  function draw(){
+    const search=input.value.toLowerCase().trim(),mine=saved();let visible=0;
+    cards.forEach(card=>{
+      const matched=!search||card.dataset.search.includes(search);
+      const allowed=filter==="all"||(filter==="featured"&&card.dataset.featured==="true")||(filter==="revisit"&&card.dataset.revisit==="true")||(filter==="saved"&&mine.has(card.dataset.id));
+      card.hidden=!(matched&&allowed);
+      if(!card.hidden)visible++;
     });
+    count.textContent=String(visible);empty.hidden=visible>0;
+    cards.sort((a,b)=>sort==="original"?Number(a.dataset.index)-Number(b.dataset.index):sort==="za"?b.dataset.name.localeCompare(a.dataset.name):a.dataset.name.localeCompare(b.dataset.name)).forEach(card=>grid.append(card));
   }
-
-  function matches(entry, query) {
-    const haystack = `${entry.name} ${entry.url || ""} ${entry.domain || ""} ${entry.subline || ""}`.toLowerCase();
-    if (query && !haystack.includes(query)) return false;
-    if (activeFilter === "featured" && !entry.featured) return false;
-    if (activeFilter === "revisit" && entry.reviewed !== false) return false;
-    return true;
-  }
-
-  function renderDirectory() {
-    const query = searchInput.value.trim().toLowerCase();
-    const shown = entries.filter(entry => matches(entry, query)).sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity:"base"}));
-    portfolioList.replaceChildren();
-    shown.forEach((entry, index) => {
-      const rowClass = `portfolio-row${entry.reviewed === false ? " portfolio-row--revisit" : ""}${entry.linkCheck ? " portfolio-row--link-check" : ""}`;
-      const row = make("li", rowClass);
-      row.append(make("span", "portfolio-row__number", String(index + 1).padStart(2, "0")));
-      const name = make("span", "portfolio-row__name");
-      if (entry.url) name.append(makeLink(entry.url, entry.name));
-      else name.append(document.createTextNode(entry.name));
-      row.append(name);
-      const meta = make("span", "portfolio-row__meta");
-      meta.append(make("span", "portfolio-row__domain", hostFor(entry)));
-      if (entry.revisitNote) meta.append(make("span", "portfolio-row__detail", entry.revisitNote));
-      else if (entry.linkCheck) meta.append(make("span", "portfolio-row__detail", "The address in the saved notes needs confirmation."));
-      row.append(meta);
-      let status = "Reviewed";
-      let statusClass = "portfolio-row__status";
-      if (entry.reviewed === false) {
-        status = "Needs another look";
-        statusClass += " portfolio-row__status--revisit";
-      } else if (entry.linkCheck) {
-        status = "Link to check";
-      } else if (entry.featured) {
-        status = "Leading group";
-        statusClass += " portfolio-row__status--featured";
-      }
-      row.append(make("span", statusClass, status));
-      row.append(make("span", `portfolio-row__arrow${entry.url ? "" : " portfolio-row__arrow--muted"}`, entry.url ? "↗" : "·"));
-      row.title = entry.reviewed === false ? entry.revisitNote : (entry.linkCheck ? "The address in the earlier notes needs confirmation." : "");
-      portfolioList.append(row);
-    });
-    const total = entries.length;
-    resultCount.textContent = `${shown.length} of ${total} portfolios${activeFilter === "revisit" ? " · not assessed in the earlier pass" : ""}${query ? ` · matching “${searchInput.value.trim()}”` : ""}`;
-    emptyState.hidden = shown.length > 0;
-    portfolioList.hidden = shown.length === 0;
-  }
-
-  document.querySelectorAll("[data-lens]").forEach(button => {
-    button.addEventListener("click", () => {
-      activeLens = button.dataset.lens;
-      document.querySelectorAll("[data-lens]").forEach(item => {
-        const active = item === button;
-        item.classList.toggle("is-active", active);
-        item.setAttribute("aria-pressed", String(active));
-      });
-      lensExplainer.textContent = lensCopy[activeLens];
-      renderFeatured();
-    });
-  });
-
-  document.querySelectorAll("[data-filter]").forEach(button => {
-    button.addEventListener("click", () => {
-      activeFilter = button.dataset.filter;
-      document.querySelectorAll("[data-filter]").forEach(item => {
-        const active = item === button;
-        item.classList.toggle("is-active", active);
-        item.setAttribute("aria-pressed", String(active));
-      });
-      renderDirectory();
-    });
-  });
-
-  searchInput.addEventListener("input", renderDirectory);
-  document.querySelector("[data-clear-search]").addEventListener("click", () => {
-    searchInput.value = "";
-    activeFilter = "all";
-    document.querySelector('[data-filter="all"]').click();
-    searchInput.focus();
-  });
-  document.addEventListener("keydown", event => {
-    if (event.key === "/" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
-      event.preventDefault();
-      searchInput.focus();
-    }
-  });
-
-  renderFeatured();
-  renderDirectory();
+  input.addEventListener("input",draw);
+  document.addEventListener("fieldnotes:saved",draw);
+  document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>{
+    filter=button.dataset.filter;
+    document.querySelectorAll("[data-filter]").forEach(other=>{const yes=other===button;other.classList.toggle("is-active",yes);other.setAttribute("aria-pressed",String(yes))});
+    draw();
+  }));
+  document.querySelectorAll("[data-view]").forEach(button=>button.addEventListener("click",()=>{
+    const list=button.dataset.view==="list";grid.classList.toggle("is-list",list);
+    document.querySelectorAll("[data-view]").forEach(other=>{const yes=other===button;other.classList.toggle("is-active",yes);other.setAttribute("aria-pressed",String(yes))});
+    try{localStorage.setItem("pkm.field-notes.view.v1",button.dataset.view)}catch{}
+  }));
+  try{if(localStorage.getItem("pkm.field-notes.view.v1")==="list")document.querySelector('[data-view="list"]').click()}catch{}
+  const trigger=document.querySelector("[data-sort-open]"),options=document.getElementById("sort-options");
+  function closeSort(){options.hidden=true;trigger.setAttribute("aria-expanded","false")}
+  trigger.addEventListener("click",()=>{options.hidden=!options.hidden;trigger.setAttribute("aria-expanded",String(!options.hidden))});
+  document.querySelectorAll("[data-sort]").forEach(button=>button.addEventListener("click",()=>{
+    sort=button.dataset.sort;trigger.firstChild.textContent=button.textContent+" ";
+    closeSort();draw();
+  }));
+  document.addEventListener("click",event=>{if(!event.target.closest(".sort-wrap"))closeSort()});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")closeSort()});
+  document.querySelector("[data-reset]").addEventListener("click",()=>{input.value="";document.querySelector('[data-filter="all"]').click()});
+  draw();
 })();
