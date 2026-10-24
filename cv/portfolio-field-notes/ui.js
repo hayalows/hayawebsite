@@ -115,5 +115,28 @@
     try{await navigator.clipboard.writeText(location.href);notify("Link copied")}
     catch{notify("Could not copy. Use your browser share menu.")}
   }));
+
+  // Rare UI Grid Reveal + useLayouts Pop Tilt Cards: low-amplitude progressive enhancement.
+  const reducedMotion=matchMedia("(prefers-reduced-motion: reduce)");
+  const cards=[...document.querySelectorAll(".portfolio-card")];
+  if(!reducedMotion.matches&&"IntersectionObserver" in window){
+    const reveal=new IntersectionObserver(records=>records.forEach(record=>{
+      if(!record.isIntersecting)return;
+      record.target.classList.add("has-entered");reveal.unobserve(record.target);
+    }),{rootMargin:"75px"});
+    cards.forEach(card=>{card.classList.add("can-reveal");reveal.observe(card)});
+  }
+  if(matchMedia("(hover: hover) and (pointer: fine)").matches&&!reducedMotion.matches){
+    document.querySelectorAll(".portfolio-card .preview").forEach(preview=>{
+      let frame=0;
+      preview.addEventListener("pointermove",event=>{
+        cancelAnimationFrame(frame);
+        const bounds=preview.getBoundingClientRect();
+        const x=(event.clientX-bounds.left)/bounds.width-.5,y=(event.clientY-bounds.top)/bounds.height-.5;
+        frame=requestAnimationFrame(()=>preview.style.transform="perspective(800px) rotateX("+(-y*2.5).toFixed(2)+"deg) rotateY("+(x*2.5).toFixed(2)+"deg)");
+      },{passive:true});
+      preview.addEventListener("pointerleave",()=>{cancelAnimationFrame(frame);preview.style.transform=""});
+    });
+  }
   refreshBookmarks();
 })();
