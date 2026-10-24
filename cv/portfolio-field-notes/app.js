@@ -63,13 +63,18 @@
     const shown = entries.filter(entry => matches(entry, query)).sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity:"base"}));
     portfolioList.replaceChildren();
     shown.forEach((entry, index) => {
-      const row = make("li", "portfolio-row");
+      const rowClass = `portfolio-row${entry.reviewed === false ? " portfolio-row--revisit" : ""}${entry.linkCheck ? " portfolio-row--link-check" : ""}`;
+      const row = make("li", rowClass);
       row.append(make("span", "portfolio-row__number", String(index + 1).padStart(2, "0")));
       const name = make("span", "portfolio-row__name");
       if (entry.url) name.append(makeLink(entry.url, entry.name));
       else name.append(document.createTextNode(entry.name));
       row.append(name);
-      row.append(make("span", "portfolio-row__domain", hostFor(entry)));
+      const meta = make("span", "portfolio-row__meta");
+      meta.append(make("span", "portfolio-row__domain", hostFor(entry)));
+      if (entry.revisitNote) meta.append(make("span", "portfolio-row__detail", entry.revisitNote));
+      else if (entry.linkCheck) meta.append(make("span", "portfolio-row__detail", "The address in the saved notes needs confirmation."));
+      row.append(meta);
       let status = "Reviewed";
       let statusClass = "portfolio-row__status";
       if (entry.reviewed === false) {
