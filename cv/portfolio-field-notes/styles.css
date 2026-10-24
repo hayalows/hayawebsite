@@ -22,3 +22,11 @@ dialog{border:1px solid var(--edge);border-radius:14px;background:var(--paper);c
  .nav-button[title]:hover::after,.nav-button[title]:focus-visible::after{content:attr(title);position:absolute;top:calc(100% + 11px);left:50%;transform:translateX(-50%);padding:5px 8px;white-space:nowrap;font:11px var(--sans);color:var(--bg);background:var(--text);border-radius:5px;pointer-events:none;z-index:50}
 }
 @media(prefers-reduced-motion:reduce){.portfolio-card.can-reveal{opacity:1!important;transform:none!important}}
+
+/* Final live-device polish: no redundant edition line, no visible gallery scrollbar, readable search icon. */
+.featured-list{scrollbar-width:none}
+.featured-list::-webkit-scrollbar{display:none}
+@media(max-width:560px){
+ .search-button kbd{font-size:0!important}
+ .search-button kbd::before{content:"⌕";font:21px/1 var(--sans)}
+}
