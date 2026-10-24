@@ -1,0 +1,452 @@
+[
+  {
+    "id": "ux-derrick",
+    "noticed": "The first thing I notice is how clearly Derrick shows the work. Navii, Chime and the Ghana Health Recruitment project appear as real products rather than decorative mockups.",
+    "works": "The visual work is polished, but the useful part is the case-study structure. You can move from an interface into the decisions and constraints behind it. Any adoption figures are still the creator's own claims.",
+    "recommendation": "Start with Navii. Pay attention to how the identity and privacy decisions relate to the people who would use the product.",
+    "focusUrl": "https://www.uxderrick.com/works/navii",
+    "focusLabel": "Read the Navii case",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "madurey",
+    "noticed": "Chiemeka presents himself as someone who builds the interface and the systems behind it. The interactive camera grid is memorable, and the page explains that camera processing stays on the device.",
+    "works": "The Tenriva project gives this portfolio substance. It follows HR requests through approvals, access provisioning and an audit trail, so the problem is easier to picture.",
+    "recommendation": "Read the Tenriva case if you want an example of explaining a technical workflow in ordinary language. Then look at the camera interaction and its permission explanation.",
+    "focusUrl": "https://madurey.com/work/tenriva",
+    "focusLabel": "Read Tenriva",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "ena-labs",
+    "noticed": "Ena connects product management, software, music and live events on one page. The DJ-style navigation gives the site character without hiding the work and experience sections.",
+    "works": "The portfolio explains the kind of problems Ena works on and includes project stories such as Kickback. It helps a visitor see a person with practical interests beyond a job title. Reported launch figures need independent confirmation.",
+    "recommendation": "Open the work section and look at Kickback. Focus on what Ena says she owned, what was shipped and how the outcome was measured.",
+    "focusUrl": "https://ena-labs.netlify.app/#work",
+    "focusLabel": "Explore Ena's work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "kayoje",
+    "noticed": "Kayode starts with backend engineering and platform work, then uses a system illustration to make that world visible. The site identifies the diagram as illustrative, which matters.",
+    "works": "The portfolio makes infrastructure easier to discuss by naming services, responsibilities and the context in which they operate. Its scale figures are reported by the owner.",
+    "recommendation": "Go to the work section and study the system breakdown. Notice how a complex backend can be presented without making every visitor read code.",
+    "focusUrl": "https://kayoje.com/#work",
+    "focusLabel": "See the work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "seun-akanni",
+    "noticed": "Seun opens with a clear frontend-engineering identity and puts selected results close to the work. Cases such as Mira and Chowdeck's Black Friday campaign give the claims something specific to point to.",
+    "works": "The case links connect engineering work to product and business activity. Those results are portfolio-reported, so I'd read the underlying case before treating any figure as established.",
+    "recommendation": "Start with the Mira case. Check how the implementation, ownership and reported growth are explained together.",
+    "focusUrl": "https://seun.akanni.me/works/mira",
+    "focusLabel": "Read Mira",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "emisho-victor",
+    "noticed": "Emisho has a large collection, but the distinction between case studies, projects and explorations gives it structure. His fintech role is clearly stated from the start.",
+    "works": "The portfolio separates deep explanations from smaller interaction experiments, so visitors can look for substance or visual craft without confusing the two.",
+    "recommendation": "Open the B2B payments case first. Then look at a motion exploration to see how the same designer thinks at different levels of detail.",
+    "focusUrl": "https://emishovictor.com/case-studies/vendor-platform",
+    "focusLabel": "Read the payments case",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "daniel-koyejo",
+    "noticed": "Daniel positions himself as a product designer who thinks in systems. MeshKit, Serverly and QuickPan show different ways that approach could take shape.",
+    "works": "I like that the projects are described in terms of what the product does, not simply which screens were made. The QuickPan notes are especially useful for thinking about implementation details.",
+    "recommendation": "Start with Serverly or QuickPan. Look for how the interface responds when the design reaches real devices and real use cases.",
+    "focusUrl": "https://www.koyejo.design/serverly",
+    "focusLabel": "Explore Serverly",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "tp-dapson",
+    "noticed": "Timi brings product design and design engineering together, with separate case studies and a playground. The work spans mobile apps, dashboards and digital services.",
+    "works": "The selected projects make it easy to enter a specific problem. SoulSync and Spendive are stronger starting points than a long page of isolated visuals.",
+    "recommendation": "I'd begin with Spendive and look for the steps behind the spend-management flow. A finished screen is useful, but the decisions around it are what I'd want to understand.",
+    "focusUrl": "https://www.tpdapson.com/work/spendive",
+    "focusLabel": "Read Spendive",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "naved",
+    "noticed": "Naved's positioning is unusually specific: he builds systems that let teams stay consistent without a designer making every asset. Illos and the NodeOps work illustrate that idea.",
+    "works": "The portfolio links finished interfaces to developer and team workflows. The case studies give a visitor a useful starting point for assessing the product decisions.",
+    "recommendation": "Read NodeOps Console if complex interfaces interest you. See how the operational problem is reduced into steps and what evidence supports the claims.",
+    "focusUrl": "https://naved.xyz/work/nodeops-console",
+    "focusLabel": "Read NodeOps Console",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "farirai-masocha",
+    "noticed": "Farirai presents small shipped products and developer utilities rather than relying on one big headline. Subit is a particularly clear example.",
+    "works": "Subit explains a sequence of user actions and the technical decisions connecting preview and final output. That makes the project understandable even before looking at its code.",
+    "recommendation": "Start with Subit. Follow the upload, edit and export steps, then compare how the site explains the preview and rendered result.",
+    "focusUrl": "https://fariraimasocha.co.zw/projects/subit",
+    "focusLabel": "Read Subit",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "faye-visuals",
+    "noticed": "Faye moves between brand, product design and code. The page tells you that direction plainly and separates product work from brand and motion work.",
+    "works": "The work categories give a broad practice some order. I appreciate seeing live builds alongside design presentations because visitors can compare the intention with the product that was actually made.",
+    "recommendation": "Open the selected product projects before the motion experiments. Look for the problem, the role and the decisions that carried through into the build.",
+    "focusUrl": "https://fayevisuals.space/#work",
+    "focusLabel": "Explore selected work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "spencer-hong",
+    "noticed": "Spencer's opening uses a scientific visual, then leads into applied AI research, writing and music. It feels connected to the work rather than added simply for decoration.",
+    "works": "The portfolio gives different paths into experience and research, and it explains the focus on long-running autonomous agents. The interactive element also documents keyboard controls.",
+    "recommendation": "Visit the research section and read one project or paper. The useful question is how the research problem and method are explained to people outside the field.",
+    "focusUrl": "https://www.spencerhong.com/work/research",
+    "focusLabel": "Read the research",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "aizenosa-abu",
+    "noticed": "Aizenosa leads with content strategy and digital marketing, then shows the actual work behind the role: scripts, calendars, social posts and campaign reporting.",
+    "works": "I like that the portfolio connects creative output to a process and includes individual brand case studies. Its commercial and growth numbers are the author's reported results, not independently audited figures.",
+    "recommendation": "Start with the LB and Mediccy Pharmacy case. Look for the connection between a content decision, what was published and what the reporting shows.",
+    "focusUrl": "https://aizenosaabu.com/work/lb-mediccy.html",
+    "focusLabel": "Read the pharmacy case",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "ajan-wachuku",
+    "noticed": "Ajan separates client work, a gallery and a playground. That gives visitors a useful choice between studying shipped projects and simply looking at experiments.",
+    "works": "The site has a distinct voice, but the structure stays straightforward. PocketApp is presented as product and engineering work rather than just a gallery item.",
+    "recommendation": "I'd begin with PocketApp, then visit the playground. Compare how the practical case and the experiments are explained.",
+    "focusUrl": "https://www.ajanwachuku.work/work/pocket/",
+    "focusLabel": "Read PocketApp",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "balogun-oluwasogo",
+    "noticed": "Balogun states the two roles clearly: software engineering and digital design. The project list covers products, websites and an archive of interactions.",
+    "works": "The work is grouped by what was built. Jobtrackr and Morrow Studio let a visitor move beyond a general statement about craft into specific projects.",
+    "recommendation": "Start with Jobtrackr for the product story, then look at Artifacts for the smaller interaction decisions.",
+    "focusUrl": "https://www.balogunoluwasogo.com/work/jobtrackr",
+    "focusLabel": "Read Jobtrackr",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "bramy",
+    "noticed": "Bramy's desk and laptop concept makes the site feel like a personal workspace. There is still a direct way to skip the animation and reach the projects.",
+    "works": "The interaction has a purpose: the work appears as things on the desk, with products described in terms of actual tasks. The skip route matters for anyone who wants the information quickly.",
+    "recommendation": "Try the desk experience once, then use Skip to the work. Look at how the projects explain what people can do, not just how they look.",
+    "focusUrl": "https://bramy.space/#work",
+    "focusLabel": "See the shipped work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "bright-tsa",
+    "noticed": "Bright talks about designing financial flows at Hubtel and Wewire, with trust and everyday money movement as the setting.",
+    "works": "That context helps make product design concrete. The page connects the role to a service many people rely on, and gives the Hubtel work its own case-study route.",
+    "recommendation": "Open the Hubtel case. I'd look for how the flow handles uncertainty, money and the points where a user needs reassurance.",
+    "focusUrl": "https://brighttsa.com/work/hubtel/",
+    "focusLabel": "Read the Hubtel case",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "creative-whakee",
+    "noticed": "This entry was collected from the original portfolio thread, but I could not confirm a working website address from the saved record.",
+    "works": "There isn't enough verified material here for me to describe the work or judge how well it is presented.",
+    "recommendation": "I wouldn't recommend a specific project until the original portfolio link is confirmed. This entry stays in the archive so its source can be corrected.",
+    "focusUrl": null,
+    "focusLabel": null,
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "david-bilson",
+    "noticed": "David presents himself as a design engineer taking work from idea to production. The page mixes service areas, previous work and client comments.",
+    "works": "The value of the positioning is clear: it tells potential clients what they could ask him to build. Client testimonials are presented as quotes on the site, not independently verified endorsements.",
+    "recommendation": "Look for a complete SaaS or business-website project. Pay attention to how design choices and technical delivery are connected.",
+    "focusUrl": "https://davidbilson.dev/#work",
+    "focusLabel": "Explore David's work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "dev-emmanuel",
+    "noticed": "Emmanuel focuses on frontend engineering, performance and usability, then provides a project section rather than leaving those ideas as claims.",
+    "works": "ScanA11y caught my attention because it addresses a concrete developer problem: finding accessibility issues in HTML and component files. The site describes the tool and its intended use.",
+    "recommendation": "Go to ScanA11y and look at what it scans, what it reports and how another developer would act on the result.",
+    "focusUrl": "https://www.devemmanuel.tech/#projects",
+    "focusLabel": "Explore ScanA11y",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "fazl",
+    "noticed": "Fazl mixes web products with hardware and robotics. Farmily, PaperTrail and ShuttleGO make that range visible, while the notes explain some of the technical work.",
+    "works": "The project and writing sections complement each other. I like being able to move from a project title to a longer explanation of how something was built.",
+    "recommendation": "Start with ShuttleGO if you want a practical campus product, then read the livestock-tracking article for the hardware side.",
+    "focusUrl": "https://fdcdevv.vercel.app/projects/shuttlego",
+    "focusLabel": "Read ShuttleGO",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "harshit-raghuwanshi",
+    "noticed": "Harshit's portfolio has an editorial, annotated feel, but it still provides direct paths to projects, experiments and experience.",
+    "works": "The organization helps separate deployed full-stack work from visual experiments. The stack and project categories make it easier to decide which work to inspect.",
+    "recommendation": "Open the projects page first. Choose one full-stack build and look for what happens beyond the interface: data, state and deployment.",
+    "focusUrl": "https://www.harshitr.me/projects",
+    "focusLabel": "Browse projects",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "hey-amit",
+    "noticed": "Amit uses a terminal-inspired presentation that fits the backend, Linux and tool-building work described in the page.",
+    "works": "The project, contribution and experience sections support that technical identity. Contributions and a named TUI library give interested visitors specific things to inspect.",
+    "recommendation": "Look at Tarang and the contributions section. I'd check the documentation and actual source before judging the engineering quality.",
+    "focusUrl": "https://github.com/vyrx-dev/tarang",
+    "focusLabel": "See Tarang on GitHub",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "joel-bill",
+    "noticed": "Joel presents product marketing and growth work through roles, campaigns and reported outcomes, not a gallery of visuals.",
+    "works": "The work section names organizations and gives concrete campaign responsibilities. Figures such as growth rates and email opens are claims presented by the creator and should be read in that context.",
+    "recommendation": "Start with the Achieve by Petra experience. Look at the campaign actions beside the reported results, then ask what measurement period each number covers.",
+    "focusUrl": "https://joelbill.com/#experience",
+    "focusLabel": "Read the work experience",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "jonathan-adoo",
+    "noticed": "Jonathan's interests in robotics and software show up immediately in the actual projects. There are ROS 2 builds, a reservation service and technical writing.",
+    "works": "I like how the entries identify the problem and the tools used. A two-wheeled robot simulation and a booking service need different kinds of explanation, and the page gives both a route.",
+    "recommendation": "Open the differential-drive robot project, then read the robotics writing. Compare the code description with the explanation of how someone would run it.",
+    "focusUrl": "https://github.com/adoodevv/diff_drive_robot",
+    "focusLabel": "Explore the robot project",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "king-uranta",
+    "noticed": "King's site is led by creative work, especially music-related visuals and art. The range includes stage visuals, moving images and personal pieces.",
+    "works": "The work itself takes the foreground. Visitors can enter an individual piece rather than reading a long account of the creator first.",
+    "recommendation": "I'd start with one named music visual and then a personal art piece. Notice how colour, motion and tone change with the subject.",
+    "focusUrl": "https://kinguranta.com/ralapagos-sirkuss-eliassen",
+    "focusLabel": "View a music visual",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "kothari-ji",
+    "noticed": "Dhruv's site combines software engineering with writing, builds and a bookshelf. The small personal details make the person behind the code easier to understand.",
+    "works": "The pages are organized around different kinds of evidence, from professional experience to things he has made and written. That gives visitors several ways to assess his interests.",
+    "recommendation": "Go to Builds, choose a project and then read a related piece of writing. See if the technical explanation makes the choices clear.",
+    "focusUrl": "https://kothariji.in/builds/",
+    "focusLabel": "Browse builds",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "luka-brzin",
+    "noticed": "Luka writes about product marketing, fintech and startup work, with a direct description of what he has helped launch.",
+    "works": "The page is stronger when it names roles and companies rather than broad marketing slogans. It gives useful context for a conversation about product launches.",
+    "recommendation": "Open the work section and look at the Robinhood or Bitstamp experience. Ask what part of the launch was personally owned and how impact was measured.",
+    "focusUrl": "https://lukabrzin.com/#work",
+    "focusLabel": "Read Luka's work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "martin-elmars",
+    "noticed": "Martin starts with the kind of systems he builds: web, mobile and backend applications. Hotels.ng gives that statement a recognizable operating context.",
+    "works": "The project descriptions explain real tasks such as bookings, payments, invoices and messaging. That is more useful to a visitor than a list of frameworks alone.",
+    "recommendation": "Read the Hotels.ng project. I'd look for which services he worked on, what constraints existed and how those services support daily operations.",
+    "focusUrl": "https://www.martinelmars.com/projects/hotels-ng",
+    "focusLabel": "Read the Hotels.ng project",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "maxwell-cofie",
+    "noticed": "Maxwell organizes the site around work, ventures and a logbook on technology in Africa. It reads more like an ongoing record than a conventional CV.",
+    "works": "GatePass and Amigo Lease are described through what their users are trying to do. The writing gives another route into the thinking behind these products.",
+    "recommendation": "Start with the selected works, then read a logbook entry. Pay attention to how product problems are explained for a local context.",
+    "focusUrl": "https://maxwellcofie.com/work/",
+    "focusLabel": "See selected work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "nana-adjoa-austin",
+    "noticed": "Nana Adjoa keeps the homepage spare and lets the work links lead into the projects. Maton, Mula and Sika each have their own route.",
+    "works": "The structure gives the project examples room rather than crowding the landing page with explanations. The work itself needs to carry the story.",
+    "recommendation": "Open Maton first and look for how the user task, visuals and decisions are shown. Then compare it with a second project.",
+    "focusUrl": "https://www.adjoaaustin.xyz/maton",
+    "focusLabel": "Explore Maton",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "obiabo",
+    "noticed": "Emmanuel presents software engineering alongside photography, writing and open-source activity. Those interests are separated into navigable sections.",
+    "works": "The Rust SDK work gives a concrete technical subject to explore, and the contributions page makes the open-source side easier to inspect.",
+    "recommendation": "Start with the open-source contributions and the cNGN SDK description. I'd check the documentation and tests before drawing conclusions about reliability.",
+    "focusUrl": "https://www.obiabo.dev/open-source-contributions",
+    "focusLabel": "See open-source contributions",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "obanijesu-adeyemo",
+    "noticed": "Obanijesu states the focus clearly: data engineering and AI automation. The projects include an FX treasury idea, a research agent and fraud detection.",
+    "works": "The site explains what each application is meant to do, not just the AI tools used to build it. Spe-ad gives the work a practical financial setting, though its business claims still need verification.",
+    "recommendation": "Open the Spe-ad section first. Look for the problem, the input data and how a treasury user would judge the output.",
+    "focusUrl": "https://obanijesu-portfolio.vercel.app/#projects",
+    "focusLabel": "Explore Spe-ad",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "olamide-agunbiade",
+    "noticed": "Olamide leads with illustration and art rather than a product-engineering résumé. The categories include characters, portraits, commissions and watercolour.",
+    "works": "The image-led approach fits work where visual judgment matters most. Visitors can browse by type of artwork without having to work through a long biography.",
+    "recommendation": "Start with the illustration archive. Compare how line, colour and character change across different pieces rather than judging the portfolio from one image.",
+    "focusUrl": "https://www.olamide.ng/illustrations",
+    "focusLabel": "View illustrations",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "olamilekandotun",
+    "noticed": "Ola combines product, creative and motion work, with projects across financial tools, CRM and brand work.",
+    "works": "The project range is easier to understand because pieces are identified by product and use. RIHUB and Spendwise offer a direct route into financial-product thinking.",
+    "recommendation": "Open RIHUB and look for how the recovery task is explained. Then compare that with a motion or brand project to see the broader practice.",
+    "focusUrl": "https://olamilekandotun.vercel.app/rihub.html",
+    "focusLabel": "Read RIHUB",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "preet-suthar",
+    "noticed": "Preet keeps the page restrained and starts with design engineering, then separates personal products from client or team case studies.",
+    "works": "The project labels tell you quickly what each thing is. Inbound and TextCortex are useful examples for studying a design-system role beyond a single screen.",
+    "recommendation": "Start with the Inbound case study. Look for evidence of the decisions that connected the design system, dashboards and production code.",
+    "focusUrl": "https://preetsuthar.me/case-studies/inbound.html",
+    "focusLabel": "Read Inbound",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "rashedat-jinadu",
+    "noticed": "Rashedat focuses on mobile software engineering and makes that role clear before showing the products.",
+    "works": "The work links connect the technology to individual applications such as Koyo. That's a better basis for evaluation than a stack list alone.",
+    "recommendation": "Begin with the Koyo mobile app. Look for the user flow and what the case says about shipping and maintaining the product.",
+    "focusUrl": "https://www.rashedatjinadu.com/work-gallery",
+    "focusLabel": "Browse mobile projects",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "rps-josh",
+    "noticed": "The public page returned only a short portfolio title during this inspection.",
+    "works": "I don't have enough accessible project material to identify a specific strength without guessing.",
+    "recommendation": "Open the source directly and see if the project content loads in your browser. A closer assessment needs the actual work to be visible.",
+    "focusUrl": null,
+    "focusLabel": null,
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "rufus-oluwaseyi",
+    "noticed": "Rufus introduces web and mobile design, then provides a filtered selection of app and website work.",
+    "works": "The projects are described by what people can do in them, from a multicurrency wallet to a campus social app. Several have dedicated case-study routes.",
+    "recommendation": "Start with VELO. Look for how receiving, holding and moving money is explained through the interface.",
+    "focusUrl": "https://rufusoluwaseyi.framer.website/velo-case-study",
+    "focusLabel": "Read VELO",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "sanyi",
+    "noticed": "Sanyi presents a growing set of frontend and backend skills alongside actual side projects. YScroll and Shiplog give that list a product context.",
+    "works": "I like that the projects describe ordinary problems, such as spending too long on short-form feeds and writing release notes.",
+    "recommendation": "Visit YScroll and look at how the product tries to change a daily habit. Then compare the experience with the technical description.",
+    "focusUrl": "https://yscroll.xyz",
+    "focusLabel": "Visit YScroll",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "saura3h",
+    "noticed": "Saurabh combines design engineering with product work. Tracwell and the beUI component library make that focus visible.",
+    "works": "The work shows reusable interface components alongside complete products. This is useful for anyone thinking about how small interaction decisions become things other developers use.",
+    "recommendation": "Start with beUI, explore a component and check the usage instructions. Then look at Tracwell to see a product built around a different task.",
+    "focusUrl": "https://beui.dev",
+    "focusLabel": "Explore beUI",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "stephen-adeniji",
+    "noticed": "Stephen's portfolio covers web, mobile and browser extensions. The project section shows how those interests become shipped software.",
+    "works": "Privvy Ledger is a specific example: an offline-first expense tracker with an on-device receipt feature. The privacy and device choices deserve more attention than the animation alone.",
+    "recommendation": "Start with Privvy Ledger. Look for how offline use is handled and what information stays on the device.",
+    "focusUrl": "https://stephenadeniji.com/#work",
+    "focusLabel": "Explore selected work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "temi-pinheiro",
+    "noticed": "Temi tells the story through a timeline of making, building and leading, from posters to fintech applications and newer products.",
+    "works": "The chronology makes the changes in role understandable. It also connects a current product-service offer to a series of named steps rather than a vague promise.",
+    "recommendation": "Open the Mariposa Program and inspect its stages. It's worth seeing how a service can be explained as a sequence of concrete decisions.",
+    "focusUrl": "https://temipinheiro.com/mariposa",
+    "focusLabel": "Explore Mariposa",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "timothy-maarv",
+    "noticed": "Timothy describes a focus on design, interaction and frontend engineering, with an intentionally spare homepage.",
+    "works": "The introduction communicates what kind of interfaces interest him. The selected-work section, however, currently contains entries marked as under construction.",
+    "recommendation": "Look at the interaction details and contact routes, but don't treat the placeholders as finished case studies. I'd return once the project pages are published.",
+    "focusUrl": null,
+    "focusLabel": null,
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "upriyanshu",
+    "noticed": "Priyanshu connects AI engineering and full-stack development, with projects and experience accessible from the navigation.",
+    "works": "The renewable-energy forecasting experience offers a concrete subject for the ML work. It gives a visitor something more specific to ask about than a list of model names.",
+    "recommendation": "Start with Projects or the forecasting experience. Check what data was used, what the model predicted and how its performance was evaluated.",
+    "focusUrl": "https://www.upriyanshu.tech/projects",
+    "focusLabel": "Browse projects",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "victor-sanusi",
+    "noticed": "Victor presents frontend engineering through financial and business products, with experience at Accrue and MyCoverGenius.",
+    "works": "The role and company context are clear. That helps a visitor focus on the real constraints behind cross-border money movement and online insurance.",
+    "recommendation": "Start with the work section and look for a case where the user needs to trust the interface with money or sensitive decisions.",
+    "focusUrl": "https://victor.sanusi.dev/work",
+    "focusLabel": "See Victor's work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "oyin",
+    "noticed": "Oyin uses typography and theatrical framing to introduce brand-identity work. The language and the presentation reinforce each other.",
+    "works": "The page describes the link between brand thinking and visual systems. Some named projects were marked as coming soon when I checked, so I'd separate live examples from teasers.",
+    "recommendation": "Open the work section, then look at a completed identity project such as iTours & Travels. Study how the system carries through different applications.",
+    "focusUrl": "https://www.oyin.design/work",
+    "focusLabel": "Explore brand work",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "tunz",
+    "noticed": "The site presents frontend work through an experimental, deliberately distorted text treatment. During inspection, the opening displayed an offline message and scrambled headings.",
+    "works": "There are hints of an individual visual voice, but the unstable opening makes it hard to assess the projects reliably.",
+    "recommendation": "If you visit, try the projects section and see whether the text settles into a readable state. I wouldn't make a firm quality judgment from the opening screen alone.",
+    "focusUrl": "https://www.tunz.dev/#project",
+    "focusLabel": "Try the projects section",
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "the-adele-kesegun",
+    "noticed": "The public page remained on a loading screen during this check.",
+    "works": "There was not enough visible material to assess the portfolio itself.",
+    "recommendation": "I'd revisit when the work becomes accessible. For now I wouldn't recommend a project that I couldn't inspect.",
+    "focusUrl": null,
+    "focusLabel": null,
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  },
+  {
+    "id": "ayo-niyi",
+    "noticed": "The landing page exposed an ENTER screen but little project information to this inspection.",
+    "works": "An entry interaction can create interest, but the work needs to become available before I can comment on the portfolio's quality.",
+    "recommendation": "Try entering the site directly. Until project material is accessible, any recommendation beyond that would be guesswork.",
+    "focusUrl": null,
+    "focusLabel": null,
+    "source": "Public portfolio homepage or linked project, inspected 2026-10-24"
+  }
+]
