@@ -10,7 +10,7 @@ The index uses static HTML so every portfolio remains browsable if JavaScript fa
 
 The source collection lives in `data.js`; IDs are stable public URL identifiers. The 50 detail pages contain static HTML, unique titles/descriptions and neighbour links. Only optional controls use JavaScript. Avoid a mandatory SPA runtime in this directory.
 
-Images are lazy thumbnails requested from WordPress mShots. Their appearance may differ from the live website and the source can fail; the built-in editorial typographic cover remains visible underneath. Third-party preview requests occur when the image approaches the viewport. Do not silently replace absent screenshots with AI-generated fake website screenshots.
+Eleven featured portfolio previews were captured from the owners' public websites on 24 October 2026 and are stored as local WebP assets in `screenshots/`. Other image previews are lazy thumbnails requested from WordPress mShots. Their appearance may differ from the live website and the source can fail; the built-in editorial typographic cover remains visible underneath. Third-party preview requests occur when the image approaches the viewport. Do not silently replace absent screenshots with AI-generated fake website screenshots.
 
 ## Library patterns and credits
 
