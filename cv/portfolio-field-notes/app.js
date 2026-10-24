@@ -15,7 +15,13 @@
       card.hidden=!(matched&&allowed);
       if(!card.hidden)visible++;
     });
-    count.textContent=String(visible);empty.hidden=visible>0;
+    if(!matchMedia("(prefers-reduced-motion: reduce)").matches){
+      const from=Number(count.textContent)||0,to=visible,start=performance.now();
+      cancelAnimationFrame(draw.frame);
+      const step=now=>{const t=Math.min(1,(now-start)/230);count.textContent=String(Math.round(from+(to-from)*(1-Math.pow(1-t,3))));if(t<1)draw.frame=requestAnimationFrame(step)};
+      draw.frame=requestAnimationFrame(step);
+    }else count.textContent=String(visible);
+    empty.hidden=visible>0;
     cards.sort((a,b)=>sort==="original"?Number(a.dataset.index)-Number(b.dataset.index):sort==="za"?b.dataset.name.localeCompare(a.dataset.name):a.dataset.name.localeCompare(b.dataset.name)).forEach(card=>grid.append(card));
   }
   input.addEventListener("input",draw);
