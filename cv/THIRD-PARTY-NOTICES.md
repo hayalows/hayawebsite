@@ -88,3 +88,7 @@ Drive content; upstream stock images are not included.
 # Portfolio Field Notes (24 October 2026)
 
 The Field Notes archive borrows **interaction patterns**, not unchanged TSX source, from the free component catalogs: [useLayouts](https://uselayouts.com), [Rare UI](https://rareui.com) and [beUI](https://beui.dev). See `portfolio-field-notes/README.md` for the 16 named inspirations and their functions. The dependency-free HTML/CSS/JavaScript adaptations were written for the existing static portfolio; no upstream PRO assets are included. The Rare UI MIT + Commons Clause + Attribution, UseLayouts MIT notices above continue to apply. beUI is MIT-licensed; original license: https://github.com/starc007/ui-components/blob/main/LICENSE (copyright Saurabh Chauhan and contributors).
+
+# Lucide icon artwork
+
+Icons on Portfolio Field Notes use selected Lucide SVG paths, locally hosted as `portfolio-field-notes/icons.svg` with no runtime dependency. Lucide is licensed under the ISC License, copyright (c) 2026 Lucide Icons and Contributors. Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that this copyright and permission notice appear in all copies. THE SOFTWARE IS PROVIDED 'AS IS' AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. A subset derives from Feather, which is MIT-licensed, copyright (c) 2013-present Cole Bemis. See https://lucide.dev/license for the complete license notices.

@@ -33,3 +33,7 @@ The upstream designs are React/Motion components. Because the existing Vercel pr
 - Use real links rather than click-only divs. Dialogs must remain keyboard reachable, and screenshot failures must not destroy layout.
 - Run `node --check portfolio-field-notes/ui.js`, `node --check portfolio-field-notes/app.js` and `node portfolio-field-notes/verify.mjs` from the `cv` directory, then browser-test 320px, 390px, tablet and desktop widths.
 - The website's Spotify and analytics functions, project stories, design portfolio and other site sections are outside this feature's scope.
+
+## UI refinement v4
+
+A locally hosted Lucide SVG sprite (`icons.svg`) supplies one consistent icon vocabulary across the archive, review pages, command search and mobile navigation. `ui.js` enhances existing plain-text symbols so no-JS navigation and article links remain intact. Controls use stable 44–48px touch targets, readable mobile labels, explicit page and saved states, and reduced-motion support. Mobile review actions are two compact tools followed by one full-width visit action.

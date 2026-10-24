@@ -11,15 +11,89 @@
   const link=id=>"/portfolio-field-notes/"+encodeURIComponent(id)+"/";
   const toast=document.getElementById("toast");
   function notify(text){if(!toast)return;toast.replaceChildren();const el=document.createElement("span");el.textContent=text;toast.append(el);clearTimeout(notify.timer);notify.timer=setTimeout(()=>toast.replaceChildren(),2800)}
+
+  // One locally hosted Lucide sprite. Static links and labels remain usable without JavaScript.
+  const iconNS="http://www.w3.org/2000/svg",iconUrl="/portfolio-field-notes/icons.svg#";
+  function glyph(name){
+    const svg=document.createElementNS(iconNS,"svg");
+    svg.setAttribute("viewBox","0 0 24 24");svg.setAttribute("class","icon");svg.setAttribute("aria-hidden","true");
+    const use=document.createElementNS(iconNS,"use");
+    use.setAttribute("href",iconUrl+name);svg.append(use);return svg;
+  }
+  function place(selector,name){
+    document.querySelectorAll(selector).forEach(el=>el.replaceChildren(glyph(name)));
+  }
+  function showIcons(){
+    const search=document.querySelector(".search-button");
+    if(search){search.prepend(glyph("search"));search.setAttribute("aria-label","Search portfolios")}
+    place('.top-actions [data-open="saved"]',"bookmark");
+    place(".section-actions [data-move='-1']","arrow-left");
+    place(".section-actions [data-move='1']","arrow-right");
+    place("[data-view='grid']","grid-2x2");
+    place("[data-view='list']","list");
+    place(".portfolio-card__arrow","arrow-up-right");
+    place(".featured-card__name>span:last-child","arrow-up-right");
+    place(".method summary b","plus");
+    place(".saved-head [data-close]","x");
+    document.querySelectorAll(".search-box svg,.command-search svg").forEach(el=>el.replaceWith(glyph("search")));
+    document.querySelectorAll(".sort-trigger span").forEach(el=>el.replaceChildren(glyph("chevron-down")));
+    document.querySelectorAll(".bookmark").forEach(el=>el.replaceChildren(glyph("bookmark")));
+    document.querySelectorAll("[data-save-icon]").forEach(el=>el.replaceWith(glyph("bookmark")));
+    document.querySelectorAll("[data-copy-url]").forEach(el=>el.prepend(glyph("copy")));
+    document.querySelectorAll(".review-actions a.visit").forEach(el=>{
+      el.lastChild.textContent=el.lastChild.textContent.replace(/\s*↗\s*$/,"");
+      el.append(glyph("external-link"));
+    });
+    document.querySelectorAll(".backline a").forEach(el=>{
+      el.firstChild.textContent=el.firstChild.textContent.replace(/^←\s*/,"");
+      el.prepend(glyph("arrow-left"));
+    });
+    document.querySelectorAll(".prevnext a small").forEach((el,i)=>{
+      el.textContent=(i===0?"Previous":"Next");
+      if(i===0)el.prepend(glyph("arrow-left"));else el.append(glyph("arrow-right"));
+    });
+    document.querySelectorAll(".mobile-nav>a,.mobile-nav>button").forEach((el,i)=>{
+      const first=el.firstChild;
+      if(first?.nodeType===Node.TEXT_NODE)first.remove();
+      el.prepend(glyph(["house","search","bookmark"][i]));
+    });
+    document.querySelectorAll('.mobile-nav>a').forEach(el=>{
+      if(el.getAttribute("href")==="/portfolio-field-notes/"){
+        el.setAttribute("href","/portfolio-field-notes/#index");
+        if(document.getElementById("portfolio-grid"))el.setAttribute("aria-current","page");
+      }
+    });
+    document.querySelectorAll(".contribute a").forEach(el=>{
+      el.textContent=el.textContent.replace(/\s*↗\s*$/,"");
+      el.append(glyph("arrow-up-right"));
+    });
+    document.querySelectorAll(".command-search [data-close]").forEach(el=>{
+      el.setAttribute("aria-label","Close search");el.classList.add("command-close");
+    });
+    paintThemeIcons();
+  }
+  function paintThemeIcons(){
+    const dark=document.documentElement.dataset.theme!=="light";
+    document.querySelectorAll("[data-theme-toggle]").forEach(btn=>{
+      btn.replaceChildren(glyph(dark?"sun":"moon"));
+      btn.setAttribute("aria-label",dark?"Switch to light mode":"Switch to dark mode");
+      btn.setAttribute("title",dark?"Light mode":"Dark mode");
+    });
+  }
+  document.querySelectorAll("[data-theme-toggle]").forEach(btn=>btn.addEventListener("click",paintThemeIcons));
   function refreshBookmarks(){
     const saved=new Set(readSaved());
     document.querySelectorAll("[data-save]").forEach(btn=>{
       const active=saved.has(btn.dataset.save);
       btn.setAttribute("aria-pressed",String(active));
       btn.setAttribute("aria-label",(active?"Remove ":"Save ")+(byId.get(btn.dataset.save)?.name||"portfolio"));
-      const text=btn.querySelector("[data-save-icon]")||btn;
-      if(text===btn&&btn.children.length)btn.firstChild.textContent=active?"★ ":"☆ ";
-      else text.textContent=active?"★":"☆";
+      const use=btn.querySelector("use");
+      if(use)use.setAttribute("href",iconUrl+(active?"bookmark-check":"bookmark"));
+      else if(btn.hasAttribute("data-save"))btn.textContent=active?"★":"☆";
+      if(btn.closest(".review-actions")){
+        const label=[...btn.childNodes].find(node=>node.nodeType===Node.TEXT_NODE);
+        if(label)label.textContent=active?" Saved":" Save";
+      }
       btn.classList.toggle("is-saved",active);
     });
   }
@@ -138,5 +212,6 @@
       preview.addEventListener("pointerleave",()=>{cancelAnimationFrame(frame);preview.style.transform=""});
     });
   }
+  showIcons();
   refreshBookmarks();
 })();
