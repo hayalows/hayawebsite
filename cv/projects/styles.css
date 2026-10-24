@@ -44,3 +44,21 @@ summary:focus-visible,button:focus-visible{outline:2px solid #e5f3fd;outline-off
 .case__header h2,.work-hero h1{overflow-wrap:anywhere}
 .story-part summary{flex-wrap:wrap}.story-part summary small{padding-left:0}
 @media(max-width:46rem){.case{padding:20px}.project-story{padding:16px}.story-part summary{padding:12px;gap:8px}.story-copy{padding:0 12px 16px;overflow-wrap:anywhere}}
+
+/* StigmaClear founder case: a clear role, grounded scope and real project identity art. */
+.case--stigmaclear{--sc-accent:#f3ca2f;border-color:#34312a;background:linear-gradient(145deg,#171614,#101010 72%)}
+.case--stigmaclear .case__header{border-color:#3a372e}
+.case--stigmaclear .eyebrow,.case--stigmaclear .case__visit{color:#f3ca2f}
+.case-founder__visual{margin:1.35rem 0 0;overflow:hidden;border:1px solid #3a372e;border-radius:14px;background:#090909}
+.case-founder__visual img{display:block;width:100%;height:auto;aspect-ratio:1200/630;object-fit:cover}
+.case-founder__visual figcaption{padding:.65rem .85rem;color:#b3aca1;font-size:.7rem}
+.case--stigmaclear .case__grid{margin-top:1rem;border-color:#353129;background:#353129}
+.case--stigmaclear .case__grid section{background:#12110f}
+.case--stigmaclear .case__grid h3{color:#f3ca2f}
+.case--stigmaclear .case__grid p{color:#c7c2b8;line-height:1.65}
+.case--stigmaclear .case__note{border-left-color:#f3ca2f;background:#11100d}
+.case--stigmaclear .case__note span{color:#c7c2b8;line-height:1.65}
+.case__actions{display:flex;flex-wrap:wrap;gap:.65rem 1.25rem;margin-top:1.2rem}
+.case__actions a{display:inline-flex;align-items:center;min-height:2.6rem;color:#f3ca2f;font-size:.76rem;font-weight:700;text-decoration:none}
+.case__actions a:hover{text-decoration:underline;text-underline-offset:.2em}
+@media(max-width:46rem){.case-founder__visual{margin-top:1rem}}

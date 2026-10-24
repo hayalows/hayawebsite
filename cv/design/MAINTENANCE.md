@@ -1,11 +1,11 @@
 # Iconka Designs portfolio
 
-The public design portfolio at https://pkm.hayalows.com/design/ opens to **All Designs**. The old `/design/index` address remains usable. Sketchbook is a separate, image-led view of smaller work.
+The public design portfolio at https://pkm.hayalows.com/design/ opens to a **selected-work landing page**. The full searchable archive of all 50 project groups lives at `/design/index`; Sketchbook is a separate, image-led view of smaller work.
 
 ## Design principles
 - The audience may be a recruiter, client or collaborator arriving from the main PKM portfolio. Let the work be visible quickly.
-- One clear heading, a short introduction, search and a small set of filters. Default to List on both desktop and mobile. Grid is an optional second view.
-- In All Designs, show all 50 project groups, with the ten Featured projects first. Featured, Identity, Campaign and Other are filters, not additional landing pages.
+- Lead `/design/` with Kente Pa as the featured project and six selected project stories below it. Keep the full archive visible as a one-click next step.
+- In `/design/index`, show all 50 project groups, with the ten Featured projects first. Search and category filters stay focused; Grid is the default view and List is optional.
 - Keep the right-side hover preview on desktop and tap-to-expand preview on mobile. Keep artwork arrows and case-study swiping, but don't auto-play images.
 - Palette: warm white `#F2F0EA`, warm ash `#B3ACA1`, soft brass `#BBA783` over charcoal. Do not use the earlier bright gold as the UI accent. Use dark, contrasting versions of the accents for light appearance.
 - Respect reduced motion and keyboard focus; titles and actual artwork carry the hierarchy.
@@ -23,7 +23,7 @@ The public design portfolio at https://pkm.hayalows.com/design/ opens to **All D
 3. Add verified context in `stories.json` if a project merits a case study. Short projects can stay image-led.
 4. Run `node cv/design/generate-pages.cjs` locally to refresh the project-specific OG meta pages and sitemap. URLs must be `/assets/design/...` in HTML and `https://pkm.hayalows.com/assets/design/...` in metadata.
 5. Run `node cv/design/verify-assets.cjs` to check source images, HTML, robots and sitemap. Image-led projects without verified case-study material intentionally remain `noindex` and out of the sitemap.
-6. Check `/design/`, `/design/index`, `/design/sketchbook`, a featured case study and an unfeatured case study on desktop and phone; test both themes, filters, focus, images and direct links.
+6. Check `/design/`, `/design/index`, `/design/sketchbook`, a featured case study and an unfeatured case study on desktop and phone; test both themes, archive filters, focus, images and direct links.
 7. Push and verify Vercel is READY. Test archive, Sketchbook, sample cases, standalone images and sitemap over HTTP.
 
 The work-in-progress notice stays visible because the catalogue and case studies will grow over time.
