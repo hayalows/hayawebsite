@@ -273,3 +273,19 @@ dialog .command-results{overscroll-behavior:contain}
  .portfolio-grid.is-list .portfolio-card__domain{font-size:11.5px}
  .portfolio-grid.is-list .bookmark{right:26px;width:36px;height:40px}
 }
+
+/* Article refinement: clear editorial structure, comfortable reading size. */
+.review-copy section#noticed,.review-copy section#strengths,.review-copy section#recommendation{max-width:800px}
+.review-copy section#noticed h2,.review-copy section#strengths h2,.review-copy section#recommendation h2{font-size:clamp(32px,3.55vw,47px);line-height:1.12;letter-spacing:-.04em}
+.review-copy section#noticed p,.review-copy section#strengths p,.review-copy section#recommendation p{max-width:66ch;font-size:clamp(16px,1.4vw,18px);line-height:1.85;color:var(--muted)}
+.review-copy section#recommendation{padding-bottom:54px}
+.review-focus-link{display:inline-flex;align-items:center;gap:10px;min-height:48px;max-width:100%;width:fit-content;margin-top:22px;padding:10px 15px;border:1px solid var(--edge);border-radius:10px;background:var(--paper);color:var(--text);font-size:14px;font-weight:600;line-height:1.4}
+.review-focus-link:hover{border-color:var(--accent);color:var(--accent)}
+.review-focus-link .icon{width:18px;height:18px}
+.review-rail a{line-height:1.45;padding:3px 0}
+@media(max-width:560px){
+ .review-main{padding-top:46px}
+ .review-copy section#noticed,.review-copy section#strengths,.review-copy section#recommendation{padding-bottom:38px;margin-bottom:41px}
+ .review-copy section#noticed h2,.review-copy section#strengths h2,.review-copy section#recommendation h2{font-size:clamp(30px,8.2vw,39px);margin-bottom:19px}
+ .review-copy section#noticed p,.review-copy section#strengths p,.review-copy section#recommendation p{font-size:16px;line-height:1.82}
+}

@@ -41,3 +41,11 @@ A locally hosted Lucide SVG sprite (`icons.svg`) supplies one consistent icon vo
 ## Mobile finishing pass
 
 At 320px the selected count is dropped rather than wrapping as an orphan. The mobile dock hides while scrolling down through a review or long archive, returns on upward scroll, and always returns when close to either end of the page. Filter, query, sort and display mode are saved in per-tab session storage, so returning from a portfolio preserves the previous browsing context without requiring an account or new service. Indexed and close-read badges are hidden on full review pages; missing-assessment status remains visible.
+
+## Source-grounded reading notes (24 October 2026)
+
+reviews.json holds 50 editorial drafts based on public portfolio content and earlier source notes. Each article has What caught my eye, What works well, and My recommendation. Forty-five reviews include a direct recommended project or source link. Entries with inaccessible or thin source material explain that limit.
+
+The first-person observations are proposed writing for the owner to review. They do not establish that Papa Kojo personally visited, tested or endorses every site. Claims about creator results are not independently verified. Change reviews.json as your own views develop.
+
+Run from cv: node portfolio-field-notes/sync-reviews.mjs. This rebuilds the static article text from the editorial source without changing the other parts of the page. Then run verify.mjs.

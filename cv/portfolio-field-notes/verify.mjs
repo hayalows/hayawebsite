@@ -19,6 +19,7 @@ for(const entry of entries){
  if(!page.includes("/portfolio-field-notes/"+entry.id+"/"))bad.push("Missing canonical URL "+entry.id);
  if(!page.includes("Visit portfolio")&&entry.url)bad.push("Missing original visit link "+entry.id);
  if(!page.includes("review-head"))bad.push("Missing review heading "+entry.id);
+ if(!page.includes("What caught my eye")||!page.includes("What works well")||!page.includes("My recommendation"))bad.push("Missing review sections "+entry.id);
 }
 const index=readFileSync(resolve(here,"index.html"),"utf8");
 if((index.match(/class="portfolio-card"/g)||[]).length!==entries.length)bad.push("Index card count mismatch");
