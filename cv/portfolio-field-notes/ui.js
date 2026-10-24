@@ -39,7 +39,11 @@
     document.querySelectorAll(".sort-trigger span").forEach(el=>el.replaceChildren(glyph("chevron-down")));
     document.querySelectorAll(".bookmark").forEach(el=>el.replaceChildren(glyph("bookmark")));
     document.querySelectorAll("[data-save-icon]").forEach(el=>el.replaceWith(glyph("bookmark")));
-    document.querySelectorAll("[data-copy-url]").forEach(el=>el.prepend(glyph("copy")));
+    document.querySelectorAll("[data-copy-url]").forEach(el=>{
+      const last=el.lastChild;
+      if(last?.nodeType===Node.TEXT_NODE)last.textContent=last.textContent.replace(/\s*↗\s*$/,"");
+      el.prepend(glyph("copy"));
+    });
     document.querySelectorAll(".review-actions a.visit").forEach(el=>{
       el.lastChild.textContent=el.lastChild.textContent.replace(/\s*↗\s*$/,"");
       el.append(glyph("external-link"));
@@ -69,6 +73,9 @@
     });
     document.querySelectorAll(".command-search [data-close]").forEach(el=>{
       el.setAttribute("aria-label","Close search");el.classList.add("command-close");
+    });
+    document.querySelectorAll(".review-meta span:first-child").forEach(el=>{
+      if(el.textContent.trim()==="Close read"||el.textContent.trim()==="Indexed")el.remove();
     });
     paintThemeIcons();
   }
@@ -211,6 +218,26 @@
       },{passive:true});
       preview.addEventListener("pointerleave",()=>{cancelAnimationFrame(frame);preview.style.transform=""});
     });
+  }
+
+  // Mobile: clear the reading area on downward scroll, return dock on upward scroll.
+  const dock=document.querySelector(".mobile-nav");
+  if(dock){
+    let previous=window.scrollY,scheduled=false;
+    window.addEventListener("scroll",()=>{
+      if(scheduled)return;
+      scheduled=true;
+      requestAnimationFrame(()=>{
+        const y=window.scrollY,delta=y-previous;
+        if(y<135||delta<(-7)||y+innerHeight>document.documentElement.scrollHeight-120){
+          dock.classList.remove("is-hidden");
+        }else if(delta>7){
+          dock.classList.add("is-hidden");
+        }
+        previous=y;scheduled=false;
+      });
+    },{passive:true});
+    document.querySelectorAll(".mobile-nav button").forEach(button=>button.addEventListener("click",()=>dock.classList.remove("is-hidden")));
   }
   showIcons();
   refreshBookmarks();

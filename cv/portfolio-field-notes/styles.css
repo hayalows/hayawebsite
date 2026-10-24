@@ -184,3 +184,15 @@ dialog .command-results{overscroll-behavior:contain}
   .review-actions button,.review-actions a{font-size:12.5px}
 }
 @media(prefers-reduced-motion:reduce){.mobile-nav a,.mobile-nav button{transition:none}}
+
+/* v4.1: compact heading, hideable mobile dock, remove redundant review badge. */
+.review-meta:empty{display:none}
+@media(max-width:820px){
+ .mobile-nav{transition:transform .24s cubic-bezier(.2,.7,.25,1),opacity .17s ease}
+ .mobile-nav.is-hidden{transform:translate(-50%,calc(100% + 36px));opacity:0;pointer-events:none}
+}
+@media(max-width:360px){
+ .section-head h2{font-size:29px}
+ .section-head h2 sup:not(#visible-count){display:none}
+}
+@media(prefers-reduced-motion:reduce){.mobile-nav{transition:none}}

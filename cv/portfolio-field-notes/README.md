@@ -37,3 +37,7 @@ The upstream designs are React/Motion components. Because the existing Vercel pr
 ## UI refinement v4
 
 A locally hosted Lucide SVG sprite (`icons.svg`) supplies one consistent icon vocabulary across the archive, review pages, command search and mobile navigation. `ui.js` enhances existing plain-text symbols so no-JS navigation and article links remain intact. Controls use stable 44–48px touch targets, readable mobile labels, explicit page and saved states, and reduced-motion support. Mobile review actions are two compact tools followed by one full-width visit action.
+
+## Mobile finishing pass
+
+At 320px the selected count is dropped rather than wrapping as an orphan. The mobile dock hides while scrolling down through a review or long archive, returns on upward scroll, and always returns when close to either end of the page. Filter, query, sort and display mode are saved in per-tab session storage, so returning from a portfolio preserves the previous browsing context without requiring an account or new service. Indexed and close-read badges are hidden on full review pages; missing-assessment status remains visible.
