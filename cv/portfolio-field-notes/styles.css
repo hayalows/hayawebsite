@@ -289,3 +289,20 @@ dialog .command-results{overscroll-behavior:contain}
  .review-copy section#noticed h2,.review-copy section#strengths h2,.review-copy section#recommendation h2{font-size:clamp(30px,8.2vw,39px);margin-bottom:19px}
  .review-copy section#noticed p,.review-copy section#strengths p,.review-copy section#recommendation p{font-size:16px;line-height:1.82}
 }
+/* Grid card text and action separation, especially for long mobile domains. */
+.portfolio-grid:not(.is-list) .portfolio-card__body{display:block;min-width:0;padding-right:24px}
+.portfolio-grid:not(.is-list) .portfolio-card__title{padding:13px 0 0 2px;line-height:1.4;max-width:100%;overflow-wrap:break-word}
+.portfolio-grid:not(.is-list) .portfolio-card__domain{display:block;padding:0 0 0 2px;margin-top:4px;line-height:1.45;max-width:100%;overflow-wrap:anywhere}
+.portfolio-grid:not(.is-list) .portfolio-card__arrow{right:2px;bottom:5px;min-height:24px;display:inline-grid;place-items:center}
+@media(max-width:560px){
+ .portfolio-grid:not(.is-list) .portfolio-card__body{padding-right:24px}
+ .portfolio-grid:not(.is-list) .portfolio-card__title{font-size:14px;line-height:1.37}
+ .portfolio-grid:not(.is-list) .portfolio-card__domain{font-size:12px}
+}
+@media(max-width:360px){
+ .portfolio-grid:not(.is-list){grid-template-columns:1fr;gap:30px}
+ .portfolio-grid:not(.is-list) .preview{aspect-ratio:1.65}
+ .portfolio-grid:not(.is-list) .portfolio-card__title{font-size:17px}
+ .portfolio-grid:not(.is-list) .portfolio-card__domain{font-size:13px}
+ .portfolio-grid:not(.is-list) .portfolio-card__arrow{bottom:7px}
+}
