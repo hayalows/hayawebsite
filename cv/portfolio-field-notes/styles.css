@@ -306,3 +306,7 @@ dialog .command-results{overscroll-behavior:contain}
  .portfolio-grid:not(.is-list) .portfolio-card__domain{font-size:13px}
  .portfolio-grid:not(.is-list) .portfolio-card__arrow{bottom:7px}
 }
+
+.portfolio-card__screen{position:absolute;z-index:5;left:9px;bottom:9px;padding:4px 7px;border:1px solid #ffffff55;border-radius:999px;background:#10110fd9;color:#f2eee5;font-size:9px;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(8px)}
+.hero__note{max-width:44ch;margin-top:25px;color:var(--muted);font-size:14px;line-height:1.75}
+@media(max-width:560px){.hero__note{max-width:37ch;margin-top:18px;font-size:12px;line-height:1.65}.portfolio-card__screen{left:6px;bottom:6px;padding:3px 6px;font-size:8px}}

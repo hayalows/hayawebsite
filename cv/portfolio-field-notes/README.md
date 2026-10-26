@@ -1,14 +1,14 @@
 # Portfolio Field Notes
 
-Independent archive of 50 portfolios, published at `https://pkm.hayalows.com/portfolio-field-notes/`.
+Independent archive of 150 portfolios, published at `https://pkm.hayalows.com/portfolio-field-notes/`.
 
 ## Product behaviour
 
 The index uses static HTML so every portfolio remains browsable if JavaScript fails. Clicking a card opens a **local** canonical review URL (`/<portfolio-id>/`). The original portfolio always has its own explicit outbound link on its review page.
 
-12 entries have detailed observational notes for designers and hiring teams. 34 additional entries are indexed without fabricated long reviews. Four inaccessible sites remain explicitly marked for another look. No numeric individual ratings or fabricated results are shown.
+The original 50 entries remain intact: 12 selected close reads, 34 additional records and four sites marked for another look. The 100 new entries have concise first-pass screens based on one visible signal from each public portfolio. They are useful starting points, not long-form reviews, individual ratings or hiring recommendations.
 
-The source collection lives in `data.js`; IDs are stable public URL identifiers. The 50 detail pages contain static HTML, unique titles/descriptions and neighbour links. Only optional controls use JavaScript. Avoid a mandatory SPA runtime in this directory.
+The source collection lives in `data.js`; IDs are stable public URL identifiers. All 150 detail pages contain static HTML, unique titles/descriptions and neighbour links. The 100 new pages are generated from their source-grounded screening signals. Only optional controls use JavaScript. Avoid a mandatory SPA runtime in this directory.
 
 Eleven featured portfolio previews were captured from the owners' public websites on 24 October 2026 and are stored as local WebP assets in `screenshots/`. Other image previews are lazy thumbnails requested from WordPress mShots. Their appearance may differ from the live website and the source can fail; the built-in editorial typographic cover remains visible underneath. Third-party preview requests occur when the image approaches the viewport. Do not silently replace absent screenshots with AI-generated fake website screenshots.
 
@@ -26,8 +26,8 @@ The upstream designs are React/Motion components. Because the existing Vercel pr
 
 ## Editing guidance for developers and coding agents
 
-- Preserve the 50 existing entries and their external URLs. `data.js` is the single source of editorial notes.
-- Every added entry must have a unique lowercase slug as `id`, a working original URL where available and a corresponding static `<id>/index.html`. Use an existing page as the authoring template. Update the sitemap.
+- Preserve the original 50 entries and their external URLs. `data.js` is the source for all 150 archive records and their screening signals.
+- Every added entry must have a unique lowercase slug as `id`, a working original URL where available, a concise source-grounded `qualitySignal`, an X `sourceUrl`, a corresponding static `<id>/index.html`, and an entry in the sitemap. Run `node portfolio-field-notes/sync-screenings.mjs` from `cv` to build the first-pass pages and keep route navigation current.
 - Do not invent interview quotes, screenshots, portfolio scores, impact metrics or detailed commentary. Mark pending reviews as pending.
 - `styles.css` contains the design tokens and responsive layout; `ui.js` owns shared controls; `app.js` owns archive filters, sorting and layout only. Keep them separate.
 - Use real links rather than click-only divs. Dialogs must remain keyboard reachable, and screenshot failures must not destroy layout.
@@ -48,4 +48,4 @@ reviews.json holds 50 editorial drafts based on public portfolio content and ear
 
 The first-person observations are proposed writing for the owner to review. They do not establish that Papa Kojo personally visited, tested or endorses every site. Claims about creator results are not independently verified. Change reviews.json as your own views develop.
 
-Run from cv: node portfolio-field-notes/sync-reviews.mjs. This rebuilds the static article text from the editorial source without changing the other parts of the page. Then run verify.mjs.
+Run from `cv`: `node portfolio-field-notes/sync-reviews.mjs` rebuilds the original 50 editorial pages. `node portfolio-field-notes/sync-screenings.mjs` rebuilds the 100 first-pass pages and archive route navigation. Then run `node portfolio-field-notes/verify.mjs`.

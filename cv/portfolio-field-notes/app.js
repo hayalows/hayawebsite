@@ -6,7 +6,7 @@
   const cards=[...grid.querySelectorAll(".portfolio-card")];
   const input=document.getElementById("search"),count=document.getElementById("visible-count"),empty=document.getElementById("empty");
   const key="pkm.field-notes.archive.v2";
-  const allowedFilters=new Set(["all","featured","saved","revisit"]);
+  const allowedFilters=new Set(["all","featured","saved","revisit","new"]);
   const allowedSorts=new Set(["az","za","original"]);
   let filter="all",sort="az";
   let previous=null;
@@ -27,7 +27,7 @@
     const search=input.value.trim().toLowerCase(),mine=saved();let visible=0;
     cards.forEach(card=>{
       const match=!search||card.dataset.search.includes(search);
-      const passes=filter==="all"||(filter==="featured"&&card.dataset.featured==="true")||(filter==="revisit"&&card.dataset.revisit==="true")||(filter==="saved"&&mine.has(card.dataset.id));
+      const passes=filter==="all"||(filter==="featured"&&card.dataset.featured==="true")||(filter==="revisit"&&card.dataset.revisit==="true")||(filter==="new"&&card.dataset.new==="true")||(filter==="saved"&&mine.has(card.dataset.id));
       card.hidden=!(match&&passes);
       if(!card.hidden)visible++;
     });

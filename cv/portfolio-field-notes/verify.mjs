@@ -7,7 +7,8 @@ const source=readFileSync(resolve(here,"data.js"),"utf8");
 const sandbox={window:{}};vm.runInNewContext(source,sandbox,{timeout:1000});
 const entries=sandbox.window.PORTFOLIO_ENTRIES||[];
 const bad=[];
-if(entries.length!==50)bad.push("Expected original 50 entries");
+if(entries.length!==150)bad.push("Expected 150 archive entries");
+if(entries.filter(e=>e.added===true).length!==100)bad.push("Expected 100 first-pass screens");
 const ids=new Set();
 for(const entry of entries){
  if(ids.has(entry.id))bad.push("Duplicate ID "+entry.id);
@@ -19,10 +20,11 @@ for(const entry of entries){
  if(!page.includes("/portfolio-field-notes/"+entry.id+"/"))bad.push("Missing canonical URL "+entry.id);
  if(!page.includes("Visit portfolio")&&entry.url)bad.push("Missing original visit link "+entry.id);
  if(!page.includes("review-head"))bad.push("Missing review heading "+entry.id);
- if(!page.includes("What caught my eye")||!page.includes("What works well")||!page.includes("My recommendation"))bad.push("Missing review sections "+entry.id);
+ if(entry.added){if(!page.includes("First-pass signal")||!page.includes("What to inspect next")||!page.includes(entry.sourceUrl.replace(/&/g,"&amp;")))bad.push("Missing first-pass content "+entry.id)}else if(!page.includes("What caught my eye")||!page.includes("What works well")||!page.includes("My recommendation"))bad.push("Missing review sections "+entry.id);
 }
 const index=readFileSync(resolve(here,"index.html"),"utf8");
 if((index.match(/class="portfolio-card"/g)||[]).length!==entries.length)bad.push("Index card count mismatch");
+if(!index.includes("data-filter=\"new\""))bad.push("Missing new additions filter");
 if((index.match(/class="featured-card"/g)||[]).length!==entries.filter(e=>e.featured).length)bad.push("Featured count mismatch");
 const detailed=entries.filter(e=>e.designer&&e.hiring).length;
 if(detailed!==12)bad.push("Expected 12 source-grounded detailed entries");
