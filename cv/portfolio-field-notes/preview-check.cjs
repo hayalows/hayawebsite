@@ -18,11 +18,17 @@ const path = require('node:path');
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1); if(overflow)errors.push('overflow '+width);
  await page.locator('#search').fill('UX Derrick'); if(await page.locator('.portfolio-card:visible').count()!==1)errors.push('search '+width);
  await page.locator('#search').fill('not-a-real-portfolio-xyz');if(!await page.locator('#empty').isVisible())errors.push('empty '+width);
+ await page.locator('.fn-clear button').click(); if(await page.locator('#search').inputValue()!=='')errors.push('clear search '+width);
+ await page.locator('.fn-discrete button[aria-label="List view"]').click(); if(!await page.locator('#portfolio-grid').evaluate(el=>el.classList.contains('is-list')))errors.push('list view '+width);
+ await page.locator('.fn-discrete button[aria-label="Grid view"]').click(); if(await page.locator('#portfolio-grid').evaluate(el=>el.classList.contains('is-list')))errors.push('grid view '+width);
+ const previousTheme=await page.locator('html').getAttribute('data-theme'); await page.locator('.fn-theme input').check({force:true}).catch(()=>{});
+ if(previousTheme==='dark') { await page.locator('.fn-theme input').uncheck({force:true}); if(await page.locator('html').getAttribute('data-theme')!=='light')errors.push('theme '+width); }
+
  await page.goto('http://127.0.0.1:8123/portfolio-field-notes/ux-derrick/',{waitUntil:'domcontentloaded'});
  await page.screenshot({path:out+'/detail-'+width+'.png',fullPage:false});
  if(!await page.locator('a.visit').count())errors.push('visit '+width);
  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1))errors.push('detail overflow '+width);
  await page.close();
- } fs.writeFileSync(out+'/result.json',JSON.stringify({errors},null,2)); if(errors.length)throw Error(errors.join('; '));
+ } const noScript=await b.newPage({javaScriptEnabled:false,viewport:{width:390,height:900}}); await noScript.goto('http://127.0.0.1:8123/portfolio-field-notes/'); if(await noScript.locator('#portfolio-grid .portfolio-card').count()!==150)errors.push('no-JS archive'); if(await noScript.locator('#featured-list a').count()!==12)errors.push('no-JS selected'); await noScript.close(); fs.writeFileSync(out+'/result.json',JSON.stringify({errors},null,2)); if(errors.length)throw Error(errors.join('; '));
  }finally{await b.close();server.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
