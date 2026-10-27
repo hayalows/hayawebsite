@@ -30,6 +30,8 @@
       link.className = "fn-infinite__tile";
       link.href = item.href;
       link.setAttribute("aria-label", "Read field note about " + item.name);
+      // Only the centre tile enters the normal Tab order; the list view exposes all 12 notes.
+      link.tabIndex = row === 3 && col === 4 ? 0 : -1;
       const picture = document.createElement("span");
       picture.className = "fn-infinite__picture";
       const fallback = document.createElement("span");
