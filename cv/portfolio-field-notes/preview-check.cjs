@@ -10,6 +10,10 @@ const path = require('node:path');
  try{for(const width of [320,390,768,1440]){
  const page=await b.newPage({viewport:{width,height:900},reducedMotion:'reduce'});page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:8123/portfolio-field-notes/',{waitUntil:'domcontentloaded'});await page.locator('#search').waitFor();
+ await page.locator('#component-preview a').first().waitFor();
+ if(await page.locator('#component-preview a').count()!==6)errors.push('gallery links '+width);
+ if((await page.locator('#component-preview a').first().getAttribute('href'))!=='ux-derrick/')errors.push('gallery route '+width);
+ if((await page.locator('#component-preview a').first().getAttribute('aria-label'))!=='Read about UX Derrick')errors.push('gallery name '+width);
  await page.screenshot({path:out+'/archive-'+width+'.png',fullPage:false});
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1); if(overflow)errors.push('overflow '+width);
  await page.locator('#search').fill('UX Derrick'); if(await page.locator('.portfolio-card:visible').count()!==1)errors.push('search '+width);

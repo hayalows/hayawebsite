@@ -1,7 +1,7 @@
 name: Field Notes design verification
 on:
   push:
-    branches: ['design/field-notes-layout-overhaul']
+    branches: ['design/field-notes-layout-overhaul', 'design/field-notes-components-wip']
   workflow_dispatch:
 permissions:
   contents: read
