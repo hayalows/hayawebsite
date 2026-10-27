@@ -125,13 +125,28 @@
     if (stillMoving) frame = requestAnimationFrame(tick);
   };
   const schedule = () => { if (!frame) frame = requestAnimationFrame(tick); };
+  const home = () => {
+    // Introduce the first portfolio on phones, not a clipped middle column.
+    // Begin each viewport at a complete image row, leaving room to pan.
+    const compact = viewport.clientWidth <= 600;
+    const firstCard = block.querySelector(".fn-infinite__tile");
+    const cardWidth = firstCard?.offsetWidth || 240;
+    const padding = parseFloat(getComputedStyle(block).paddingLeft) || 0;
+    return {
+      x: compact
+        ? -blockW + (viewport.clientWidth - cardWidth) / 2 - padding
+        : -blockW + (viewport.clientWidth - blockW) / 2,
+      y: -blockH + (compact ? 28 : 45)
+    };
+  };
   const measure = () => {
-    if (!block) return;
+    if (!block || !viewport.clientWidth) return;
     blockW = block.offsetWidth; blockH = block.offsetHeight;
     if (!blockW || !blockH) return;
     if (!initialized) {
-      current.x = target.x = -blockW + (viewport.clientWidth - blockW) / 2;
-      current.y = target.y = -blockH + (viewport.clientHeight - blockH) / 2;
+      const origin = home();
+      current.x = target.x = origin.x;
+      current.y = target.y = origin.y;
       initialized = true;
     }
     wrapPosition(); place();
@@ -207,8 +222,8 @@
     }
   });
   gallery.querySelector(".fn-infinite__reset").addEventListener("click", () => {
-    target.x = -blockW + (viewport.clientWidth - blockW) / 2;
-    target.y = -blockH + (viewport.clientHeight - blockH) / 2;
+    const origin = home();
+    target.x = origin.x; target.y = origin.y;
     velocity.x = velocity.y = 0; schedule();
     viewport.focus({ preventScroll: true });
   });
