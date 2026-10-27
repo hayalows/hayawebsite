@@ -87,7 +87,7 @@
 @media(max-width:900px){
  .fieldnotes-home>.hero{padding:82px 0 58px!important}
  .fieldnotes-home #close-reads{margin-top:58px!important}
- .fn-infinite__viewport{--fn-card-width:clamp(225px,30vw,280px);--fn-grid-gap:clamp(20px,3vw,32px);min-height:590px;height:73svh}
+ .fn-infinite__viewport{--fn-card-width:clamp(225px,30vw,280px);--fn-grid-gap:clamp(20px,3vw,32px);min-height:590px;height:73svh;width:calc(100% + 4vw);margin-left:-2vw}
  .fn-perspective{margin-top:68px;min-height:1000px}
  .fn-perspective__headline{font-size:clamp(33px,5.3vw,54px)}
 }
@@ -106,7 +106,7 @@
  .fn-infinite__intro{font-size:13px;line-height:1.5}
  .fn-infinite__tools{width:100%;justify-content:space-between;gap:12px}
  .fn-infinite__tools button{min-height:44px;font-size:13px}
- .fn-infinite__viewport{--fn-card-width:clamp(220px,64vw,270px);--fn-grid-gap:23px;width:calc(100% + 30px);margin-left:-15px;height:530px;min-height:0;touch-action:pan-y}
+ .fn-infinite__viewport{--fn-card-width:clamp(220px,64vw,270px);--fn-grid-gap:23px;width:calc(100% + 7vw);margin-left:-3.5vw;height:530px;min-height:0;touch-action:pan-y}
  .fn-infinite__tile{gap:12px}
  .fn-infinite__meta{min-height:42px;gap:3px}
  .fn-infinite__label{font-size:12px}
