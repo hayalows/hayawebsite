@@ -136,7 +136,7 @@
       x: compact
         ? -blockW + (viewport.clientWidth - cardWidth) / 2 - padding
         : -blockW + (viewport.clientWidth - blockW) / 2,
-      y: -blockH + (compact ? 28 : 45)
+      y: -blockH - 8
     };
   };
   const measure = () => {
