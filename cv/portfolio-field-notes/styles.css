@@ -368,3 +368,26 @@ dialog .command-results{overscroll-behavior:contain}
 @media(prefers-reduced-motion:reduce){.preview img,.featured-card,.bookmark{transition:none!important}}
 
 .hero__link{display:inline-flex;align-items:center;gap:24px;min-height:48px;margin-top:26px;border-bottom:1px solid var(--accent);color:var(--text);font-size:14px;font-weight:600;transition:color .18s ease,border-color .18s ease}.hero__link span{color:var(--accent);transition:transform .18s ease}@media(hover:hover) and (pointer:fine){.hero__link:hover{color:var(--accent)}.hero__link:hover span{transform:translate(3px,3px)}}@media(prefers-reduced-motion:reduce){.hero__link,.hero__link span{transition:none}}
+
+/* A compact front page: introduction beside a browsable selection. */
+@media (min-width: 901px){
+ .fieldnotes-home{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);column-gap:clamp(44px,7vw,110px);align-items:start}
+ .fieldnotes-home>.hero{grid-column:1;grid-row:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:560px;padding:58px 0;border:0}
+ .fieldnotes-home .hero h1{font-size:clamp(68px,7vw,112px)}
+ .fieldnotes-home .hero__note{max-width:28rem}
+ .fieldnotes-home .hero__count{flex-direction:row;align-items:baseline;gap:9px;margin-top:30px}
+ .fieldnotes-home .hero__count strong{font-size:32px;letter-spacing:-.04em}
+ .fieldnotes-home .hero__count span{margin:0}
+ .fieldnotes-home>#close-reads{grid-column:2;grid-row:1;margin-top:64px;min-width:0}
+ .fieldnotes-home #close-reads .section-head h2{font-size:clamp(30px,3vw,42px)}
+ .fieldnotes-home .featured-card,.fieldnotes-home .featured-card:hover{flex-basis:85%}
+ .fieldnotes-home .featured-card .preview{aspect-ratio:1.3}
+ .fieldnotes-home>.section:not(#close-reads),.fieldnotes-home>.contribute{grid-column:1 / -1}
+ .fieldnotes-home>#index{border-top:1px solid var(--edge);padding-top:64px;margin-top:8px}
+}
+@media (max-width:900px){
+ .fieldnotes-home .hero{padding-top:48px;padding-bottom:36px}
+ .fieldnotes-home #close-reads{margin-top:48px}
+ .fieldnotes-home .featured-card,.fieldnotes-home .featured-card:hover{flex-basis:min(84vw,420px)}
+}
+@media (prefers-reduced-motion:reduce){.fieldnotes-home *{scroll-behavior:auto}}
