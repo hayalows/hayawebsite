@@ -14,13 +14,14 @@ const path = require('node:path');
  if(await page.locator('#component-preview a').count()!==6)errors.push('gallery links '+width);
  if((await page.locator('#component-preview a').first().getAttribute('href'))!=='ux-derrick/')errors.push('gallery route '+width);
  if((await page.locator('#component-preview a').first().getAttribute('aria-label'))!=='Read about UX Derrick')errors.push('gallery name '+width);
- if(await page.locator('.fn-infinite__tile').count()!==63)errors.push('infinite canvas tiles '+width);
+ if(await page.locator('.fn-infinite__tile').count()!==108)errors.push('infinite canvas tiles '+width);
  if(!await page.locator('#fn-perspective h2').count())errors.push('perspective content '+width);
+ if(await page.locator('.fn-infinite__block[data-center="true"] .fn-infinite__tile').count()!==12)errors.push('12 unique selected '+width);
  await page.locator('.fn-infinite__viewport').focus();
- const beforePan=await page.locator('.fn-infinite__tile').first().evaluate(el=>el.style.transform);
+ const beforePan=await page.locator('.fn-infinite__matrix').evaluate(el=>el.style.transform);
  await page.keyboard.press('ArrowRight');
  await page.waitForTimeout(80);
- const afterPan=await page.locator('.fn-infinite__tile').first().evaluate(el=>el.style.transform);
+ const afterPan=await page.locator('.fn-infinite__matrix').evaluate(el=>el.style.transform);
  if(beforePan===afterPan)errors.push('keyboard canvas pan '+width);
  await page.locator('.fn-infinite__reset').click();
  await page.locator('.fn-infinite__toggle').click();
@@ -47,6 +48,19 @@ const path = require('node:path');
  if(!await page.locator('a.visit').count())errors.push('visit '+width);
  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1))errors.push('detail overflow '+width);
  await page.close();
- } const noScript=await b.newPage({javaScriptEnabled:false,viewport:{width:390,height:900}}); await noScript.goto('http://127.0.0.1:8123/portfolio-field-notes/'); if(await noScript.locator('#portfolio-grid .portfolio-card').count()!==150)errors.push('no-JS archive'); if(await noScript.locator('#featured-list a').count()!==12)errors.push('no-JS selected'); await noScript.close(); fs.writeFileSync(out+'/result.json',JSON.stringify({errors},null,2)); if(errors.length)throw Error(errors.join('; '));
+  }
+ // Check the actual perspective animation separately, with motion enabled.
+ const motion=await b.newPage({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+ await motion.goto('http://127.0.0.1:8123/portfolio-field-notes/',{waitUntil:'domcontentloaded'});
+ await motion.locator('#fn-perspective').scrollIntoViewIfNeeded();
+ await motion.waitForTimeout(350);
+ const atStart=await motion.locator('.fn-perspective__headline').evaluate(el=>el.style.transform);
+ await motion.evaluate(()=>window.scrollBy(0,350));
+ await motion.waitForTimeout(350);
+ const atNext=await motion.locator('.fn-perspective__headline').evaluate(el=>el.style.transform);
+ if(atStart===atNext)errors.push('perspective motion does not react to scroll');
+ await motion.screenshot({path:out+'/perspective-motion.png'});
+ await motion.close();
+ const noScript=await b.newPage({javaScriptEnabled:false,viewport:{width:390,height:900}}); await noScript.goto('http://127.0.0.1:8123/portfolio-field-notes/'); if(await noScript.locator('#portfolio-grid .portfolio-card').count()!==150)errors.push('no-JS archive'); if(await noScript.locator('#featured-list a').count()!==12)errors.push('no-JS selected'); await noScript.close(); fs.writeFileSync(out+'/result.json',JSON.stringify({errors},null,2)); if(errors.length)throw Error(errors.join('; '));
  }finally{await b.close();server.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
