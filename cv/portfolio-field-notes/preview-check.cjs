@@ -14,13 +14,14 @@ const path = require('node:path');
  if(await page.locator('#component-preview a').count()!==6)errors.push('gallery links '+width);
  if((await page.locator('#component-preview a').first().getAttribute('href'))!=='ux-derrick/')errors.push('gallery route '+width);
  if((await page.locator('#component-preview a').first().getAttribute('aria-label'))!=='Read about UX Derrick')errors.push('gallery name '+width);
- if(await page.locator('.fn-infinite__tile').count()!==63)errors.push('infinite canvas tiles '+width);
+ if(await page.locator('.fn-infinite__tile').count()!==108)errors.push('infinite canvas tiles '+width);
  if(!await page.locator('#fn-perspective h2').count())errors.push('perspective content '+width);
+ if(await page.locator('.fn-infinite__block[data-center="true"] .fn-infinite__tile').count()!==12)errors.push('12 unique selected '+width);
  await page.locator('.fn-infinite__viewport').focus();
- const beforePan=await page.locator('.fn-infinite__tile').first().evaluate(el=>el.style.transform);
+ const beforePan=await page.locator('.fn-infinite__matrix').evaluate(el=>el.style.transform);
  await page.keyboard.press('ArrowRight');
  await page.waitForTimeout(80);
- const afterPan=await page.locator('.fn-infinite__tile').first().evaluate(el=>el.style.transform);
+ const afterPan=await page.locator('.fn-infinite__matrix').evaluate(el=>el.style.transform);
  if(beforePan===afterPan)errors.push('keyboard canvas pan '+width);
  await page.locator('.fn-infinite__reset').click();
  await page.locator('.fn-infinite__toggle').click();
@@ -28,7 +29,8 @@ const path = require('node:path');
  await page.locator('.fn-infinite__toggle').click();
  if(!await page.locator('.fn-infinite__viewport').isVisible())errors.push('canvas restore '+width);
  await page.screenshot({path:out+'/archive-'+width+'.png',fullPage:false});
- const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1); if(overflow)errors.push('overflow '+width);
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
+ if(overflow){const details=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,viewport:innerWidth,offenders:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>innerWidth+1&&!el.closest('.fn-infinite__viewport')}).slice(0,18).map(el=>({tag:el.tagName,id:el.id,class:typeof el.className==='string'?el.className.slice(0,120):'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))}));const extra=await page.evaluate(()=>({clientWidth:document.documentElement.clientWidth,bodyWidth:document.body.scrollWidth,negative:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.left< -1&&!el.closest('.fn-infinite__viewport')}).slice(0,14).map(el=>({name:el.tagName+'.'+(typeof el.className==='string'?el.className.slice(0,75):''),left:Math.round(el.getBoundingClientRect().left),right:Math.round(el.getBoundingClientRect().right)})),geometry:['.fn-perspective','.fn-infinite__viewport','.fieldnotes-home','.shell','#close-reads'].map(sel=>{const el=document.querySelector(sel); const r=el?.getBoundingClientRect();return {sel,left:r?.left,right:r?.right,width:r?.width,scrollWidth:el?.scrollWidth,overflow:el?getComputedStyle(el).overflowX:''}})}));console.error('Overflow at',width,JSON.stringify({...details,...extra}));errors.push('overflow '+width);}
  await page.locator('#search').fill('UX Derrick'); if(await page.locator('.portfolio-card:visible').count()!==1)errors.push('search '+width);
  await page.locator('#index').scrollIntoViewIfNeeded(); await page.screenshot({path:out+'/index-'+width+'.png'});
  await page.locator('[data-save="ux-derrick"]').click(); if(await page.locator('[data-save="ux-derrick"]').getAttribute('aria-pressed')!=='true')errors.push('save '+width);
@@ -47,6 +49,19 @@ const path = require('node:path');
  if(!await page.locator('a.visit').count())errors.push('visit '+width);
  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1))errors.push('detail overflow '+width);
  await page.close();
- } const noScript=await b.newPage({javaScriptEnabled:false,viewport:{width:390,height:900}}); await noScript.goto('http://127.0.0.1:8123/portfolio-field-notes/'); if(await noScript.locator('#portfolio-grid .portfolio-card').count()!==150)errors.push('no-JS archive'); if(await noScript.locator('#featured-list a').count()!==12)errors.push('no-JS selected'); await noScript.close(); fs.writeFileSync(out+'/result.json',JSON.stringify({errors},null,2)); if(errors.length)throw Error(errors.join('; '));
+  }
+ // Check the actual perspective animation separately, with motion enabled.
+ const motion=await b.newPage({viewport:{width:1440,height:900},reducedMotion:'no-preference'});
+ await motion.goto('http://127.0.0.1:8123/portfolio-field-notes/',{waitUntil:'domcontentloaded'});
+ await motion.locator('#fn-perspective').scrollIntoViewIfNeeded();
+ await motion.waitForTimeout(350);
+ const atStart=await motion.locator('.fn-perspective__headline').evaluate(el=>el.style.transform);
+ await motion.evaluate(()=>window.scrollBy(0,350));
+ await motion.waitForTimeout(350);
+ const atNext=await motion.locator('.fn-perspective__headline').evaluate(el=>el.style.transform);
+ if(atStart===atNext)errors.push('perspective motion does not react to scroll');
+ await motion.screenshot({path:out+'/perspective-motion.png'});
+ await motion.close();
+ const noScript=await b.newPage({javaScriptEnabled:false,viewport:{width:390,height:900}}); await noScript.goto('http://127.0.0.1:8123/portfolio-field-notes/'); if(await noScript.locator('#portfolio-grid .portfolio-card').count()!==150)errors.push('no-JS archive'); if(await noScript.locator('#featured-list a').count()!==12)errors.push('no-JS selected'); await noScript.close(); fs.writeFileSync(out+'/result.json',JSON.stringify({errors},null,2)); if(errors.length)throw Error(errors.join('; '));
  }finally{await b.close();server.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

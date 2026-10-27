@@ -1,209 +1,269 @@
-/* Field Notes infinite canvas + perspective reading moment.
-   Interaction patterns adapted from useLayouts Infinite Canvas and
-   Perspective Text Scroll (https://uselayouts.com/docs/components/).
-   Core links stay in HTML when JavaScript or motion is unavailable. */
+/* Portfolio Field Notes: useLayouts-inspired Infinite Canvas and Perspective Text Scroll.
+   Original references: https://uselayouts.com/docs/components/infinite-grid
+   and https://uselayouts.com/docs/components/perspective-text-scroll
+   Adapted to existing static archive: no new framework, real internal links, no-JS fallback. */
 (() => {
   "use strict";
   const section = document.getElementById("close-reads");
-  const sourceList = document.getElementById("featured-list");
-  if (!section || !sourceList) return;
-  const sourceCards = [...sourceList.querySelectorAll(".featured-card")];
-  const items = sourceCards.map(card => {
+  const selectedList = document.getElementById("featured-list");
+  if (!section || !selectedList) return;
+  const entries = [...selectedList.querySelectorAll(".featured-card")].map((card, index) => {
     const anchor = card.querySelector("a");
     const name = card.querySelector(".featured-card__name strong")?.textContent?.trim();
-    const img = card.querySelector("img");
-    return { href: anchor?.getAttribute("href"), name, img: img?.getAttribute("src") || "", initials: name?.split(/\s+/).map(word => word[0]).slice(0, 2).join("") || "FN" };
-  }).filter(item => item.href && item.name);
-  if (items.length < 8) return;
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const shell = document.createElement("div");
-  shell.className = "fn-infinite";
-  shell.innerHTML = '<div class="fn-infinite__top"><p class="fn-infinite__intro">Move through the work.</p><div class="fn-infinite__tools"><button type="button" class="fn-infinite__reset">Reset view <span aria-hidden="true">↺</span></button><button type="button" class="fn-infinite__toggle" aria-pressed="false">View as list <span aria-hidden="true">↗</span></button></div></div><div class="fn-infinite__viewport" role="region" tabindex="0" aria-label="Selected portfolio canvas. Drag to move or use arrow keys. Links open individual field notes."><div class="fn-infinite__surface"></div><span class="fn-infinite__guide" aria-hidden="true">Drag to explore <span>·</span> Arrow keys to move</span></div><p class="fn-infinite__mobile-tip">Swipe sideways to explore, or view as a list.</p>';
-  section.querySelector(".section-head")?.after(shell);
-  const viewport = shell.querySelector(".fn-infinite__viewport");
-  const surface = shell.querySelector(".fn-infinite__surface");
-  const COLS = 9, ROWS = 7, cells = [];
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      const item = items[(row * 4 + col) % items.length];
+    const image = card.querySelector("img")?.getAttribute("src") || "";
+    const fallback = name?.split(/\s+/).map(part => part[0]).slice(0, 2).join("") || "FN";
+    return { href: anchor?.getAttribute("href") || "", name, image, fallback, index };
+  }).filter(entry => entry.href && entry.name);
+  if (entries.length < 8) return;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const gallery = document.createElement("div");
+  gallery.className = "fn-infinite";
+  gallery.innerHTML = `
+    <div class="fn-infinite__top">
+      <p class="fn-infinite__intro">A closer look at twelve portfolios.</p>
+      <div class="fn-infinite__tools">
+        <button type="button" class="fn-infinite__reset" aria-label="Return canvas to the starting position">Reset <span aria-hidden="true">↺</span></button>
+        <button type="button" class="fn-infinite__toggle" aria-pressed="false">View all 12 <span aria-hidden="true">↗</span></button>
+      </div>
+    </div>
+    <div class="fn-infinite__viewport" role="region" tabindex="0" aria-label="Interactive portfolio canvas. Drag to explore in any direction. Use arrow keys to move through the canvas, or View all 12 for a regular grid.">
+      <div class="fn-infinite__matrix"></div>
+      <span class="fn-infinite__hint" aria-hidden="true">Drag to explore <span>↔</span></span>
+    </div>
+    <p class="fn-infinite__mobile-tip">Swipe across the gallery, or choose View all 12.</p>`;
+  section.querySelector(".section-head")?.after(gallery);
+  const viewport = gallery.querySelector(".fn-infinite__viewport");
+  const matrix = gallery.querySelector(".fn-infinite__matrix");
+  const COLS = 4;
+
+  // Source canvas repeats one coherent grid block in a 3x3 matrix.
+  // Only the middle block is presented to assistive technology.
+  for (let blockIndex = 0; blockIndex < 9; blockIndex++) {
+    const centre = blockIndex === 4;
+    const block = document.createElement("div");
+    block.className = "fn-infinite__block";
+    if (centre) block.dataset.center = "true";
+    else block.setAttribute("aria-hidden", "true");
+    for (const item of entries) {
       const link = document.createElement("a");
-      link.className = "fn-infinite__tile";
       link.href = item.href;
+      link.className = "fn-infinite__tile";
       link.setAttribute("aria-label", "Read field note about " + item.name);
-      // Only the centre tile enters the normal Tab order; the list view exposes all 12 notes.
-      link.tabIndex = row === 3 && col === 4 ? 0 : -1;
+      link.tabIndex = centre ? 0 : -1;
+      link.draggable = false;
       const picture = document.createElement("span");
       picture.className = "fn-infinite__picture";
       const fallback = document.createElement("span");
-      fallback.className = "fn-infinite__initials";
-      fallback.textContent = item.initials;
+      fallback.className = "fn-infinite__fallback";
+      fallback.textContent = item.fallback;
       picture.append(fallback);
-      if (item.img) {
+      if (item.image) {
         const img = document.createElement("img");
-        img.src = item.img;
+        img.src = item.image;
         img.alt = "";
-        img.loading = row >= 2 || col >= 5 ? "lazy" : "eager";
+        img.draggable = false;
+        img.loading = centre && item.index < 8 ? "eager" : "lazy";
         img.decoding = "async";
         img.referrerPolicy = "no-referrer";
-        img.addEventListener("error", () => img.remove(), { once:true });
+        img.addEventListener("error", () => img.remove(), { once: true });
         picture.append(img);
       }
-      const label = document.createElement("span");
-      label.className = "fn-infinite__label";
-      label.textContent = item.name;
-      const arrow = document.createElement("span");
-      arrow.className = "fn-infinite__arrow";
-      arrow.textContent = "↗";
-      arrow.setAttribute("aria-hidden", "true");
-      link.append(picture, label, arrow);
-      surface.append(link);
-      cells.push({ link, col, row });
+      const meta = document.createElement("span");
+      meta.className = "fn-infinite__meta";
+      const number = document.createElement("span");
+      number.className = "fn-infinite__number";
+      number.textContent = String(item.index + 1).padStart(2, "0");
+      number.setAttribute("aria-hidden", "true");
+      const title = document.createElement("span");
+      title.className = "fn-infinite__label";
+      title.textContent = item.name;
+      meta.append(number, title);
+      link.append(picture, meta);
+      block.append(link);
     }
+    matrix.append(block);
   }
-  let dx = 0, dy = 0, width = 0, height = 0, stepX = 0, stepY = 0, baseX = 0, baseY = 0;
-  let scheduled = false;
-  const wrap = (n, period) => ((n % period) + period) % period;
-  const paint = () => {
-    scheduled = false;
-    if (!stepX || !stepY) return;
-    const xperiod = COLS * stepX, yperiod = ROWS * stepY;
-    const ox = wrap(dx, xperiod), oy = wrap(dy, yperiod);
-    for (const cell of cells) {
-      let x = baseX + cell.col * stepX + ox;
-      let y = baseY + cell.row * stepY + oy;
-      if (x > width + stepX) x -= xperiod;
-      if (y > height + stepY) y -= yperiod;
-      cell.link.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+  const block = matrix.querySelector('[data-center="true"]');
+  let blockW = 0, blockH = 0, initialized = false;
+  const current = { x: 0, y: 0 }, target = { x: 0, y: 0 }, velocity = { x: 0, y: 0 };
+  let frame = 0, pointer = null, moved = false, dragDistance = 0, dragStart = { x: 0, y: 0 };
+  let dragTarget = { x: 0, y: 0 }, previous = { x: 0, y: 0, t: 0 }, suppressClickBefore = 0;
+  const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+  const place = () => {
+    matrix.style.transform = `translate3d(${current.x.toFixed(2)}px,${current.y.toFixed(2)}px,0) skew(${clamp(velocity.x * .06, -2, 2).toFixed(2)}deg,${clamp(velocity.y * .06, -2, 2).toFixed(2)}deg)`;
+  };
+  const wrapPosition = () => {
+    if (!blockW || !blockH) return;
+    for (const axis of ["x", "y"]) {
+      const size = axis === "x" ? blockW : blockH;
+      while (current[axis] < -size * 1.75) {
+        current[axis] += size; target[axis] += size; dragTarget[axis] += size;
+      }
+      while (current[axis] > -size * .25) {
+        current[axis] -= size; target[axis] -= size; dragTarget[axis] -= size;
+      }
     }
   };
-  const schedule = () => { if (!scheduled) { scheduled = true; requestAnimationFrame(paint); } };
+  const tick = () => {
+    frame = 0;
+    const dragging = pointer !== null && moved;
+    if (!dragging && !reducedMotion.matches) {
+      velocity.x *= .92; velocity.y *= .92;
+      target.x += velocity.x; target.y += velocity.y;
+    } else if (!dragging) {
+      velocity.x = velocity.y = 0;
+    }
+    const factor = reducedMotion.matches ? 1 : dragging ? .19 : .12;
+    current.x += (target.x - current.x) * factor;
+    current.y += (target.y - current.y) * factor;
+    wrapPosition();
+    place();
+    const stillMoving = Math.abs(target.x - current.x) + Math.abs(target.y - current.y) > .06
+      || Math.abs(velocity.x) + Math.abs(velocity.y) > .06;
+    if (stillMoving) frame = requestAnimationFrame(tick);
+  };
+  const schedule = () => { if (!frame) frame = requestAnimationFrame(tick); };
   const measure = () => {
-    width = viewport.clientWidth;
-    height = viewport.clientHeight;
-    stepX = cells[0].link.offsetWidth + (width <= 600 ? 13 : 18);
-    stepY = cells[0].link.offsetHeight + (width <= 600 ? 13 : 18);
-    baseX = (width - COLS * stepX) / 2;
-    baseY = (height - ROWS * stepY) / 2;
-    schedule();
+    if (!block) return;
+    blockW = block.offsetWidth; blockH = block.offsetHeight;
+    if (!blockW || !blockH) return;
+    if (!initialized) {
+      current.x = target.x = -blockW + (viewport.clientWidth - blockW) / 2;
+      current.y = target.y = -blockH + (viewport.clientHeight - blockH) / 2;
+      initialized = true;
+    }
+    wrapPosition(); place();
   };
-  let activePointer = null, dragging = false, startX = 0, startY = 0, lastX = 0, lastY = 0;
-  let velocityX = 0, velocityY = 0, inertia = 0, ignoreClickUntil = 0;
-  const stopInertia = () => { cancelAnimationFrame(inertia); inertia = 0; };
-  const runInertia = () => {
-    if (reduced.matches) return;
-    const step = () => {
-      velocityX *= .91; velocityY *= .91;
-      if (Math.abs(velocityX) + Math.abs(velocityY) < .38) { inertia = 0; return; }
-      dx += velocityX; dy += velocityY; schedule();
-      inertia = requestAnimationFrame(step);
-    };
-    if (Math.abs(velocityX) + Math.abs(velocityY) > 1.1) inertia = requestAnimationFrame(step);
-  };
+
   viewport.addEventListener("pointerdown", event => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    stopInertia();
-    activePointer = event.pointerId;
-    dragging = false;
-    startX = lastX = event.clientX;
-    startY = lastY = event.clientY;
-    velocityX = velocityY = 0;
+    pointer = event.pointerId;
+    moved = false; dragDistance = 0;
+    velocity.x = velocity.y = 0;
+    dragStart = { x: event.clientX, y: event.clientY };
+    dragTarget = { ...target };
+    previous = { x: event.clientX, y: event.clientY, t: performance.now() };
   });
   viewport.addEventListener("pointermove", event => {
-    if (activePointer !== event.pointerId) return;
-    if (!dragging && Math.hypot(event.clientX - startX, event.clientY - startY) > 7) {
-      dragging = true;
-      viewport.classList.add("is-dragging");
+    if (event.pointerId !== pointer) return;
+    const dist = Math.hypot(event.clientX - dragStart.x, event.clientY - dragStart.y);
+    if (!moved && dist < 7) return;
+    if (!moved) {
+      moved = true; viewport.classList.add("is-dragging");
       try { viewport.setPointerCapture(event.pointerId); } catch {}
     }
-    if (!dragging) return;
-    const shiftX = event.clientX - lastX, shiftY = event.clientY - lastY;
-    dx += shiftX; dy += shiftY;
-    velocityX = shiftX; velocityY = shiftY;
-    lastX = event.clientX; lastY = event.clientY;
+    dragDistance = dist;
+    const now = performance.now(), dt = Math.max(now - previous.t, 1);
+    const vx = ((event.clientX - previous.x) / dt) * 10;
+    const vy = ((event.clientY - previous.y) / dt) * 10;
+    velocity.x = velocity.x * .3 + vx * .7;
+    velocity.y = velocity.y * .3 + vy * .7;
+    previous = { x: event.clientX, y: event.clientY, t: now };
+    target.x = dragTarget.x + (event.clientX - dragStart.x) * .9;
+    target.y = dragTarget.y + (event.clientY - dragStart.y) * .9;
     schedule();
-  }, { passive:true });
+  }, { passive: true });
   const finish = event => {
-    if (activePointer !== event.pointerId) return;
-    activePointer = null;
-    if (dragging) {
-      ignoreClickUntil = performance.now() + 300;
-      viewport.classList.remove("is-dragging");
-      try { viewport.releasePointerCapture(event.pointerId); } catch {}
-      runInertia();
-    }
-    dragging = false;
+    if (pointer !== event.pointerId) return;
+    pointer = null;
+    if (moved && dragDistance > 7) suppressClickBefore = performance.now() + 350;
+    viewport.classList.remove("is-dragging");
+    if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+    moved = false; schedule();
   };
   viewport.addEventListener("pointerup", finish);
   viewport.addEventListener("pointercancel", finish);
-  viewport.addEventListener("lostpointercapture", () => { activePointer = null; dragging = false; viewport.classList.remove("is-dragging"); });
   viewport.addEventListener("click", event => {
-    if (performance.now() < ignoreClickUntil) { event.preventDefault(); event.stopPropagation(); }
+    if (event.detail !== 0 && performance.now() < suppressClickBefore) {
+      event.preventDefault(); event.stopImmediatePropagation();
+    }
   }, true);
   viewport.addEventListener("wheel", event => {
-    // Ordinary vertical wheel scrolling must still move down the page.
-    if (!event.shiftKey && Math.abs(event.deltaX) < Math.abs(event.deltaY) * 1.15) return;
+    // Preserve ordinary vertical page scrolling. Shift+wheel and sideways
+    // trackpad input pan the canvas, without trapping the archive below.
+    if (!event.shiftKey && Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
     event.preventDefault();
-    stopInertia();
-    dx -= event.deltaX || event.deltaY;
-    dy -= event.shiftKey ? 0 : event.deltaY;
+    const x = (event.deltaX || event.deltaY) * -.65;
+    const y = event.shiftKey ? 0 : event.deltaY * -.5;
+    target.x += x; target.y += y;
+    velocity.x = x * .3; velocity.y = y * .3;
     schedule();
-  }, { passive:false });
+  }, { passive: false });
   viewport.addEventListener("keydown", event => {
-    const amounts = { ArrowLeft:[68,0], ArrowRight:[-68,0], ArrowUp:[0,68], ArrowDown:[0,-68] };
-    if (amounts[event.key]) {
-      event.preventDefault(); stopInertia();
-      dx += amounts[event.key][0]; dy += amounts[event.key][1]; schedule();
-    } else if (event.key === "Home" && event.target === viewport) {
-      event.preventDefault(); dx = dy = 0; schedule();
+    if (event.target !== viewport) return;
+    const dir = { ArrowLeft: [95, 0], ArrowRight: [-95, 0], ArrowUp: [0, 95], ArrowDown: [0, -95] };
+    if (dir[event.key]) {
+      event.preventDefault();
+      target.x += dir[event.key][0]; target.y += dir[event.key][1];
+      velocity.x = velocity.y = 0; schedule();
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      target.x = -blockW + (viewport.clientWidth - blockW) / 2;
+      target.y = -blockH + (viewport.clientHeight - blockH) / 2;
+      velocity.x = velocity.y = 0; schedule();
     }
   });
-  shell.querySelector(".fn-infinite__reset").addEventListener("click", () => {
-    stopInertia(); dx = dy = 0; schedule(); viewport.focus({ preventScroll:true });
+  gallery.querySelector(".fn-infinite__reset").addEventListener("click", () => {
+    target.x = -blockW + (viewport.clientWidth - blockW) / 2;
+    target.y = -blockH + (viewport.clientHeight - blockH) / 2;
+    velocity.x = velocity.y = 0; schedule();
+    viewport.focus({ preventScroll: true });
   });
-  const toggle = shell.querySelector(".fn-infinite__toggle");
+  const toggle = gallery.querySelector(".fn-infinite__toggle");
   toggle.addEventListener("click", () => {
     const open = section.classList.toggle("fn-list-open");
     toggle.setAttribute("aria-pressed", String(open));
-    toggle.firstChild.textContent = open ? "Explore canvas " : "View as list ";
-    if (!open) { measure(); viewport.focus({ preventScroll:true }); }
-    else sourceList.querySelector("a")?.focus({ preventScroll:true });
+    toggle.firstChild.textContent = open ? "Explore canvas " : "View all 12 ";
+    if (open) selectedList.querySelector("a")?.focus({ preventScroll: true });
+    else { measure(); viewport.focus({ preventScroll: true }); }
   });
   if ("ResizeObserver" in window) new ResizeObserver(measure).observe(viewport);
-  else window.addEventListener("resize", measure, { passive:true });
+  else window.addEventListener("resize", measure, { passive: true });
   measure();
   document.documentElement.classList.add("fn-canvas-ready");
 
   const perspective = document.getElementById("fn-perspective");
-  const words = perspective?.querySelector(".fn-perspective__headline");
-  if (!perspective || !words || reduced.matches) return;
-  // Adapted from useLayouts' five-keyframe scroll interpolation.
+  const text = perspective?.querySelector(".fn-perspective__headline");
+  if (!perspective || !text || reducedMotion.matches) return;
+  // Source's five-stage pitch / translation / depth model; shortened passage
+  // duration to avoid a five-screen interruption to the archive.
   const keys = [
-    [0, 28, 210, .42],
-    [.19, 16, 94, .85],
-    [.48, 0, 0, 1],
-    [.80, -15, -84, .85],
-    [1, -25, -150, .42]
+    { p: 0, rx: 38, y: 280, z: -40, opacity: .25 },
+    { p: .14, rx: 24, y: 125, z: 0, opacity: 1 },
+    { p: .5, rx: 0, y: 0, z: 30, opacity: 1 },
+    { p: .85, rx: -22, y: -140, z: 45, opacity: 1 },
+    { p: 1, rx: -34, y: -270, z: 55, opacity: .2 }
   ];
-  let scrollScheduled = false;
   const interpolate = p => {
     for (let i = 0; i < keys.length - 1; i++) {
-      if (p > keys[i + 1][0]) continue;
-      const a = keys[i], b = keys[i + 1], t = Math.max(0, Math.min(1, (p - a[0]) / (b[0] - a[0])));
-      return [a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t];
+      const a = keys[i], b = keys[i + 1];
+      if (p <= b.p) {
+        const t = clamp((p - a.p) / (b.p - a.p), 0, 1);
+        return { rx: a.rx + (b.rx - a.rx) * t, y: a.y + (b.y - a.y) * t,
+          z: a.z + (b.z - a.z) * t, opacity: a.opacity + (b.opacity - a.opacity) * t };
+      }
     }
-    return keys[keys.length - 1].slice(1);
+    return keys[keys.length - 1];
   };
-  const updateScroll = () => {
-    scrollScheduled = false;
+  let progress = 0, destination = 0, perspectiveFrame = 0;
+  const update = () => {
+    perspectiveFrame = 0;
+    progress += (destination - progress) * .095;
+    const pose = interpolate(progress);
+    text.style.transform = `rotateX(${pose.rx.toFixed(2)}deg) translate3d(0,${pose.y.toFixed(1)}px,${pose.z.toFixed(1)}px)`;
+    text.style.opacity = pose.opacity.toFixed(3);
+    if (Math.abs(destination - progress) > .001) perspectiveFrame = requestAnimationFrame(update);
+  };
+  const onScroll = () => {
     const rect = perspective.getBoundingClientRect();
-    const usable = Math.max(1, rect.height - innerHeight);
-    const p = Math.max(0, Math.min(1, -rect.top / usable));
-    const [angle, translate, opacity] = interpolate(p);
-    words.style.transform = `perspective(850px) rotateX(${angle.toFixed(2)}deg) translate3d(0,${translate.toFixed(1)}px,0)`;
-    words.style.opacity = String(opacity);
+    const travel = Math.max(1, rect.height - innerHeight);
+    destination = clamp(-rect.top / travel, 0, 1);
+    if (!perspectiveFrame) perspectiveFrame = requestAnimationFrame(update);
   };
-  const onScroll = () => { if (!scrollScheduled) { scrollScheduled = true; requestAnimationFrame(updateScroll); } };
-  window.addEventListener("scroll", onScroll, { passive:true });
-  window.addEventListener("resize", onScroll, { passive:true });
-  updateScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  onScroll();
 })();
