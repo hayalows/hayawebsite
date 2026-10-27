@@ -23,6 +23,7 @@
 .fn-infinite__viewport{position:relative;overflow:hidden;isolation:isolate;height:clamp(490px,54vw,690px);width:100%;border:1px solid var(--edge);background:radial-gradient(ellipse at 50% 50%,var(--paper2),var(--bg) 85%);border-radius:16px;cursor:grab;touch-action:pan-y;overscroll-behavior:contain}
 .fn-infinite__viewport::before{content:"";pointer-events:none;position:absolute;inset:0;background-image:radial-gradient(var(--edge) 0.8px,transparent 0.8px);background-size:26px 26px;opacity:.42;z-index:0}
 .fn-infinite__viewport.is-dragging{cursor:grabbing}
+.fn-infinite__viewport:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .fn-infinite__surface{position:absolute;inset:0;z-index:1}
 .fn-infinite__tile{position:absolute;top:0;left:0;width:clamp(196px,21vw,274px);height:clamp(215px,22vw,280px);display:flex;flex-direction:column;overflow:hidden;padding:9px 9px 13px;border:1px solid var(--edge);border-radius:11px;background:var(--paper);box-shadow:0 11px 30px #00000018;user-select:none;-webkit-user-select:none;will-change:transform}
 .fn-infinite__tile:hover,.fn-infinite__tile:focus-visible{z-index:5;border-color:var(--accent);box-shadow:0 18px 40px #00000035}
