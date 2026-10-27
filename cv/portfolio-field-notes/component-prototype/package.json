@@ -1,0 +1,20 @@
+{
+  "name": "field-notes-component-prototype",
+  "private": true,
+  "scripts": {
+    "build": "esbuild index.tsx --bundle --jsx=automatic --minify --outfile=dist/gallery.js && tailwindcss -i input.css -o dist/gallery.css --minify"
+  },
+  "dependencies": {
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "class-variance-authority": "0.7.1",
+    "cn": "0.5.0",
+    "@base-ui/react": "1.9.0",
+    "motion": "12.23.24"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "esbuild": "0.28.2",
+    "tailwindcss": "4.3.3"
+  }
+}

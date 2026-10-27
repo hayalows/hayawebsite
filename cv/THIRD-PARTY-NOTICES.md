@@ -87,7 +87,17 @@ Drive content; upstream stock images are not included.
 
 # Portfolio Field Notes (24 October 2026)
 
-The Field Notes archive borrows **interaction patterns**, not unchanged TSX source, from the free component catalogs: [useLayouts](https://uselayouts.com), [Rare UI](https://rareui.com) and [beUI](https://beui.dev). See `portfolio-field-notes/README.md` for the 16 named inspirations and their functions. The dependency-free HTML/CSS/JavaScript adaptations were written for the existing static portfolio; no upstream PRO assets are included. The Rare UI MIT + Commons Clause + Attribution, UseLayouts MIT notices above continue to apply. beUI is MIT-licensed; original license: https://github.com/starc007/ui-components/blob/main/LICENSE (copyright Saurabh Chauhan and contributors).
+The original Field Notes archive borrows **interaction patterns** from the free component catalogs: [useLayouts](https://uselayouts.com), [Rare UI](https://rareui.com) and [beUI](https://beui.dev). See `portfolio-field-notes/README.md` for the 16 named inspirations and their functions. The dependency-free HTML/CSS/JavaScript adaptations were written for the existing static portfolio; no upstream PRO assets are included. The Rare UI MIT + Commons Clause + Attribution, UseLayouts MIT notices above continue to apply. beUI is MIT-licensed; original license: https://github.com/starc007/ui-components/blob/main/LICENSE (copyright Saurabh Chauhan and contributors).
+
+# Field Notes React component sources
+
+The archive index also includes adapted source components from useLayouts at
+revision `f1a066916515193336cbdb09f817aa42d888a0e2` and ReUI at revision
+`067aa0dc7f8bbfec1cd76fc5ad31f842be5f569a`. The source copies, corresponding MIT
+notices, adaptation notes and list of uses are in
+`portfolio-field-notes/component-prototype/vendor/` and its README. ReUI is
+copyright (c) 2025 Keenthemes Inc; the full MIT licence is retained in
+`vendor/reui/LICENSE.md`. No paid assets are included.
 
 # Lucide icon artwork
 

@@ -14,7 +14,7 @@ Eleven featured portfolio previews were captured from the owners' public website
 
 ## Library patterns and credits
 
-The upstream designs are React/Motion components. Because the existing Vercel project serves **static vanilla HTML/CSS/JavaScript** from `cv/`, Field Notes ports their useful interaction patterns rather than copying TSX unchanged. These are **adaptations**, not original upstream implementations. This choice avoids a new application framework and keeps the rest of the portfolio unchanged.
+The original archive uses static HTML/CSS/JavaScript and retains the interaction-pattern adaptations listed below. The current index also progressively enhances selected areas with React components copied from the useLayouts and ReUI registries. These source components have been adapted for archive data, styling, accessibility, and compatibility with the existing controls. The static archive remains the fallback if JavaScript fails. See `component-prototype/README.md` and its `vendor/` directory for the ten sourced components and their licences.
 
 | Source | Components adapted | Actual use |
 | --- | --- | --- |

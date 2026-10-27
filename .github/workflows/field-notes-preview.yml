@@ -1,7 +1,10 @@
 name: Field Notes design verification
 on:
   push:
-    branches: ['design/field-notes-layout-overhaul']
+    branches: ['design/field-notes-layout-overhaul', 'design/field-notes-components-wip']
+  pull_request:
+    branches: [main]
+    paths: ['cv/portfolio-field-notes/**', 'cv/THIRD-PARTY-NOTICES.md', '.github/workflows/field-notes-preview.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,7 +18,13 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps chromium
+      - name: Select browser
+        run: |
+          if command -v google-chrome >/dev/null; then
+            echo "PLAYWRIGHT_BROWSER=chrome" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - run: node cv/portfolio-field-notes/verify.mjs
       - name: Browser verification
         run: node cv/portfolio-field-notes/preview-check.cjs
