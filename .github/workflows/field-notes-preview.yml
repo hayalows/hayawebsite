@@ -4,6 +4,7 @@ on:
     branches: ['design/field-notes-layout-overhaul', 'design/field-notes-components-wip']
   pull_request:
     branches: [main]
+    paths: ['cv/portfolio-field-notes/**', 'cv/THIRD-PARTY-NOTICES.md', '.github/workflows/field-notes-preview.yml']
   workflow_dispatch:
 permissions:
   contents: read
