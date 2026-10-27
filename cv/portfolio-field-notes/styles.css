@@ -366,3 +366,5 @@ dialog .command-results{overscroll-behavior:contain}
 }
 @media(max-width:360px){.portfolio-grid:not(.is-list){grid-template-columns:1fr;gap:30px}.portfolio-grid:not(.is-list) .portfolio-card__title{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.preview img,.featured-card,.bookmark{transition:none!important}}
+
+.hero__link{display:inline-flex;align-items:center;gap:24px;min-height:48px;margin-top:26px;border-bottom:1px solid var(--accent);color:var(--text);font-size:14px;font-weight:600;transition:color .18s ease,border-color .18s ease}.hero__link span{color:var(--accent);transition:transform .18s ease}@media(hover:hover) and (pointer:fine){.hero__link:hover{color:var(--accent)}.hero__link:hover span{transform:translate(3px,3px)}}@media(prefers-reduced-motion:reduce){.hero__link,.hero__link span{transition:none}}
