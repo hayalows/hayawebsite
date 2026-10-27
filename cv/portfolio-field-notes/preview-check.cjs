@@ -17,6 +17,11 @@ const path = require('node:path');
  await page.screenshot({path:out+'/archive-'+width+'.png',fullPage:false});
  const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1); if(overflow)errors.push('overflow '+width);
  await page.locator('#search').fill('UX Derrick'); if(await page.locator('.portfolio-card:visible').count()!==1)errors.push('search '+width);
+ await page.locator('#index').scrollIntoViewIfNeeded(); await page.screenshot({path:out+'/index-'+width+'.png'});
+ await page.locator('[data-save="ux-derrick"]').click(); if(await page.locator('[data-save="ux-derrick"]').getAttribute('aria-pressed')!=='true')errors.push('save '+width);
+ await page.locator('#search').fill(''); await page.locator('[data-filter="saved"]').click(); if(await page.locator('.portfolio-card:visible').count()!==1)errors.push('saved filter '+width);
+ await page.locator('[data-filter="all"]').click(); await page.locator('#search').fill('UX Derrick'); await page.locator('[data-save="ux-derrick"]').click();
+
  await page.locator('#search').fill('not-a-real-portfolio-xyz');if(!await page.locator('#empty').isVisible())errors.push('empty '+width);
  await page.locator('.fn-clear button').click(); if(await page.locator('#search').inputValue()!=='')errors.push('clear search '+width);
  await page.locator('.fn-discrete button[aria-label="List view"]').click(); if(!await page.locator('#portfolio-grid').evaluate(el=>el.classList.contains('is-list')))errors.push('list view '+width);
