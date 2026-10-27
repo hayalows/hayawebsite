@@ -17,7 +17,13 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps chromium
+      - name: Select browser
+        run: |
+          if command -v google-chrome >/dev/null; then
+            echo "PLAYWRIGHT_BROWSER=chrome" >> "$GITHUB_ENV"
+          else
+            npx playwright install --with-deps chromium
+          fi
       - run: node cv/portfolio-field-notes/verify.mjs
       - name: Browser verification
         run: node cv/portfolio-field-notes/preview-check.cjs
