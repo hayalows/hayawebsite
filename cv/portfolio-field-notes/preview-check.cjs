@@ -8,9 +8,9 @@ const path = require('node:path');
  const server=http.createServer((req,res)=>{let p=decodeURIComponent(new URL(req.url,'http://localhost').pathname); let file=path.join(root,p); if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return} if(p.endsWith('/'))file=path.join(file,'index.html'); fs.readFile(file,(e,data)=>{if(e){res.writeHead(404).end();return} let ext=path.extname(file);res.setHeader('content-type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.webp':'image/webp'}[ext]||'application/octet-stream'));res.end(data)})}).listen(8123,'127.0.0.1');
  const b=await chromium.launch({headless:true, ...(process.env.PLAYWRIGHT_BROWSER ? {channel:process.env.PLAYWRIGHT_BROWSER} : {})});let errors=[];
  try{for(const width of [320,390,768,1440]){
- const page=await b.newPage({viewport:{width,height:900},reducedMotion:'reduce'});page.on('pageerror',e=>errors.push(e.message));
+ const page=await b.newPage({viewport:{width,height:900},reducedMotion:'reduce'});page.on('pageerror',e=>{ errors.push(e.message); console.error('PAGE ERROR:', e.stack || e.message); }); page.on('console',message=>{ if(message.type()==='error') console.error('CONSOLE ERROR:',message.text()); });
  await page.goto('http://127.0.0.1:8123/portfolio-field-notes/',{waitUntil:'domcontentloaded'});await page.locator('#search').waitFor();
- await page.locator('#component-preview a').first().waitFor();
+ await page.screenshot({path:out+'/before-'+width+'.png'}); await page.locator('#component-preview a').first().waitFor({timeout:10000});
  if(await page.locator('#component-preview a').count()!==6)errors.push('gallery links '+width);
  if((await page.locator('#component-preview a').first().getAttribute('href'))!=='ux-derrick/')errors.push('gallery route '+width);
  if((await page.locator('#component-preview a').first().getAttribute('aria-label'))!=='Read about UX Derrick')errors.push('gallery name '+width);
