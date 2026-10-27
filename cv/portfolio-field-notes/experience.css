@@ -74,7 +74,7 @@
 .fn-perspective__eyebrow{color:#66786a;font:550 12px/1.5 var(--sans);letter-spacing:.13em;text-transform:uppercase;margin-bottom:32px}
 .fn-perspective__headline{
  max-width:1030px;margin:0;
- font:560 clamp(32px,4.55vw,70px)/1.18 var(--sans);
+ font:570 clamp(32px,3.05vw,48px)/1.24 var(--sans);
  letter-spacing:-.055em;color:#496958;
  transform-style:preserve-3d;backface-visibility:hidden;will-change:transform,opacity;
 }
