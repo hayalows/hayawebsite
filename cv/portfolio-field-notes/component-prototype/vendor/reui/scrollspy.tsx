@@ -160,9 +160,10 @@ export function Scrollspy({
           behavior: smooth ? "smooth" : "auto",
         })
       }
+      if (event && !history) window.history.pushState(null, "", `#${sectionId}`)
       setActiveSection(sectionId, true)
     },
-    [dataAttribute, offset, smooth, targetRef, setActiveSection]
+    [dataAttribute, offset, smooth, targetRef, setActiveSection, history]
   )
 
   // Scroll to the section if the ID is present in the URL hash
