@@ -29,7 +29,8 @@ const path = require('node:path');
  await page.locator('.fn-infinite__toggle').click();
  if(!await page.locator('.fn-infinite__viewport').isVisible())errors.push('canvas restore '+width);
  await page.screenshot({path:out+'/archive-'+width+'.png',fullPage:false});
- const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1); if(overflow)errors.push('overflow '+width);
+ const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
+ if(overflow){const details=await page.evaluate(()=>({doc:document.documentElement.scrollWidth,viewport:innerWidth,offenders:[...document.querySelectorAll('body *')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>innerWidth+1&&!el.closest('.fn-infinite__viewport')}).slice(0,18).map(el=>({tag:el.tagName,id:el.id,class:typeof el.className==='string'?el.className.slice(0,120):'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))}));console.error('Overflow at',width,JSON.stringify(details));errors.push('overflow '+width);}
  await page.locator('#search').fill('UX Derrick'); if(await page.locator('.portfolio-card:visible').count()!==1)errors.push('search '+width);
  await page.locator('#index').scrollIntoViewIfNeeded(); await page.screenshot({path:out+'/index-'+width+'.png'});
  await page.locator('[data-save="ux-derrick"]').click(); if(await page.locator('[data-save="ux-derrick"]').getAttribute('aria-pressed')!=='true')errors.push('save '+width);
