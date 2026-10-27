@@ -1,7 +1,7 @@
 name: Field Notes design verification
 on:
   push:
-    branches: ['design/field-notes-layout-overhaul', 'design/field-notes-components-wip']
+    branches: ['design/field-notes-layout-overhaul', 'design/field-notes-components-wip', 'design/field-notes-infinite-perspective']
   pull_request:
     branches: [main]
     paths: ['cv/portfolio-field-notes/**', 'cv/THIRD-PARTY-NOTICES.md', '.github/workflows/field-notes-preview.yml']
