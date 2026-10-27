@@ -63,7 +63,7 @@
 /* useLayouts' text comes forward through depth on a quiet, unboxed surface.
    It is a passage to read, rather than a second oversized slogan. */
 .fn-perspective{
- position:relative;width:100vw;margin:100px 0 0 calc(50% - 50vw);
+ position:relative;width:calc(100vw - 18px);margin:100px 0 0 calc(50% - 50vw + 9px);
  height:250svh;min-height:1250px;background:#f7f4f2;color:#3f5b4e;isolation:isolate;
 }
 .fn-perspective__sticky{
