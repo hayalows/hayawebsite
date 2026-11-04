@@ -5,12 +5,16 @@ const path = require("node:path");
 
 const cvRoot = path.resolve(__dirname, "..");
 const config = JSON.parse(fs.readFileSync(path.join(cvRoot, "vercel.json"), "utf8"));
-const analytics = config.headers?.find(entry => entry.source === "/analytics/:path*");
-const headers = Object.fromEntries((analytics?.headers || []).map(entry => [entry.key.toLowerCase(), entry.value]));
+const expectedRoutes = ["/analytics", "/analytics/", "/analytics/:path*"];
+const rules = new Map((config.headers || []).map(rule => [rule.source, rule.headers]));
+const headers = Object.fromEntries((rules.get("/analytics/") || []).map(entry => [entry.key.toLowerCase(), entry.value]));
 
-test("security policy is limited to private analytics assets", () => {
-  assert.ok(analytics, "missing analytics headers configuration");
-  assert.equal(config.headers.length, 1, "do not unexpectedly change public routes");
+test("security policy covers the real dashboard URL and its static assets", () => {
+  assert.deepEqual([...rules.keys()].sort(), [...expectedRoutes].sort());
+  for (const route of expectedRoutes) {
+    const byName = Object.fromEntries((rules.get(route) || []).map(entry => [entry.key.toLowerCase(), entry.value]));
+    assert.deepEqual(byName, headers, "inconsistent headers for " + route);
+  }
   assert.equal(headers["x-frame-options"], "DENY");
   assert.equal(headers["cache-control"], "no-store");
   assert.equal(headers["referrer-policy"], "no-referrer");
