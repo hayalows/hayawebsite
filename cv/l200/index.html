@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mitsubishi L200 3D Studio | PKM</title>
+<meta name="description" content="A hands-on, independent 3D study of the latest-generation Mitsubishi L200 double-cab. Explore details, angles, paint and studio lighting.">
+<meta name="theme-color" content="#0a0c10">
+<meta property="og:title" content="L200 / Triton — an interactive 3D study">
+<meta property="og:description" content="A browser-based 3D study of the latest-generation Mitsubishi L200 double cab, with an interactive inspection studio.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pkm.hayalows.com/l200/">
+<link rel="canonical" href="https://pkm.hayalows.com/l200/">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+:root{color-scheme:dark;--bg:#0a0c10;--line:rgba(255,255,255,.12);--soft:rgba(255,255,255,.54);--fg:#f2f4f6;--accent:#e5e1d6}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--fg)}
+#canvas{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none}#grain{pointer-events:none;position:absolute;inset:0;opacity:.22;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E")}
+.top{position:absolute;left:clamp(20px,4vw,70px);right:clamp(20px,4vw,70px);top:clamp(20px,3vw,36px);display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;gap:20px}
+.top>*{pointer-events:auto}.wordmark{display:flex;align-items:center;gap:14px}.logo{width:31px;height:31px;display:grid;place-items:center}.logo svg{width:100%;height:100%}.identity .eyebrow{letter-spacing:.18em;font-size:10px;font-weight:700;color:#bbc0c7}.identity .name{font-size:11px;letter-spacing:.05em;color:#828b97;margin-top:4px}
+.backlink{color:#f1f2f0;text-decoration:none;font-weight:650;font-size:11px;border:1px solid #ffffff2b;background:#ffffff0d;border-radius:999px;padding:11px 15px;backdrop-filter:blur(12px)}.backlink:hover,.backlink:focus-visible{background:#ffffff25;outline-offset:3px}.topright{display:flex;gap:16px;align-items:center;font-size:11px;letter-spacing:.08em;color:#aab1bd}.pill{border:1px solid var(--line);border-radius:999px;padding:10px 14px;white-space:nowrap;backdrop-filter:blur(14px);background:#ffffff08}.dot{display:inline-block;width:6px;height:6px;background:#91c6b1;border-radius:50%;margin-right:7px;box-shadow:0 0 12px #91c6b1aa}
+.hero{position:absolute;top:19%;left:clamp(20px,4vw,70px);pointer-events:none;max-width:480px;text-shadow:0 2px 20px #0004}.hero .sub{font-size:11px;letter-spacing:.3em;color:#b5bbbe;font-weight:700}.hero h1{font-size:clamp(42px,6vw,95px);letter-spacing:-.09em;line-height:.95;font-weight:650;margin:14px 0 10px}.hero h1 span{font-weight:250;color:#b5b8bd}.hero p{font-size:clamp(12px,1.15vw,15px);line-height:1.6;color:#abb1bb;max-width:350px;margin:17px 0}
+.details{position:absolute;right:clamp(20px,4vw,70px);top:35%;width:min(275px,calc(100vw - 40px));padding:17px 19px;border-radius:14px;background:#171d25e8;box-shadow:0 20px 60px #0009;border:1px solid #ffffff28;backdrop-filter:blur(24px);z-index:3;font-size:12px;line-height:1.6;color:#b4becb}.details[hidden]{display:none}.details strong{display:block;color:white;font-size:13px;margin-bottom:8px}.details a{color:#d5e1f7}.details p{margin:9px 0}.details button{border:0;background:#e7e9ed;color:#121720;border-radius:7px;padding:6px 12px;cursor:pointer;font-weight:700}.top .backlink{pointer-events:auto}.disclaimer{position:absolute;right:clamp(20px,4vw,70px);top:24%;font-size:10px;color:#878f9c;line-height:1.7;letter-spacing:.025em;text-align:right;max-width:180px;pointer-events:none}
+.bottom{position:absolute;bottom:clamp(18px,3.3vw,40px);left:clamp(18px,4vw,70px);right:clamp(18px,4vw,70px);display:flex;align-items:flex-end;justify-content:space-between;gap:20px;pointer-events:none}.bottom>*{pointer-events:auto}
+.controlcard{background:rgba(21,25,31,.72);backdrop-filter:blur(20px) saturate(1.2);border:1px solid var(--line);border-radius:18px;padding:17px 19px 16px;box-shadow:0 15px 45px #0006;max-width:100%}.sectionlabel{font-size:9px;letter-spacing:.18em;font-weight:800;color:#8f99a4;text-transform:uppercase;margin-bottom:12px}.swatches{display:flex;gap:10px;align-items:center}.swatch{width:25px;height:25px;border-radius:50%;border:2px solid #ffffff3b;cursor:pointer;transition:transform .15s,border-color .15s;position:relative}.swatch.active{outline:1px solid #f5f5f5;outline-offset:3px;border-color:#171717;transform:scale(1.02)}.swatch:focus-visible,.action:focus-visible{outline:2px solid white;outline-offset:4px}.paintname{color:#f1f1f1;font-size:11px;margin-top:13px;letter-spacing:.04em}.views{display:flex;gap:6px;flex-wrap:wrap}.action{cursor:pointer;background:rgba(255,255,255,.055);border:1px solid transparent;color:#c0c5cd;padding:9px 12px;border-radius:8px;font:600 11px system-ui;transition:background .15s,color .15s}.action.active{background:#e7e9ed;color:#13171c}.action:hover{background:rgba(255,255,255,.15);color:white}.action.active:hover{background:white;color:#181818}.righttools{display:flex;gap:10px;align-items:flex-end}.toolbutton{cursor:pointer;border:1px solid var(--line);padding:13px 15px;border-radius:12px;background:rgba(19,21,26,.72);color:#eaedf0;backdrop-filter:blur(18px);font-size:11px;font-weight:650;white-space:nowrap}.toolbutton:hover{background:#ffffff24}.toolbutton svg{vertical-align:middle;margin-right:6px}.toolbutton.on{background:#e9e8e1;color:#181818}
+.hint{position:absolute;bottom:calc(clamp(18px,3.3vw,40px) + 104px);left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.04em;color:#a4acb6;pointer-events:none;text-align:center;text-shadow:0 1px 10px #000}.line{display:inline-block;width:16px;height:1px;background:#828a97;vertical-align:middle;margin:0 8px}
+.loading{position:fixed;inset:0;background:#0b0e13;display:grid;place-content:center;text-align:center;gap:12px;z-index:10;transition:opacity .8s}.loading.hidden{opacity:0;pointer-events:none}.loading.error{background:#10141b}.loading.error .spinner{animation:none;border-color:#b87979}.loading.error strong{font-size:14px}.loading.error small{margin:auto}.spinner{width:38px;height:38px;border:2px solid #ffffff20;border-top-color:#ddd;border-radius:50%;animation:spin 1s linear infinite;margin:auto}@keyframes spin{to{transform:rotate(360deg)}}.loading strong{font-size:12px;letter-spacing:.2em;font-weight:650}.loading small{color:#89919a;font-size:12px;max-width:320px;line-height:1.5}
+@media(max-width:800px){.top{top:18px}.topright{display:flex}.topright .pill,.topright>span{display:none}.backlink{font-size:10px;padding:9px 11px}.hero{top:13%;left:24px}.hero h1{font-size:51px}.hero p{font-size:12px;max-width:240px}.disclaimer{display:none}.bottom{left:12px;right:12px;bottom:12px;gap:8px;flex-wrap:wrap}.controlcard{padding:13px 12px;border-radius:13px}.colorcard{flex:0 0 auto}.viewcard{flex:1;min-width:160px}.sectionlabel{margin-bottom:8px}.views{gap:3px}.action{padding:8px;font-size:10px}.righttools{width:100%;justify-content:space-between;flex-wrap:wrap}.toolbutton{padding:9px 10px;flex:1;min-width:0}.hint{bottom:205px}.swatch{height:22px;width:22px}.paintname{font-size:10px;margin-top:9px}}
+@media(max-width:430px){.viewcard{min-width:0}.hero h1{font-size:42px}.hero{top:11%}.hero p{max-width:220px}.action{padding:7px 6px}.colorcard{width:170px}.swatches{gap:7px}.viewcard{width:calc(100% - 178px)}.hint{bottom:210px}.details{top:auto;bottom:218px;left:12px;right:12px;width:auto}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
+</head>
+<body>
+<canvas id="canvas" aria-label="Interactive 3D approximation of a current Mitsubishi L200/Triton pickup"></canvas>
+<div id="grain"></div>
+<header class="top"><div class="wordmark"><span class="logo"><svg viewBox="0 0 40 40" aria-hidden="true"><g fill="#e9ecec"><path d="m20 2 8 13-8 13-8-13z"/><path d="M10.2 18 18 31.5 10.3 39 2 25.8z" transform="translate(2 -6)"/><path d="M29.8 18 38 25.8 29.7 39 22 31.5z" transform="translate(-2 -6)"/></g></svg></span><div class="identity"><div class="eyebrow">L200 / TRITON</div><div class="name">AN INTERACTIVE VEHICLE STUDY</div></div></div><div class="topright"><span class="pill"><span class="dot"></span>REAL-TIME 3D</span><span>NEW-GENERATION L200</span><a class="backlink" href="/" aria-label="Return to PKM portfolio">← PKM Portfolio</a></div></header>
+<div class="hero"><div class="sub">THE MODERN PICKUP</div><h1>Built for<br><span>what's next.</span></h1><p>A detailed, explorable interpretation of the newest generation L200 double cab.</p></div>
+<div class="disclaimer">Independent 3D study.<br>Modelled procedurally, not CAD.<br>Not affiliated with Mitsubishi.</div>
+<aside class="details" id="details" hidden aria-label="About this 3D vehicle study"><strong>L200 / TRITON — MODEL NOTES</strong><p>This is a procedural interpretation of the current-generation double-cab pickup, not an official manufacturer mesh or engineering CAD file. Some body panels, lighting and cabin details are simplified.</p><p>Reference dimensions: wheelbase 3,130 mm; double-cab length approximately 5,265 mm, depending on trim and market.</p><p><a href="https://www.mitsubishi-motors.com.gh/en/range/mitsubishi-ghana-cfaomotors/new-l200" target="_blank" rel="noopener noreferrer">Mitsubishi Ghana model reference ↗</a></p><button id="close-details" type="button">Close</button></aside>
+<div class="hint">DRAG TO ROTATE <i class="line"></i> SCROLL OR PINCH TO ZOOM</div>
+<div class="bottom"><section class="controlcard colorcard"><div class="sectionlabel">Exterior paint</div><div class="swatches" id="swatches"><button class="swatch active" style="background:#475258" data-color="#475258" data-name="Graphite metallic" title="Graphite metallic" aria-label="Graphite metallic"></button><button class="swatch" style="background:#eeeeea" data-color="#eeeeea" data-name="Pearl white" title="Pearl white" aria-label="Pearl white"></button><button class="swatch" style="background:#a5392b" data-color="#a5392b" data-name="Red diamond" title="Red diamond" aria-label="Red diamond"></button><button class="swatch" style="background:#191d21" data-color="#191d21" data-name="Onyx black" title="Onyx black" aria-label="Onyx black"></button><button class="swatch" style="background:#a6a7a0" data-color="#a6a7a0" data-name="Titanium silver" title="Titanium silver" aria-label="Titanium silver"></button></div><div class="paintname" id="paintname">Graphite metallic</div></section>
+<section class="controlcard viewcard"><div class="sectionlabel">Camera angle</div><div class="views" id="views"><button class="action active" data-view="hero">Hero</button><button class="action" data-view="front">Front</button><button class="action" data-view="side">Profile</button><button class="action" data-view="rear">Rear</button><button class="action" data-view="top">Overhead</button></div></section>
+<div class="righttools"><button class="toolbutton on" id="lights" type="button" aria-pressed="true">◉ &nbsp; LED Lights</button><button class="toolbutton" id="environment" type="button" aria-pressed="false">☀ &nbsp; Daylight</button><button class="toolbutton" id="spin" type="button" aria-pressed="false">↻ &nbsp; Auto orbit</button><button class="toolbutton" id="about" type="button" aria-expanded="false" aria-controls="details">ⓘ &nbsp; Model</button></div></div>
+<div class="loading" id="loading" role="status" aria-live="polite"><div class="spinner"></div><strong>PREPARING L200 STUDIO</strong><small id="loadmsg">Building vehicle geometry and calibrating studio lighting.</small></div>
+<script>
+window.addEventListener('error', (event) => {
+  if (!event.message || !/module|script|webgl|failed|fetch/i.test(event.message)) return;
+  const overlay = document.querySelector('#loading');
+  if (overlay && !overlay.classList.contains('hidden')) {
+    overlay.classList.add('error');
+    document.querySelector('#loadmsg').textContent = 'Unable to load the 3D viewer. Please refresh in a modern browser with WebGL enabled and an internet connection.';
+  }
+});
+setTimeout(() => {
+  const overlay = document.querySelector('#loading');
+  if (overlay && !overlay.classList.contains('hidden')) {
+    const note = document.querySelector('#loadmsg');
+    if (note) note.textContent = 'Still loading the 3D engine. Check your internet connection and allow JavaScript/WebGL. The viewer imports Three.js from jsDelivr.';
+  }
+}, 10000);
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+const canvas=document.querySelector('#canvas'), load=document.querySelector('#loading');
+try {
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.4:1.8));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.24;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene(); scene.background=new THREE.Color('#11161d');scene.fog=new THREE.FogExp2('#151a21',0.017);
+const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.06,200);camera.position.set(8.4,4.5,8.9);
+const orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=true;orbit.dampingFactor=.065;orbit.minDistance=4.3;orbit.maxDistance=17;orbit.maxPolarAngle=Math.PI/2-.07;orbit.target.set(0,1.0,0);orbit.update();
+const pmrem=new THREE.PMREMGenerator(renderer);const env=pmrem.fromScene(new RoomEnvironment(),.04).texture;scene.environment=env;
+const hemi=new THREE.HemisphereLight(0xd9ecff,0x11151a,2.5);scene.add(hemi);
+const key=new THREE.DirectionalLight(0xfff4e5,5.3);key.position.set(4,9,6);key.castShadow=true;key.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);key.shadow.camera.left=-9;key.shadow.camera.right=9;key.shadow.camera.top=8;key.shadow.camera.bottom=-8;key.shadow.bias=-.0003;key.shadow.normalBias=.028;scene.add(key);
+const fill=new THREE.DirectionalLight(0x9cbbf6,2.6);fill.position.set(-6,4,-7);scene.add(fill);
+const warm=new THREE.PointLight(0xf6c89d,75,20,2);warm.position.set(-4,5,6);scene.add(warm);
+const graphite=()=>new THREE.MeshPhysicalMaterial({color:'#475258',metalness:.75,roughness:.255,clearcoat:.94,clearcoatRoughness:.13});const paint=graphite(), black=new THREE.MeshStandardMaterial({color:'#171c20',metalness:.10,roughness:.58}),plastic=new THREE.MeshStandardMaterial({color:'#1a1e23',metalness:.12,roughness:.68}),trim=new THREE.MeshStandardMaterial({color:'#080e13',metalness:.28,roughness:.3}),silver=new THREE.MeshStandardMaterial({color:'#b2b9bd',metalness:.9,roughness:.21}),chrome=new THREE.MeshStandardMaterial({color:'#e4e6e4',metalness:.92,roughness:.13}),rubber=new THREE.MeshStandardMaterial({color:'#16191b',roughness:.93}),glass=new THREE.MeshPhysicalMaterial({color:'#182932',metalness:.32,roughness:.12,transparent:true,opacity:.85,clearcoat:1,clearcoatRoughness:.06,side:THREE.DoubleSide}),tailRed=new THREE.MeshStandardMaterial({color:'#9d0e10',emissive:'#5e0707',emissiveIntensity:.5,metalness:.2,roughness:.19}),lightGlass=new THREE.MeshPhysicalMaterial({color:'#edfafc',emissive:'#d6efff',emissiveIntensity:1.4,roughness:.15,metalness:.2,transmission:.15,thickness:.05}),amber=new THREE.MeshStandardMaterial({color:'#fabc68',emissive:'#e49635',emissiveIntensity:.7});
+const car=new THREE.Group();scene.add(car);
+// Calibrate the base geometry to the published double-cab wheelbase (3,130 mm)
+// and approximately 1,765 mm roof height. Proportions remain an interpretation.
+car.scale.set(.93155,.836,1.055);
+const box=(parent,name,x,y,z,w,h,d,material,bevel=0)=>{let mesh;if(bevel){const sh=new THREE.Shape();sh.moveTo(-w/2+bevel,-h/2);sh.lineTo(w/2-bevel,-h/2);sh.quadraticCurveTo(w/2,-h/2,w/2,-h/2+bevel);sh.lineTo(w/2,h/2-bevel);sh.quadraticCurveTo(w/2,h/2,w/2-bevel,h/2);sh.lineTo(-w/2+bevel,h/2);sh.quadraticCurveTo(-w/2,h/2,-w/2,h/2-bevel);sh.lineTo(-w/2,-h/2+bevel);sh.quadraticCurveTo(-w/2,-h/2,-w/2+bevel,-h/2);const geo=new THREE.ExtrudeGeometry(sh,{depth:d,bevelEnabled:true,bevelSize:Math.min(bevel*.4,.04),bevelThickness:.013,bevelSegments:2,steps:1,curveSegments:5});geo.translate(0,0,-d/2);mesh=new THREE.Mesh(geo,material)}else mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);mesh.position.set(x,y,z);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh};
+const sphere=(parent,x,y,z,rx,ry,rz,mat)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),mat);m.scale.set(rx,ry,rz);m.position.set(x,y,z);parent.add(m);m.castShadow=true;return m};
+function poly(parent,name,vertices,material){const pts=vertices.map(([x,y,z])=>new THREE.Vector3(x,y,z));const pos=[],uv=[];for(let i=1;i<pts.length-1;i++){for(const k of [0,i,i+1]){pos.push(pts[k].x,pts[k].y,pts[k].z);uv.push(0,0)}}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.computeVertexNormals();const m=new THREE.Mesh(g,material);m.name=name;m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function tube(parent,points,r,mat,closed=false){let cv=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),closed,'centripetal',.5);const g=new THREE.TubeGeometry(cv,Math.max(points.length*4,16),r,6,closed);const m=new THREE.Mesh(g,mat);m.castShadow=true;parent.add(m);return m}
+function strip(parent,points,width,mat){return tube(parent,points,width,mat)}
+function labelTexture(text,color='#f0f0ee',bg='transparent',fontsize=64){const c=document.createElement('canvas');c.width=1024;c.height=256;const ctx=c.getContext('2d');if(bg!=='transparent'){ctx.fillStyle=bg;ctx.fillRect(0,0,1024,256)}ctx.fillStyle=color;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`700 ${fontsize}px Arial, sans-serif`;ctx.fillText(text,512,134);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+function faceText(parent,text,w,h,x,y,z,side='front',color='#f4f4f3'){const mat=new THREE.MeshBasicMaterial({map:labelTexture(text,color,'transparent',100),transparent:true,depthWrite:false,side:THREE.DoubleSide});const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);if(side==='front')p.rotation.y=Math.PI/2;else if(side==='rear')p.rotation.y=-Math.PI/2;else if(side==='right')p.rotation.y=0;else if(side==='left')p.rotation.y=Math.PI; p.position.set(x,y,z);parent.add(p);return p}
+// Subframe, wheel suspension & undercarriage
+box(car,'ladder frame',-.05,.83,0,5.16,.19,1.37,plastic,.09);for(const zz of [-.59,.59])box(car,'frame rail',0,.57,zz,4.85,.19,.12,black);for(let x of [-1.9,1.52]){box(car,'differential housing',x,.64,0,.3,.24,1.5,black)}
+// Main body side profile with two carved wheel arches, extruded across the width
+let path=new THREE.Shape();path.moveTo(-2.75,.74);path.lineTo(-2.55,.74);
+function arch(sh,c,r){for(let i=0;i<=24;i++){let a=Math.PI-i*Math.PI/24;let x=c+Math.cos(a)*r,y=.49+Math.sin(a)*r;sh.lineTo(x,y)}}
+arch(path,-1.79,.68);path.lineTo(.81,.74);arch(path,1.57,.67);path.lineTo(2.60,.74);path.lineTo(2.60,1.31);path.lineTo(2.42,1.47);path.lineTo(1.08,1.60);path.lineTo(.80,1.51);path.lineTo(-1.15,1.51);path.lineTo(-1.29,1.49);path.lineTo(-2.75,1.48);path.closePath();
+const bodyGeo=new THREE.ExtrudeGeometry(path,{depth:1.67,steps:1,bevelEnabled:true,bevelThickness:.028,bevelSize:.024,bevelSegments:2,curveSegments:16});bodyGeo.translate(0,0,-.835);const mainBody=new THREE.Mesh(bodyGeo,paint);car.add(mainBody);mainBody.castShadow=true;mainBody.receiveShadow=true;
+// Hood surface with sloping shoulders and central ridges
+poly(car,'hood center',[[1.03,1.64,-.67],[1.03,1.64,.67],[2.53,1.49,.67],[2.53,1.49,-.67]],paint);
+for(const side of [-1,1]) {tube(car,[[1.08,1.64,side*.66],[1.70,1.59,side*.71],[2.50,1.50,side*.69]],.018,silver)}
+box(car,'front lower undertray',2.51,.84,0,.28,.29,1.75,plastic,.085);
+box(car,'front bumper outer',2.67,1.01,0,.19,.22,1.80,plastic,.07);
+box(car,'front bumper centre lower',2.735,.86,0,.06,.13,1.20,silver,.045);
+for(const side of [-1,1])box(car,'bumper fog bezel',2.705,1.04,side*.74,.052,.16,.18,trim,.026);
+// Cabin roof: real slanted windshield, chunky pillars, separated windows
+poly(car,'roof painted',[[ -.98,2.09,-.77],[-.98,2.09,.77],[.54,2.11,.76],[.54,2.11,-.76]],paint);
+box(car,'roof underpanel',-.23,2.071,0,1.53,.10,1.50,paint,.06);
+for(const side of [-1,1]){
+let z=side*.846;
+poly(car,'cab rear C pillar',[[-1.12,1.51,z],[-1.01,2.08,side*.76],[-.83,2.06,side*.77],[-.85,1.50,z]],paint);
+poly(car,'cab A pillar',[[.55,2.085,side*.76],[.83,1.51,z],[1.01,1.52,z],[.66,2.10,side*.75]],paint);
+poly(car,'cab B pillar',[[-.17,1.49,z],[-.21,2.09,side*.78],[-.08,2.09,side*.78],[.02,1.49,z]],paint);
+// windows with slim black seals
+poly(car,'rear side window',[[-.89,1.66,side*.864],[-.85,2.005,side*.795],[-.24,2.025,side*.795],[-.22,1.65,side*.866]],trim);
+poly(car,'rear tinted pane',[[-.845,1.69,side*.870],[-.81,1.98,side*.802],[-.28,1.99,side*.802],[-.27,1.69,side*.87]],glass);
+poly(car,'front side window',[[-.08,1.65,side*.868],[-.095,2.021,side*.793],[.50,2.034,side*.795],[.78,1.65,side*.87]],trim);
+poly(car,'front tinted pane',[[-.025,1.69,side*.875],[-.038,1.99,side*.802],[.46,2.005,side*.80],[.72,1.69,side*.875]],glass);
+// low side glass chrome trim, door separator, rocker panel
+strip(car,[[-1.04,1.62,side*.865],[-.2,1.62,side*.866],[.80,1.62,side*.868]],.009,silver);
+strip(car,[[-.19,1.54,side*.885],[-.19,.92,side*.865]],.010,trim);
+strip(car,[[.98,1.54,side*.87],[.98,.93,side*.858]],.013,trim);
+strip(car,[[-1.15,1.52,side*.857],[-1.15,.99,side*.858]],.012,trim);
+// sculpted side shoulder and rocker
+box(car,'side belt accent',-.20,1.47,side*.86,2.14,.065,.056,paint,.012);
+box(car,'running board',-.22,.73,side*.99,2.23,.075,.32,plastic,.025);
+box(car,'running board silver',-.22,.775,side*1.075,2.05,.012,.045,silver);
+// doors, two handles
+for(const x of [-.68,.42]) {box(car,'door recess',x,1.37,side*.902,.20,.047,.014,trim,.014);box(car,'door handle',x,1.391,side*.919,.17,.022,.025,silver,.006)}
+// mirrors and indicators
+box(car,'mirror stalk',.78,1.60,side*.93,.15,.075,.25,trim,.026);
+const mirror=box(car,'door side mirror',.85,1.70,side*1.08,.29,.17,.26,paint,.067);
+box(car,'mirror reflective surface',.70,1.70,side*1.09,.01,.12,.19,new THREE.MeshStandardMaterial({color:'#94aeb7',metalness:1,roughness:.08}),.008);
+box(car,'mirror turn signal',1.0,1.71,side*1.09,.014,.02,.19,amber);
+// pronounced wheel arch flares follow top half of arch
+for(const cx of [-1.79,1.57]) {let pts=[];for(let i=0;i<=18;i++){let a=Math.PI-i*Math.PI/18;pts.push([cx+Math.cos(a)*.72,.49+Math.sin(a)*.72,side*.879])}tube(car,pts,.051,plastic)}
+// fuel cap and lower door crease
+if(side===1){box(car,'fuel cap',-1.43,1.21,.902,.19,.17,.018,paint,.045);tube(car,[[-1.525,1.14,.921],[-1.525,1.29,.921],[-1.35,1.29,.921],[-1.35,1.14,.921]],.006,trim,true)}
+tube(car,[[-1.13,.95,side*.865],[-.3,.93,side*.865],[.96,.94,side*.86]],.012,silver);
+}
+// rear windshield: tinted with outline, seats visible faintly
+poly(car,'rear cab window',[[-1.016,2.00,-.68],[-1.016,2.00,.68],[-1.118,1.56,.72],[-1.118,1.56,-.72]],trim);
+poly(car,'rear cab window glass',[[-1.022,1.977,-.64],[-1.022,1.977,.64],[-1.113,1.60,.68],[-1.113,1.60,-.68]],glass);
+// front windscreen tinted & wipers
+poly(car,'windshield frame',[[.54,2.085,-.735],[.54,2.085,.735],[1.02,1.60,.81],[1.02,1.60,-.81]],trim);
+poly(car,'windshield glass',[[.55,2.05,-.705],[.55,2.05,.705],[.998,1.625,.776],[.998,1.625,-.776]],glass);
+for(const s of [-1,1])tube(car,[[.995,1.632,s*.72],[.98,1.644,s*.43],[.95,1.67,s*.1]],.012,black);
+// Interior subtle silhouettes, light enough to read through glass
+const seats=new THREE.MeshStandardMaterial({color:'#232a2d',roughness:.86});
+for(const x of [-.65,.37])for(const s of [-1,1]){box(car,'seat back',x,1.55,s*.40,.38,.62,.4,seats,.11);box(car,'headrest',x,1.91,s*.40,.2,.19,.24,seats,.06)}
+// Distinctive cabin components are visible through the window glazing.
+const dash=new THREE.MeshStandardMaterial({color:'#20262b',roughness:.93});
+const upholstery=new THREE.MeshStandardMaterial({color:'#293036',roughness:1});
+const brushed=new THREE.MeshStandardMaterial({color:'#aab5bd',metalness:.7,roughness:.29});
+box(car,'dashboard upper',.78,1.19,0,.23,.18,1.32,dash,.04);
+box(car,'dashboard instrument hood',.65,1.30,.41,.18,.16,.43,dash,.04);
+box(car,'instrument cluster',.559,1.30,.42,.017,.12,.30,trim,.02);
+box(car,'center touchscreen',.55,1.37,0,.025,.23,.30,glass,.008);
+box(car,'console top',.24,1.03,0,.80,.12,.33,dash,.03);
+box(car,'gear selector base',.08,1.115,0,.23,.05,.16,brushed,.02);
+box(car,'gear selector',.11,1.18,0,.08,.12,.075,dash,.016);
+const steering=new THREE.Mesh(new THREE.TorusGeometry(.18,.024,9,40),upholstery);
+steering.rotation.y=Math.PI/2;steering.position.set(.50,1.36,.43);car.add(steering);
+box(car,'steering hub',.50,1.36,.43,.062,.09,.085,trim,.02);
+for(let angle of [0,2*Math.PI/3,4*Math.PI/3]){
+  const spoke=box(car,'steering spoke',.50,1.36+Math.sin(angle)*.09,.43+Math.cos(angle)*.09,.025,.022,.16,brushed,.008);
+  spoke.rotation.x=-angle;
+}
+for(const side of [-1,1]){
+  box(car,'side interior door panel',-.15,1.19,side*.795,1.91,.28,.065,dash,.045);
+  box(car,'cabin inner door grip',.25,1.28,side*.75,.22,.04,.11,brushed,.018);
+}
+// Open cargo bed, high-side paintwork and ribbed protective floor
+box(car,'bed liner floor',-1.99,1.17,0,1.51,.09,1.48,black,.025);
+for(const s of [-1,1])box(car,'bed interior side',-2.02,1.35,s*.715,1.48,.26,.10,black,.015);
+box(car,'bed cab wall',-1.23,1.32,0,.08,.30,1.43,plastic,.011);
+for(let z=-.63;z<=.63;z+=.14)box(car,'bed ribs',-2.02,1.227,z,1.34,.018,.038,plastic,.007);
+for(const s of [-1,1]){box(car,'bed rim side',-2.0,1.50,s*.78,1.50,.045,.13,paint,.012);box(car,'rear upper corner',-2.69,1.46,s*.77,.16,.10,.13,paint,.025)}
+box(car,'tailgate face',-2.785,1.17,0,.115,.55,1.67,paint,.025);box(car,'tailgate upper cap',-2.79,1.487,0,.13,.05,1.68,plastic,.01);
+box(car,'rear bumper',-2.85,.87,0,.19,.18,1.78,plastic,.035);box(car,'rear bumper central alloy',-2.956,.85,0,.035,.11,.70,silver,.018);
+box(car,'tailgate license mount',-2.856,1.03,0,.02,.17,.45,trim,.006);faceText(car,'L 2 0 0',.44,.115,-2.878,1.05,0,'rear');
+for(const s of [-1,1]){
+box(car,'taillight black casing',-2.84,1.31,s*.748,.064,.39,.19,trim,.025);
+box(car,'taillight red strip',-2.886,1.38,s*.748,.02,.22,.135,tailRed,.018);
+box(car,'taillight clear band',-2.895,1.23,s*.744,.02,.06,.13,lightGlass,.009);
+box(car,'tailgate handle',-2.86,1.375,s*.11,.035,.027,.17,plastic,.009);
+}
+faceText(car,'M I T S U B I S H I',1.0,.13,-2.855,1.39,0,'rear','#d7dadd');
+// Reflector trim, lower skid protection and offset hood stamping.
+box(car,'skid plate centre',2.745,.775,0,.12,.075,.86,silver,.02);
+for(const side of [-1,1]) {
+  box(car,'front bumper accent',2.715,.92,side*.61,.067,.052,.35,trim,.02);
+  box(car,'lower chrome shield',2.754,1.18,side*.61,.031,.46,.045,chrome,.012);
+  tube(car,[[1.05,1.643,side*.37],[1.78,1.565,side*.40],[2.42,1.487,side*.40]],.006,plastic);
+  box(car,'tailgate corner reflector',-2.887,.94,side*.77,.021,.09,.11,tailRed,.008);
+}
+// Grille with high relief crossbars, perforations and diamond emblem
+box(car,'front dark grille',2.678,1.365,0,.058,.47,1.30,trim,.055);
+for(let y=1.17;y<1.55;y+=.10){box(car,'grille horizontal',2.716,y,0,.021,.015,1.24,black,.007)}
+for(let zz=-.54;zz<=.55;zz+=.16){for(let y=1.21;y<1.54;y+=.11){const mesh=box(car,'mesh hex facet',2.705,y,zz,.013,.049,.11,plastic,.013);mesh.rotation.x=(Math.abs(Math.round(zz/.16))%2)*.12}}
+for(const s of [-1,1]){
+box(car,'DRL light surround',2.62,1.565,s*.75,.065,.065,.43,trim,.018);
+box(car,'LED strip outer',2.685,1.585,s*.742,.024,.018,.31,lightGlass,.007);
+box(car,'headlight housing',2.675,1.373,s*.774,.067,.28,.30,trim,.045);
+for(let i=0;i<3;i++){box(car,'three LED modules',2.717,1.445-i*.078,s*.76,.026,.047,.17,chrome,.011);box(car,'light lens',2.739,1.447-i*.078,s*.76,.01,.032,.13,lightGlass,.004)}
+box(car,'front chrome shield accent',2.709,1.37,s*.564,.015,.33,.04,chrome,.008);
+}
+// Mitsubishi three diamonds, separately faceted and beveled at nose
+function diamond(cx,cy,w,h){poly(car,'three diamond emblem',[[2.76,cy+h/2,cx],[2.76,cy,cx+w/2],[2.76,cy-h/2,cx],[2.76,cy,cx-w/2]],chrome)}
+diamond(0,1.42,.17,.24);diamond(-.135,1.30,.16,.22);diamond(.135,1.30,.16,.22);
+faceText(car,'M I T S U B I S H I',.97,.12,2.734,1.66,0,'front','#d3d9de');
+box(car,'front license',2.75,.97,0,.018,.14,.40,trim,.004);faceText(car,'TRITON',.37,.08,2.771,.985,0,'front');
+// Detailed eight-spoke wheels, discs, bolts and molded tread
+function wheel(cx,side){const outer=side*1.00;const group=new THREE.Group();group.position.set(cx,.49,outer);car.add(group);
+const tire=new THREE.Mesh(new THREE.CylinderGeometry(.535,.535,.285,64,1),rubber);tire.rotation.x=Math.PI/2;group.add(tire);tire.castShadow=true;
+const tireFace=new THREE.Mesh(new THREE.TorusGeometry(.451,.079,11,64),rubber);tireFace.position.z=side*.159;group.add(tireFace);
+const sidewall=new THREE.Mesh(new THREE.TorusGeometry(.392,.029,10,64),plastic);sidewall.position.z=side*.162;group.add(sidewall);
+// tread shoulders and treads make the wheel look manufactured
+const treadMat=new THREE.MeshStandardMaterial({color:'#242729',roughness:1});
+for(let i=0;i<56;i++){let a=i*Math.PI*2/56;const block=new THREE.Mesh(new THREE.BoxGeometry(.078,.030,.246),treadMat);block.position.set(.528*Math.cos(a),.528*Math.sin(a),0);block.rotation.z=a-Math.PI/2;group.add(block)}
+const hubBack=new THREE.Mesh(new THREE.CylinderGeometry(.343,.343,.032,48),black);hubBack.rotation.x=Math.PI/2;hubBack.position.z=side*.169;group.add(hubBack);
+const disk=new THREE.Mesh(new THREE.CylinderGeometry(.299,.299,.035,60),silver);disk.rotation.x=Math.PI/2;disk.position.z=side*.19;group.add(disk);
+const inn=new THREE.Mesh(new THREE.CylinderGeometry(.263,.263,.043,48),plastic);inn.rotation.x=Math.PI/2;inn.position.z=side*.215;group.add(inn);
+for(let i=0;i<7;i++){const a=i*Math.PI*2/7;for(const off of [-.08,.08]){const spoke=box(group,'split forged spoke',Math.cos(a+off)*.17,Math.sin(a+off)*.17,side*.254,.059,.23,.025,silver,.01);spoke.rotation.z=a+off-Math.PI/2}}
+const hub=new THREE.Mesh(new THREE.CylinderGeometry(.079,.079,.055,32),chrome);hub.rotation.x=Math.PI/2;hub.position.z=side*.282;group.add(hub);
+for(let i=0;i<6;i++){const a=i*2*Math.PI/6;sphere(group,Math.cos(a)*.113,Math.sin(a)*.113,side*.282,.014,.014,.01,chrome)}
+const brake=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.012,48),new THREE.MeshStandardMaterial({color:'#647078',metalness:.8,roughness:.32}));brake.rotation.x=Math.PI/2;brake.position.z=-side*.06;group.add(brake);
+}
+for(const s of [-1,1])for(const x of [-1.79,1.57])wheel(x,s);
+// Underbody and exhaust
+box(car,'rear tow attachment',-2.86,.53,0,.26,.18,.24,plastic,.02);
+const antenna=tube(car,[[-.65,2.11,-.36],[-.70,2.27,-.36],[-.76,2.35,-.36]],.012,black);
+// studio seamless ground with reflected stage and rings
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(220,220),new THREE.MeshStandardMaterial({color:'#11161d',roughness:.58,metalness:.19}));floor.rotation.x=-Math.PI/2;floor.position.y=-.15;floor.receiveShadow=true;scene.add(floor);
+const stage=new THREE.Mesh(new THREE.CylinderGeometry(4.28,4.37,.18,128),new THREE.MeshStandardMaterial({color:'#252c34',roughness:.46,metalness:.55}));stage.position.set(0,-.17,0);stage.receiveShadow=true;scene.add(stage);
+const plate=new THREE.Mesh(new THREE.CylinderGeometry(4.08,4.08,.024,128),new THREE.MeshStandardMaterial({color:'#171d24',metalness:.53,roughness:.38}));plate.position.y=-.065;plate.receiveShadow=true;scene.add(plate);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(4.10,.009,8,150),new THREE.MeshBasicMaterial({color:'#7f8b95'}));ring.rotation.x=Math.PI/2;ring.position.y=-.042;scene.add(ring);
+const backing=new THREE.Mesh(new THREE.PlaneGeometry(24,13),new THREE.MeshBasicMaterial({color:'#161e28',side:THREE.DoubleSide}));backing.position.set(-9,5,-8);backing.rotation.y=Math.PI/4;scene.add(backing);
+// Diffused showroom light cards produce strong readable specular edges.
+const panelMat=new THREE.MeshBasicMaterial({color:'#e1edfb',transparent:true,opacity:.14,side:THREE.DoubleSide});
+for(const p of [[-7,5,-2,4.5,1],[3.8,7,-7,5,.9]]){
+  const panel=new THREE.Mesh(new THREE.PlaneGeometry(p[3],p[4]),panelMat);panel.position.set(p[0],p[1],p[2]);panel.rotation.y=p[0]<0?.34:-.36;scene.add(panel);
+}
+const ledMaterials=[lightGlass];let ledOn=true;
+const oldEmissive=lightGlass.emissiveIntensity;
+document.querySelector('#lights').addEventListener('click',e=>{ledOn=!ledOn;lightGlass.emissiveIntensity=ledOn?1.4:0;e.currentTarget.classList.toggle('on',ledOn);e.currentTarget.setAttribute('aria-pressed',String(ledOn))});
+let daylight=false;document.querySelector('#environment').addEventListener('click',e=>{daylight=!daylight;scene.background.set(daylight?'#7d8d9d':'#11161d');scene.fog.color.set(daylight?'#83919c':'#151a21');renderer.toneMappingExposure=daylight?1.55:1.24;hemi.intensity=daylight?4.0:2.5;key.intensity=daylight?7:5.3;fill.intensity=daylight?1.4:2.6;e.currentTarget.classList.toggle('on',daylight);e.currentTarget.setAttribute('aria-pressed',String(daylight));e.currentTarget.innerHTML=daylight?'☾ &nbsp; Studio':'☀ &nbsp; Daylight'});
+const swatches=document.querySelectorAll('.swatch');for(const btn of swatches)btn.addEventListener('click',()=>{swatches.forEach(s=>s.classList.toggle('active',s===btn));paint.color.set(btn.dataset.color);document.querySelector('#paintname').textContent=btn.dataset.name});
+const states={hero:[8.4,4.5,8.9],front:[8.7,2.75,.05],side:[.35,2.7,10],rear:[-8.6,3.0,1.0],top:[.5,12,.5]};let desired=new THREE.Vector3(...states.hero),anim=false;
+for(const btn of document.querySelectorAll('[data-view]'))btn.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('active',el===btn));desired.set(...states[btn.dataset.view]);anim=true});
+let spinning=false;document.querySelector('#spin').addEventListener('click',e=>{spinning=!spinning;e.currentTarget.classList.toggle('on',spinning);e.currentTarget.setAttribute('aria-pressed',String(spinning));orbit.autoRotate=spinning;orbit.autoRotateSpeed=.6});
+function resize(){camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<650?47:38;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.4:1.8))}window.addEventListener('resize',resize);resize();
+// Small model information panel. No tracking or extra network calls.
+const details=document.querySelector('#details'),about=document.querySelector('#about');
+function setDetails(open){details.hidden=!open;about.setAttribute('aria-expanded',String(open));if(open)document.querySelector('#close-details').focus();else about.focus()}
+about.addEventListener('click',()=>setDetails(details.hidden));
+document.querySelector('#close-details').addEventListener('click',()=>setDetails(false));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!details.hidden)setDetails(false);if(e.key.toLowerCase()==='r'&&details.hidden){desired.set(...states.hero);anim=true}});
+const prefersLessMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+if(prefersLessMotion.matches){orbit.enableDamping=false;}
+const clock=new THREE.Clock();function tick(){requestAnimationFrame(tick);const dt=Math.min(.033,clock.getDelta());if(anim){camera.position.lerp(desired,Math.min(.12,dt*4));if(camera.position.distanceTo(desired)<.035){camera.position.copy(desired);anim=false}}orbit.update();renderer.render(scene,camera)}tick();load.classList.add('hidden');
+}catch(err){load.classList.add('error');document.querySelector('#loadmsg').textContent='The interactive model could not start. Try Chrome, Edge or Safari with WebGL and an internet connection. '+(err?.message||'');console.error(err)}
+</script>
+</body></html>
