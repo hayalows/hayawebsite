@@ -2424,6 +2424,7 @@ function fitForAspect(p, t) {
 }
 function setView(key, instant) {
   const v0 = VIEWS[key]; if (!v0) return;
+  stopTour();
   const v = { p: fitForAspect(v0.p, v0.t), t: v0.t };
   document.querySelectorAll('#dock [data-view]').forEach((b) => {
     const current = b.dataset.view === key;
@@ -2484,14 +2485,20 @@ function startTour() {
 }
 function stopTour(arrived = false) {
   if (!tour) return;
-  const chapter = tour.lastCap;
+  const chapter = TOUR_DATA.caps.find((stop) => stop.u === tour.lastCap)?.cap[0];
   tour = null;
   controls.enabled = true;
   controls.update();
   $('tour').classList.remove('on'); $('tour').textContent = 'Guided tour'; $('tour').setAttribute('aria-pressed', 'false');
   $('caption').classList.remove('show');
-  const key = arrived ? 'temple' : chapter < 0.15 ? 'jubilee' : chapter < 0.75 ? 'road' : 'temple';
+  const views = { 'Liberation Road': 'road', 'The Akwaaba footbridge': 'road', 'Independence Avenue': 'junction', 'Accra Ghana Temple': 'temple' };
+  const key = arrived ? 'temple' : views[chapter] || 'jubilee';
   showInfo(key);
+  document.querySelectorAll('#dock [data-view]').forEach((button) => {
+    const selected = button.dataset.view === key;
+    button.classList.toggle('on', selected);
+    button.setAttribute('aria-pressed', selected);
+  });
 }
 function toggleTour() {
   if (!tour) return startTour();
