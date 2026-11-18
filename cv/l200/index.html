@@ -198,6 +198,10 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
 <div class="loader" id="loader"><div class="loader__in"><p class="loader__word">Akwaaba</p><p class="loader__note" id="loadStep">Polishing the paint…</p><div class="loader__bar"><i id="loadBar"></i></div></div></div>
 
 <noscript><p style="position:fixed;inset:auto 0 40% 0;text-align:center">Drive Studio needs JavaScript and WebGL. <a href="/">Back to the portfolio</a></p></noscript>
+<script>
+(function(){var ok=false;try{var c=document.createElement('canvas');ok=!!(c.getContext('webgl2')||c.getContext('webgl'));}catch(e){}
+if(!ok){window.__noGL=true;document.getElementById('loadStep').innerHTML='Drive Studio needs 3D graphics (WebGL), and this browser has it switched off.<br>Try a recent Chrome, Edge, Safari or Firefox. <a href="/" style="color:#BBA783">Back to the portfolio</a>';document.getElementById('loadBar').style.width='0';}})();
+</script>
 <script type="module" src="/l200/studio.js"></script>
 <script src="/analytics-tracker.js?v=3" defer></script>
 </body>

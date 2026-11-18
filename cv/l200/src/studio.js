@@ -10,6 +10,7 @@ import { VehicleAudio } from './audio.js';
 import { DriveController, makeCollider, createHud, createTouch, HUD_CSS } from './drive.js';
 import { buildShowroom, buildCourse } from './world.js';
 
+if (window.__noGL) throw new Error('WebGL unavailable');
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const params = new URLSearchParams(location.search);
