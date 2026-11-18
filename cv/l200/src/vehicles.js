@@ -527,11 +527,18 @@ export function buildVehicle(THREE, id, opts = {}) {
     for (const z of [-0.4, 0.4]) { const hk = add(new THREE.TorusGeometry(0.035, 0.012, 8, 16), M.caliper, front); hk.position.set(0.04, 0.42, z); hk.rotation.y = Math.PI / 2; }
   }
   // number plates
-  const plateTex = srgb(new THREE.CanvasTexture(canvas(520, 112, (g, w, h) => {
-    g.fillStyle = '#f4f4f0'; g.fillRect(0, 0, w, h); g.strokeStyle = '#111'; g.lineWidth = 6; g.strokeRect(4, 4, w - 8, h - 8);
-    g.fillStyle = '#c8102e'; g.fillRect(14, 16, 26, 26); g.fillStyle = '#fcd116'; g.fillRect(14, 42, 26, 26); g.fillStyle = '#006b3f'; g.fillRect(14, 68, 26, 26);
-    g.fillStyle = '#111'; g.font = '700 70px Inter, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(isV8 ? 'GR 1957-26' : 'AS 2026-26', w / 2 + 18, h / 2 + 3);
+  // Ghana-style plate: white reflective face, flag strip with GH, black embossed characters
+  const plateTex = srgb(new THREE.CanvasTexture(canvas(1040, 224, (g, w, h) => {
+    const r = 18;
+    g.fillStyle = '#fbfbf7'; g.beginPath(); g.moveTo(r, 0); g.arcTo(w, 0, w, h, r); g.arcTo(w, h, 0, h, r); g.arcTo(0, h, 0, 0, r); g.arcTo(0, 0, w, 0, r); g.fill();
+    const sheen = g.createLinearGradient(0, 0, 0, h); sheen.addColorStop(0, 'rgba(255,255,255,.6)'); sheen.addColorStop(1, 'rgba(0,0,0,.06)'); g.fillStyle = sheen; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#111'; g.lineWidth = 10; g.strokeRect(14, 14, w - 28, h - 28);
+    g.fillStyle = '#ce1126'; g.fillRect(30, 30, 92, 54); g.fillStyle = '#fcd116'; g.fillRect(30, 84, 92, 54); g.fillStyle = '#006b3f'; g.fillRect(30, 138, 92, 54);
+    g.fillStyle = '#000'; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 7 : 17; g.lineTo(76 + Math.cos(a) * rr, 111 + Math.sin(a) * rr); } g.fill();
+    g.fillStyle = '#111'; g.font = '800 30px Inter, Arial, sans-serif'; g.textAlign = 'center'; g.fillText('GH', 76, 214 - 6);
+    g.font = '800 138px Inter, Arial, sans-serif'; g.textBaseline = 'middle'; if ('letterSpacing' in g) g.letterSpacing = '4px';
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillText('BU 0858-26', w / 2 + 72, h / 2 + 10);
+    g.fillStyle = '#111'; g.fillText('BU 0858-26', w / 2 + 70, h / 2 + 7);
   })));
   const plateM = new THREE.MeshStandardMaterial({ map: plateTex, roughness: 0.4 });
   const pf = add(new THREE.PlaneGeometry(0.52, 0.112), plateM, front, false); pf.rotation.y = Math.PI / 2; pf.position.set(0.075, isV8 ? 0.5 : 0.5, 0);
