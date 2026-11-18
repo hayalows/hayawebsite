@@ -17,6 +17,10 @@ test('Liberation Road has distinct lanes, curbs and a clear crossing', async () 
   assert.equal(ground(12.9, 90).name, 'drain');
   assert.equal(ground(0, 0).name, 'asphalt');
   assert.equal(ground(22, 6).name, 'asphalt');
+  assert.equal(ground(20, -367).name, 'dirt');
+  assert.equal(ground(52, -345).name, 'pavers');
+  assert.equal(ground(52, -367).name, 'grass');
+  assert.equal(ground(44, 362).name, 'pavers');
 });
 
 test('traffic contact uses the visible car position and its travel direction', async () => {

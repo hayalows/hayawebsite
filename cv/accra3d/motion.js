@@ -3,10 +3,30 @@ const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 const asphalt = { name: 'asphalt', height: 0.03, mu: 1.02, rough: 0.035 };
 const pavers = { name: 'pavers', height: 0.18, mu: 0.85, rough: 0.16 };
 const grass = { name: 'grass', height: 0.2, mu: 0.55, rough: 0.27 };
+const lawn = { ...grass, height: 0.02 };
+const stone = { ...pavers, height: 0.08 };
 const dirt = { name: 'dirt', height: 0.02, mu: 0.64, rough: 0.43 };
 const drain = { name: 'drain', height: 0.015, mu: 0.68, rough: 0.48 };
 const inBox = (x, z, west, east, north, south) => x >= west && x <= east && z >= north && z <= south;
 const smoothstep = (t) => t * t * (3 - 2 * t);
+
+function landmarkSurface(x, z) {
+  if (inBox(x, z, 29, 359, -481, -209)) {
+    // Jubilee's driveway and roundabout are built in the landmark's rotated local frame.
+    const across = z + 345, approach = 170 - x;
+    const fountain = Math.hypot(across, approach - 78);
+    if (fountain > 15.5 && fountain < 24.5) return asphalt;
+    if (inBox(across, approach, -6, 6, 80, 144) || inBox(across, approach, -35, 35, 41, 61) ||
+      inBox(Math.abs(across), approach, 50, 70, 37, 67)) return stone;
+    return lawn;
+  }
+  if (inBox(x, z, 24, 214, 285, 452)) {
+    if (inBox(x, z, 82, 122, 299, 321) || inBox(x, z, 106, 158, 415, 449) || inBox(x, z, 146.5, 153.5, 286, 426)) return asphalt;
+    if (inBox(x, z, 93, 142, 335, 389) || inBox(x, z, 24, 93, 358.5, 365.5)) return stone;
+    return lawn;
+  }
+  return dirt;
+}
 
 export function createRoadSurface(road, roadXAt, terrace) {
   return (x, z) => {
@@ -19,15 +39,14 @@ export function createRoadSurface(road, roadXAt, terrace) {
       surface = Math.abs(offset) > 9.25 && Math.abs(z - road.Zi) > 9.25 ? pavers : asphalt;
     } else if (width < 2) surface = grass;
     else if (width < 9) surface = asphalt;
-    else if (!junction && offset > 0 && width < 20 && (Math.abs(z + 345) < 9 || Math.abs(z - 352) < 7)) surface = asphalt;
+    else if (!junction && offset > 0 && width < 20 && (Math.abs(z + 345) < 9 || Math.abs(z - 362) < 7)) surface = asphalt;
     else if (width < 12.25) surface = pavers;
     else if (width < 13.1) surface = drain;
-    else if (inBox(x, z, 16, 222, 278, 462) || inBox(x, z, 16, 360, -495, -200)) surface = asphalt;
-    else surface = dirt;
+    else surface = landmarkSurface(x, z);
 
     if (terrace && x > 18) {
       const edge = Math.max(Math.abs(x - terrace.c.x) - terrace.hx, Math.abs(z - terrace.c.z) - terrace.hz);
-      if (edge < 5) return { ...asphalt, height: Math.max(asphalt.height, terrace.h * smoothstep(clamp(1 - edge / 5, 0, 1))) };
+      if (edge < 5) return { ...stone, height: Math.max(stone.height, terrace.h * smoothstep(clamp(1 - edge / 5, 0, 1))) };
     }
     return surface;
   };

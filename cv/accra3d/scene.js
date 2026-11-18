@@ -1,5 +1,5 @@
 import './three-r128.min.js';
-import { sampleArc } from './motion.js?v=1';
+import { sampleArc } from './motion.js?v=2';
 
 export async function startAccra(shell) {
 const THREE = window.THREE;
@@ -1066,7 +1066,7 @@ BUILD.push(['Paving Liberation Road', function buildRoad() {
   ROAD.Xc = C.getPointAt(ROAD.tInt).x;
   const half = 18.5 / ROAD.L;
   ROAD.tGateJ = roadTAtZ(-345);
-  ROAD.tGateT = roadTAtZ(352);
+  ROAD.tGateT = roadTAtZ(TMP.pos.z);
   const gate = (t, side, w) => ({ t0: t - w / ROAD.L, t1: t + w / ROAD.L, side });
 
   buildCarriageway(C, 0, ROAD.tInt - half, { breaks: [gate(ROAD.tGateJ, 1, 9)] });
@@ -2855,7 +2855,7 @@ async function openDrive(auto = false) {
   button.textContent = 'Opening…';
   loadingDrive = true;
   try {
-    const { mountDrive } = await import('./drive-mode.js?v=6');
+    const { mountDrive } = await import('./drive-mode.js?v=7');
     await detailReady;
     if (!shell.running) return;
     driveMode ??= mountDrive({
