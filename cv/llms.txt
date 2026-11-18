@@ -19,7 +19,7 @@
 ## Side experiments
 
 - [Liberation Road in 3D](https://pkm.hayalows.com/accra3d/): An explorable three.js scene from Jubilee House to the Accra Ghana Temple.
-- [Drive Studio](https://pkm.hayalows.com/l200/): Inspect and drive two vehicles in 3D.
+- [Drive Studio](https://pkm.hayalows.com/l200/): Configure, open up and drive two original PKM Motors vehicles (the Volta pickup and the Regent V8 SUV) in a showroom and on a proving ground, with synthesised engine sound and hidden Easter eggs.
 - [Portfolio Field Notes](https://pkm.hayalows.com/portfolio-field-notes/): Notes from studying 150 designer portfolios.
 - [PKM Playground](https://pkm.hayalows.com/playground/): A small illustrated room with a puzzle and a postcard. Puzzle sessions are examples, not bookable events.
 

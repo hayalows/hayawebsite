@@ -16,9 +16,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#0d0c0a">
 <title>Liberation Road — Jubilee House to the Accra Ghana Temple</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+<style>@font-face{font-family:"Inter";src:url("/assets/fonts/inter-latin-wght.woff2") format("woff2");font-weight:100 900;font-display:swap}</style>
 <style>
   :root {
     --panel: rgba(16, 15, 13, 0.62);
@@ -45,7 +44,7 @@
   /* title */
   #title { position: fixed; top: 18px; left: 18px; padding: 14px 18px 14px; max-width: 360px; pointer-events: none; }
   #title .kicker { font-size: 11px; letter-spacing: 0.22em; color: var(--gold); font-weight: 600; margin-bottom: 6px; }
-  #title h1 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 26px; letter-spacing: -0.01em; line-height: 1.1; }
+  #title h1 { margin: 0; font-family: 'Inter', system-ui, sans-serif; font-weight: 740; letter-spacing: -0.04em; font-size: 26px; letter-spacing: -0.01em; line-height: 1.1; }
   #title p { margin: 6px 0 10px; color: var(--muted); font-size: 13px; }
 
   #title .back { pointer-events: auto; display: inline-block; margin-top: 10px; font-size: 12px; color: var(--muted); text-decoration: none; }
@@ -75,11 +74,42 @@
   #dock .play:hover { background: #f0c868; }
   #dock .play.on { background: #f5efe4; border-color: transparent; color: #1d1606; }
 
+  [hidden] { display: none !important; }
+  body:not(.driving) .pkm-touch { display: none !important; }
+  @media (pointer: coarse) { #dKeys, #dKeyList { display: none !important; } .pkm-hud { top: auto !important; bottom: 126px !important; transform: translateX(-50%) scale(.85) !important; } #drivebar { top: 150px; } }
+  #title .links { display: flex; gap: 14px; flex-wrap: wrap; pointer-events: auto; }
+  #title .back { font-weight: 600; }
+  #dock .wheel { background: #F2F0EA; color: #080808; }
+  #dock .wheel:hover { background: #fff; }
+  #drivePick { position: fixed; z-index: 30; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 28px)); padding: 20px 20px 18px; }
+  #drivePick .k { font-size: 11px; letter-spacing: .18em; color: var(--gold); font-weight: 600; text-transform: uppercase; }
+  #drivePick h2 { margin: 6px 0 6px; font-weight: 740; letter-spacing: -.04em; font-size: 26px; }
+  #drivePick p { margin: 0 0 14px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+  #drivePick .cars { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #drivePick .cars button { text-align: left; border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+  #drivePick .cars button strong { font-size: 18px; letter-spacing: -.03em; }
+  #drivePick .cars button span { font-size: 12px; color: var(--muted); }
+  #drivePick .cars button[aria-pressed="true"] { border-color: var(--gold); background: rgba(212,160,23,.12); }
+  #drivePick .sw { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; }
+  #drivePick .sw button { width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 1px solid #ffffff33; background: radial-gradient(circle at 32% 28%, #ffffff70, transparent 42%), var(--c); }
+  #drivePick .sw button[aria-pressed="true"] { outline: 2px solid var(--gold); outline-offset: 2px; }
+  #drivePick .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #drivePick .row a { color: var(--muted); font-size: 12.5px; }
+  #drivePick .go { background: var(--gold); color: #1d1606; font-weight: 700; padding: 10px 16px; }
+  #drivePick .x { position: absolute; right: 10px; top: 8px; font-size: 20px; }
+  #drivebar { position: fixed; z-index: 20; left: 18px; top: 170px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  #drivebar .btns { display: flex; gap: 6px; flex-wrap: wrap; max-width: 520px; }
+  #drivebar .btns button { background: rgba(10,10,10,.62); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #383838; border-radius: 999px; padding: 7px 13px; }
+  #drivebar .btns .light { background: #F2F0EA; color: #080808; border-color: #F2F0EA; }
+  #drivebar .keys { padding: 12px 14px; font-size: 12.5px; color: var(--muted); line-height: 1.95; }
+  #drivebar .keys b { display: inline-block; min-width: 22px; text-align: center; padding: 0 6px; margin-right: 3px; border-radius: 6px; background: #1d1d1d; border: 1px solid #383838; color: var(--text); font-weight: 600; font-size: 11.5px; line-height: 20px; }
+  body.driving #dock, body.driving #info, body.driving #hint, body.driving #caption, body.driving #labels { display: none !important; }
+
   /* info card */
   #info { position: fixed; left: 18px; bottom: 18px; width: 330px; padding: 16px 18px 14px; transition: opacity 0.35s, transform 0.35s; }
   #info.hide { opacity: 0; transform: translateY(10px); pointer-events: none; }
   #info .k { font-size: 11px; letter-spacing: 0.18em; color: var(--gold); font-weight: 600; text-transform: uppercase; }
-  #info h2 { margin: 6px 0 8px; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 21px; line-height: 1.2; }
+  #info h2 { margin: 6px 0 8px; font-family: 'Inter', system-ui, sans-serif; font-weight: 740; letter-spacing: -0.04em; font-size: 21px; line-height: 1.2; }
   #info p { margin: 0 0 10px; color: #e2d9c9; font-size: 13px; line-height: 1.5; }
   #info ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12.5px; }
   #info li { display: contents; }
@@ -111,7 +141,7 @@
   /* loader */
   #loader { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(1200px 700px at 50% 40%, #2a2216, #0d0c0a 70%); z-index: 10; transition: opacity 0.9s; }
   #loader .box { width: min(420px, 86vw); text-align: center; }
-  #loader h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 34px; margin: 14px 0 6px; }
+  #loader h1 { font-family: 'Inter', system-ui, sans-serif; font-weight: 740; letter-spacing: -0.04em; font-size: 34px; margin: 14px 0 6px; }
   #loader p { color: var(--muted); margin: 0 0 22px; font-size: 14px; }
   #loader .prog { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
   #loader .prog i { display: block; height: 100%; width: 0; background: var(--gold); transition: width 0.3s; }
@@ -141,7 +171,7 @@
   <h1>Liberation Road</h1>
   <p>From Jubilee House to the Accra Ghana Temple — an explorable 3D study.</p>
   <div class="kente"></div>
-  <a class="back" href="/">← Papa Kojo Mensah · portfolio</a>
+  <div class="links"><a class="back" href="/">← Papa Kojo · portfolio</a><a class="back" href="/l200/">Drive Studio ↗</a></div>
 </div>
 
 <div id="tod" class="glass">
@@ -167,7 +197,8 @@
   <button data-view="temple">Temple</button>
   <button data-view="grounds">Temple grounds</button>
   <span class="sep"></span>
-  <button class="play" id="tour">▶ Drive the route</button>
+  <button class="play" id="tour">▶ Guided tour</button>
+  <button class="play wheel" id="takeWheel">Take the wheel</button>
 </div>
 
 <div id="info" class="glass">
@@ -185,6 +216,34 @@
 
 <div id="caption"><div class="t" id="capT"></div><div class="s" id="capS"></div><div class="bar"><i id="capBar"></i></div></div>
 <div id="hint" class="glass">Drag to orbit · right-drag to pan · scroll to zoom</div>
+
+<div id="drivePick" class="glass" hidden>
+  <button class="x" id="pickX" aria-label="Close">×</button>
+  <div class="k">PKM Motors · Drive Accra</div>
+  <h2>Pick your vehicle</h2>
+  <p>Drive Liberation Road yourself. The Jubilee House gates open as you arrive, and the temple gate is on the west side.</p>
+  <div class="cars">
+    <button data-pick="volta"><strong>Volta</strong><span>Double-cab diesel pickup</span></button>
+    <button data-pick="regent"><strong>Regent</strong><span>Luxury V8 SUV</span></button>
+  </div>
+  <div class="sw" id="pickPaint"></div>
+  <div class="row"><button class="go" id="pickGo">Start driving →</button><a href="/l200/">Configure in Drive Studio ↗</a></div>
+</div>
+<div id="drivebar" hidden>
+  <div class="btns">
+    <button id="dExit" class="light">← Exit drive</button>
+    <button id="dCam">Camera: Chase</button>
+    <button id="dLights">Lights</button>
+    <button id="dJub">To Jubilee House</button>
+    <button id="dTmp">To the Temple</button>
+    <button id="dKeys">Keys</button>
+  </div>
+  <div class="keys glass" id="dKeyList">
+    <div><b>W</b><b>↑</b> go · <b>S</b><b>↓</b> brake / reverse · <b>A</b><b>D</b> steer</div>
+    <div><b>Space</b> handbrake · <b>C</b> camera · <b>H</b> horn · <b>L</b> lights</div>
+    <div><b>Q</b><b>E</b> indicators · <b>X</b> hazards · <b>R</b> back to the road</div>
+  </div>
+</div>
 
 <div id="loader">
   <div class="box">
@@ -210,6 +269,8 @@
 
 const IS_MOBILE = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || Math.min(innerWidth, innerHeight) < 620;
 const BUILD = []; // [label, fn] — staged scene construction (see main)
+const DRIVE_COLLIDERS = []; // {x,z,hx,hz,rot} boxes and {x,z,r} circles for the drive mode
+const DRIVE_GATES = [];     // gate leaves that swing open when a car arrives
 const UPDATERS = []; // per-frame callbacks (dt, time)
 
 /* ---------- Renderer / scene / camera ---------- */
@@ -1788,6 +1849,18 @@ BUILD.push(['Raising Jubilee House', function buildJubilee() {
     for (let x = x0; x < x1; x += 0.16) bars.push({ p: jw(x, FRONT, 0.9), r: 0 });
   };
   frontRun(X0, -gateHalf); frontRun(gateHalf, X1);
+  { // drive-mode colliders for the compound (world coordinates)
+    const B = (lx, lz, w, d) => { const c = jw(lx, lz); DRIVE_COLLIDERS.push({ x: c.x, z: c.z, hx: d / 2, hz: w / 2, rot: 0 }); };
+    B((X0 - gateHalf) / 2, FRONT, -gateHalf - X0, 0.8); B((X1 + gateHalf) / 2, FRONT, X1 - gateHalf, 0.8);
+    B(X0, (FRONT + BACK) / 2, 0.6, FRONT - BACK); B(X1, (FRONT + BACK) / 2, 0.6, FRONT - BACK); B(0, BACK, X1 - X0, 0.6);
+    for (const s2 of [-1, 1]) B(s2 * (gateHalf + 5.5), FRONT - 1.5, 9, 7);           // gatehouses
+    B(0, 0, 102, 56);                                                                     // podium and office block
+    for (const x of [-10.5, -3.5, 3.5, 10.5]) { const c = jw(x, 40); DRIVE_COLLIDERS.push({ x: c.x, z: c.z, r: 1.05 }); }
+    for (let x = -45; x <= 45.01; x += 6) if (Math.abs(x) >= 12) { const c = jw(x, 32.5); DRIVE_COLLIDERS.push({ x: c.x, z: c.z, r: 0.62 }); }
+    const f = jw(0, 78); DRIVE_COLLIDERS.push({ x: f.x, z: f.z, r: 23 });              // fountain basin
+    for (const c of JUB.cars) { const p = jw(c.x, c.z); DRIVE_COLLIDERS.push({ x: p.x, z: p.z, hx: 2.6, hz: 1.0, rot: 0 }); }
+    JUB.terrace = { c: jw(0, 2), hx: 40, hz: 66, h: 1.2 };
+  }
   // side & rear walls: rendered masonry with coping
   wallParts.push(box(0.5, 3, FRONT - BACK, X0, 0, (FRONT + BACK) / 2), box(0.5, 3, FRONT - BACK, X1, 0, (FRONT + BACK) / 2), box(X1 - X0, 3, 0.5, 0, 0, BACK));
   add(worldUV(merge(wallParts), 2.4), cream);
@@ -1808,8 +1881,13 @@ BUILD.push(['Raising Jubilee House', function buildJubilee() {
     const leaf = [];
     for (let x = 0; x < gateHalf - 0.4; x += 0.22) leaf.push(cyl(0.025, 0.025, 2.9, 5, s * (0.3 + x), 0.2, FRONT + 0.3));
     leaf.push(box(gateHalf - 0.3, 0.12, 0.12, s * (gateHalf / 2), 0.4, FRONT + 0.3), box(gateHalf - 0.3, 0.12, 0.12, s * (gateHalf / 2), 2.9, FRONT + 0.3));
-    add(merge(leaf), MAT.paintBlack);
-    add(box(gateHalf - 0.3, 0.3, 0.14, s * (gateHalf / 2), 2.2, FRONT + 0.3), goldTrim, { cast: false });
+    // hinge each leaf at its outer post so it can swing open for an arriving car
+    const hinge = new THREE.Group(); hinge.position.set(s * gateHalf, 0, FRONT + 0.3); J.add(hinge);
+    const lg = merge(leaf); lg.translate(-s * gateHalf, 0, -(FRONT + 0.3));
+    addMesh(lg, MAT.paintBlack, { parent: hinge });
+    const tg = box(gateHalf - 0.3, 0.3, 0.14, s * (gateHalf / 2), 2.2, FRONT + 0.3); tg.translate(-s * gateHalf, 0, -(FRONT + 0.3));
+    addMesh(tg, goldTrim, { parent: hinge, cast: false });
+    DRIVE_GATES.push({ pivot: hinge, side: s, open: 0, at: jw(0, FRONT) });
   }
   add(box(0.4, 1.1, 0.4, -7, 0, FRONT + 6), MAT.paintWhite);
   const boom = box(13.5, 0.14, 0.14, -0.4, 1.0, FRONT + 6); add(boom, std({ color: col(0xd32f2f), roughness: 0.5 }));
@@ -1931,6 +2009,7 @@ BUILD.push(['Setting the temple stones', function buildTemple() {
   const bronzeDoor = MAT.bronze;
 
   const W = 36, D = 30, H = 8.4;  // main block (x × z), wall height above plinth
+  DRIVE_COLLIDERS.push({ x: TMP.pos.x, z: TMP.pos.z, hx: D / 2 + 3.5, hz: W / 2 + 0.7, rot: 0 });
   const PL = 0.9;                  // plinth height
   const gParts = [], dParts = [], glassParts = [], recParts = [], goldParts = [];
 
@@ -2091,6 +2170,13 @@ BUILD.push(['Setting the temple stones', function buildTemple() {
   const fence = { piers: [], bars: [], rails: [] };
   const fenceLine = (x1, z1, x2, z2, gaps = []) => {
     const len = Math.hypot(x2 - x1, z2 - z1), dx = (x2 - x1) / len, dz = (z2 - z1) / len, ry = -Math.atan2(dz, dx);
+    { // colliders: one box per run between gaps
+      const cuts = [[-1e9, 0], ...gaps.slice().sort((a, b) => a[0] - b[0]), [len, 1e9]];
+      for (let i = 0; i < cuts.length - 1; i++) {
+        const a = Math.max(0, cuts[i][1]), b = Math.min(len, cuts[i + 1][0]); if (b - a < 0.5) continue;
+        const m = (a + b) / 2; DRIVE_COLLIDERS.push({ x: x1 + dx * m, z: z1 + dz * m, hx: (b - a) / 2, hz: 0.35, rot: Math.atan2(dz, dx) });
+      }
+    }
     for (let d = 0; d <= len + 0.01; d += 5) {
       if (gaps.some(([a, b]) => d > a - 0.5 && d < b + 0.5)) continue;
       fence.piers.push({ p: new THREE.Vector3(x1 + dx * d, 0, z1 + dz * d), r: ry });
@@ -2134,6 +2220,7 @@ BUILD.push(['Setting the temple stones', function buildTemple() {
   const mtcMat = facadeMat(mtcF, { nightLevel: 1.1 });
   const MX0 = 172, MX1 = 194, MZ0 = 314, MZ1 = 404, MH = 12;
   addMesh(worldUV(box(MX1 - MX0, MH, MZ1 - MZ0, (MX0 + MX1) / 2, 0, (MZ0 + MZ1) / 2), 1), mtcMat);
+  DRIVE_COLLIDERS.push({ x: (MX0 + MX1) / 2, z: (MZ0 + MZ1) / 2, hx: (MX1 - MX0) / 2, hz: (MZ1 - MZ0) / 2, rot: 0 }, { x: 174, z: 410, hx: 20, hz: 9, rot: 0 });
   addMesh(worldUV(box(MX1 - MX0 + 3, 0.8, MZ1 - MZ0 + 3, (MX0 + MX1) / 2, MH, (MZ0 + MZ1) / 2), 3), MAT.concrete);
   addMesh(worldUV(box(40, 8, 18, 174, 0, 410), 1), mtcMat);                       // south teaching wing
   addMesh(worldUV(box(42, 0.8, 20.5, 174, 8, 410), 3), MAT.concrete);
@@ -2162,6 +2249,7 @@ BUILD.push(['Setting the temple stones', function buildTemple() {
   const stakeWall = std({ map: tiled(TEX.render, 4), color: col(0xe3d6bd), roughness: 0.85 });
   const brickBase = std({ map: tiled(TEX.render, 2), color: col(0x9a6a4f), roughness: 0.9 });
   const SC = new THREE.Group(); SC.position.set(62, 0, 314); scene.add(SC);
+  DRIVE_COLLIDERS.push({ x: 62, z: 314, hx: 13.2, hz: 9.2, rot: 0 }, { x: 62, z: 328.5, hx: 11.2, hz: 7.2, rot: 0 });
   const sAdd = (geo, mat) => addMesh(geo, mat, { parent: SC });
   sAdd(worldUV(box(26, 7.2, 18, 0, 0, 0), 4), stakeWall);              // chapel
   sAdd(worldUV(box(26.4, 1.2, 18.4, 0, 0, 0), 2), brickBase);
@@ -2289,6 +2377,7 @@ BUILD.push(['Growing the city around it', function buildCity() {
   const building = (cx, cz, ry, w, d, h, v, pitched) => {
     const g = box(w, h, d); g.rotateY(ry); g.translate(cx, 0, cz);
     batches[v].push(worldUV(g, 1));
+    DRIVE_COLLIDERS.push({ x: cx, z: cz, hx: w / 2, hz: d / 2, rot: -ry });
     if (pitched) {
       const r = new THREE.ConeGeometry(1, 1, 4, 1); r.rotateY(Math.PI / 4); r.scale(w * 0.78, 2.4, d * 0.78); r.rotateY(ry); r.translate(cx, h + 1.2, cz);
       metalRoofs.push(tint(worldUV(r, 3), pick(ROOF_COLS)));
@@ -2320,6 +2409,8 @@ BUILD.push(['Growing the city around it', function buildCity() {
         for (const half of [-1, 1]) {
           const seg = box(wl / 2 - 2.5, 2.4, 0.3); seg.translate(half * (wl / 4 + 1.25), 0, 0);
           seg.rotateY(f.theta + Math.PI / 2); seg.translate(wp.x, 0, wp.z); walls.push(worldUV(seg, 4));
+          { const o = new THREE.Vector3(half * (wl / 4 + 1.25), 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), f.theta + Math.PI / 2);
+            DRIVE_COLLIDERS.push({ x: wp.x + o.x, z: wp.z + o.z, hx: (wl / 2 - 2.5) / 2, hz: 0.2, rot: -(f.theta + Math.PI / 2) }); }
         }
         if (rand() < 0.7) addTree(wp.x + f.side.x * side * 3, wp.z + f.side.z * side * 3);
         if (rand() < 0.4) addCoconut(c.x + f.side.x * side * (dep / 2 + 4), c.z + rr(-6, 6));
@@ -2680,6 +2771,7 @@ renderer.domElement.addEventListener('wheel', () => { if (tour) stopTour(true); 
 const _tp = new THREE.Vector3(), _tt = new THREE.Vector3();
 /** Drives the camera for flights and the tour. Returns true while it owns the camera. */
 function updateCameraRig(now) {
+  if (window.ACCRA_DRIVE && ACCRA_DRIVE.active) return ACCRA_DRIVE.frame(now);
   if (tour) {
     if (!tour.paused) tour.u = clamp((now - tour.start) / (TOUR_DATA.dur * 1000), 0, 1);
     const u = easeIO(tour.u) * 0.12 + tour.u * 0.88; // gentle ease-in/out at the ends
@@ -2808,6 +2900,7 @@ setTimeout(hideHint, 7000);
 
 window.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT') return;
+  if (window.ACCRA_DRIVE && ACCRA_DRIVE.active) return;
   const keys = ['overview', 'jubilee', 'road', 'junction', 'temple', 'grounds'];
   if (e.key >= '1' && e.key <= '6') setView(keys[+e.key - 1]);
   else if (e.key === 't' || e.key === 'T') { tour ? stopTour(true) : startTour(); }
@@ -2886,6 +2979,8 @@ async function main() {
 main();
 
 </script>
+<script src="/l200/pkm-drive.js"></script>
+<script src="/accra3d/drive-mode.js"></script>
 <script src="/analytics-tracker.js?v=3" defer></script>
 </body>
 </html>
