@@ -102,3 +102,7 @@ copyright (c) 2025 Keenthemes Inc; the full MIT licence is retained in
 # Lucide icon artwork
 
 Icons on Portfolio Field Notes use selected Lucide SVG paths, locally hosted as `portfolio-field-notes/icons.svg` with no runtime dependency. Lucide is licensed under the ISC License, copyright (c) 2026 Lucide Icons and Contributors. Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that this copyright and permission notice appear in all copies. THE SOFTWARE IS PROVIDED 'AS IS' AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. A subset derives from Feather, which is MIT-licensed, copyright (c) 2013-present Cole Bemis. See https://lucide.dev/license for the complete license notices.
+
+## Inter typeface
+
+The design portfolio self-hosts Inter (variable, Latin subset) from `@fontsource-variable/inter` 5.3.0, copyright 2016 The Inter Project Authors, under the SIL Open Font License 1.1. The licence text is in `assets/fonts/OFL-Inter.txt`.

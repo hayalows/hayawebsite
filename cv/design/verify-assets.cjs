@@ -65,5 +65,8 @@ for(const name of projectFolders){
 }
 for(const match of sitemap.matchAll(/<image:loc>([^<]+)<\/image:loc>/g))validateImage(match[1],'sitemap');
 assert.equal(indexed.size,10,'Expected ten detailed/indexable case studies');
-assert.equal(sitemapURLs.length,16,'Expected homepage, 3 regular pages, 2 archive pages and 10 case studies');
-console.log('PASS: '+catalog.length+' catalog records, '+catalog.length*2+' image files, '+projectFolders.length+' project pages, '+sitemapURLs.length+' sitemap URLs, all artwork paths valid.');
+const designURLs=sitemapURLs.filter(u=>u.startsWith(origin+'/design/'));
+assert.equal(designURLs.length,12,'Expected the selected-work page, Sketchbook and 10 case studies in the sitemap');
+for(const page of ['template.html','core.js','app.js','site.css'])assert(fs.existsSync(path.join(__dirname,page)),'Missing design runtime file: '+page);
+assert(archive.includes('/design/site.css?v=')&&archive.includes('/design/app.js?v='),'Selected-work page does not load the design runtime');
+console.log('PASS: '+catalog.length+' catalog records, '+catalog.length*2+' image files, '+projectFolders.length+' project pages, '+designURLs.length+' design sitemap URLs ('+sitemapURLs.length+' in total), all artwork paths valid.');

@@ -1,52 +1,73 @@
 'use strict';
-// Regenerate crawlable project HTML and the canonical sitemap after an archive update.
-// Use the repository's release workflow to generate new pages and inspect before publishing.
-// Keep dates accurate: changing only the copyright year does not justify an updated sitemap lastmod.
-const fs=require('node:fs'),path=require('node:path');
+// Build the static Iconka Designs pages from template.html and the shared views in core.js.
+// Writes design/index.html (selected work), design/sketchbook/index.html, one page per project
+// and the design entries of the canonical sitemap. The browser runs the same core.js, so
+// static and interactive pages never drift apart. Output is deterministic: CI regenerates
+// and expects no diff. Keep dates accurate: an unchanged page keeps its previous lastmod.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const dir=__dirname,root=path.resolve(dir,'..'),domain='https://pkm.hayalows.com';
-const js=fs.readFileSync(path.join(dir,'archive.js'),'utf8');
-const template=fs.readFileSync(path.join(dir,'index.html'),'utf8');
+const C=require('./core.js');
+const template=fs.readFileSync(path.join(dir,'template.html'),'utf8');
 const catalog=JSON.parse(fs.readFileSync(path.join(dir,'catalog.json'),'utf8'));
 const stories=JSON.parse(fs.readFileSync(path.join(dir,'stories.json'),'utf8'));
-const code=js.slice(js.indexOf('const featuredKeys='),js.indexOf('let projects='))+js.slice(js.indexOf('function group(data){'),js.indexOf('function heroImage('));
-const projects=new Function('data',code+'return group(data);')(catalog);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const projects=C.buildProjects(catalog,stories);
+// Cache-busting version derived from the runtime files themselves.
+const VERSION=crypto.createHash('sha1').update(['core.js','app.js','site.css'].map(f=>fs.readFileSync(path.join(dir,f),'utf8')).join('\n')).digest('hex').slice(0,10);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c));
 const abs=s=>{const relative=String(s||'').replace(/^(?:\.\.\/)+/,'').replace(/^\/+/, '');if(!/^assets\/design\/[\w.-]+\.webp$/.test(relative))throw Error('Unexpected design image path: '+s);return domain+'/'+relative;};
-const metadata=(html,p,story,loc,img)=>{
-const title=story.title||p.title,summary=(story.brief||p.summary||'Original graphic design by Papa Kojo Mensah.').slice(0,285);
-const tags=[[/<title>[^<]*<\/title>/,'<title>'+esc(title)+' | Iconka Designs Graphic Design Portfolio</title>'],[/<meta name="description" content="[^"]*">/,'<meta name="description" content="'+esc(summary)+'">'],[/<meta name="robots" content="[^"]*">/,'<meta name="robots" content="'+(stories[p.key]?'index, follow, max-image-preview:large, max-snippet:-1':'noindex, follow, max-image-preview:large')+'">'],[/<link rel="canonical" href="[^"]*">/,'<link rel="canonical" href="'+loc+'">'],[/<meta property="og:type" content="[^"]*">/,'<meta property="og:type" content="article">'],[/<meta property="og:title" content="[^"]*">/,'<meta property="og:title" content="'+esc(title)+' | Iconka Designs">'],[/<meta property="og:description" content="[^"]*">/,'<meta property="og:description" content="'+esc(summary)+'">'],[/<meta property="og:image" content="[^"]*">/,'<meta property="og:image" content="'+img+'">'],[/<meta name="twitter:card" content="[^"]*">/,'<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="'+esc(title)+' | Iconka Designs"><meta name="twitter:description" content="'+esc(summary)+'"><meta name="twitter:image" content="'+img+'">']];
-for(const [re,repl] of tags)html=html.replace(re,repl);
-html=html.replace('<meta property="og:url" content="'+domain+'/design/">','<meta property="og:url" content="'+loc+'">');
 const identity=domain+'/#papa-kojo-mensah';
-const schema={'@context':'https://schema.org','@graph':[
-{'@type':'WebPage','@id':loc+'#page',url:loc,name:title+' | Iconka Designs',description:summary,inLanguage:'en-GH',mainEntity:{'@id':loc+'#work'},isPartOf:{'@id':domain+'/design/#portfolio'}},
-{'@type':'CreativeWork','@id':loc+'#work',name:title,description:summary,url:loc,image:p.pieces.map(x=>abs(x.preview)),creator:{'@id':identity},genre:story.kind||p.category,isPartOf:{'@id':domain+'/design/#portfolio'}},
-{'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'PKM portfolio',item:domain+'/'},{'@type':'ListItem',position:2,name:'Graphic design',item:domain+'/design/'},{'@type':'ListItem',position:3,name:title,item:loc}]}]};
-html=html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/,'<script type="application/ld+json">'+JSON.stringify(schema).replace(/</g,'\\u003c')+'</script>');
-return html;};
-const projectBody=(p,story)=>{
- const title=story.title||p.title;
- const images=p.pieces.map((piece,i)=>'<figure><img src="'+esc(abs(piece.preview))+'" width="640" height="800" loading="'+(i?'lazy':'eager')+'" alt="'+esc(title+' — '+piece.title)+'"><figcaption>'+esc((story.applications||[])[i]||piece.title)+'</figcaption></figure>').join('\n');
- return '<article class="seo-case" aria-labelledby="seo-project-title"><nav aria-label="Project breadcrumb"><a href="/">Portfolio</a> / <a href="/design/">Graphic design work</a></nav><header><p class="eyebrow">'+esc(story.kind||p.category)+'</p><h1 id="seo-project-title">'+esc(title)+'</h1><p class="lede">'+esc(story.brief||p.summary||'A graphic design project by Papa Kojo Mensah.')+'</p></header>'+
- (story.approach?'<section><h2>The design decisions</h2><p>'+esc(story.approach)+'</p></section>':'')+
- '<div class="seo-case__images">'+images+'</div>'+
- (story.note?'<section><h2>Designer\'s note</h2><p>'+esc(story.note)+'</p></section>':'')+
- (story.effect?'<section><h2>Looking at the finished work</h2><p>'+esc(story.effect)+'</p></section>':'')+
- '<p class="seo-case__links"><a href="mailto:mpapakojo@gmail.com?subject='+encodeURIComponent('Design enquiry — '+title)+'">Discuss a design project ↗</a> <a href="/design/">Explore more graphic design work ↗</a></p></article>';
-};
+
+function page({content,jsonld,meta}){
+ let html=template.split('{{VERSION}}').join(VERSION).replace('{{JSONLD}}',()=>JSON.stringify(jsonld).replace(/</g,'\\u003c')).replace('{{CONTENT}}',()=>content);
+ if(meta){
+  const tags=[
+   [/<title>[^<]*<\/title>/,'<title>'+esc(meta.title)+'</title>'],
+   [/<meta name="description" content="[^"]*">/,'<meta name="description" content="'+esc(meta.description)+'">'],
+   [/<meta name="robots" content="[^"]*">/,'<meta name="robots" content="'+meta.robots+'">'],
+   [/<link rel="canonical" href="[^"]*">/,'<link rel="canonical" href="'+meta.url+'">'],
+   [/<meta property="og:type" content="[^"]*">/,'<meta property="og:type" content="'+meta.type+'">'],
+   [/<meta property="og:url" content="[^"]*">/,'<meta property="og:url" content="'+meta.url+'">'],
+   [/<meta property="og:title" content="[^"]*">/,'<meta property="og:title" content="'+esc(meta.socialTitle)+'">'],
+   [/<meta property="og:description" content="[^"]*">/,'<meta property="og:description" content="'+esc(meta.socialDescription||meta.description)+'">'],
+   [/<meta property="og:image" content="[^"]*">/,'<meta property="og:image" content="'+meta.image+'">'],
+   [/<meta name="twitter:title" content="[^"]*">/,'<meta name="twitter:title" content="'+esc(meta.socialTitle)+'">']
+  ];
+  for(const [re,repl] of tags){if(!re.test(html))throw Error('Template tag missing: '+re);html=html.replace(re,()=>repl);}
+ }
+ return html;
+}
+const modifiedPages=new Set();
+function write(rel,html,loc){
+ const dest=path.join(dir,rel);
+ if(!fs.existsSync(dest)||fs.readFileSync(dest,'utf8')!==html){if(loc)modifiedPages.add(loc);}
+ fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,html);
+}
+
+/* Selected work (also served for /design/index, which the browser renders from the same data). */
+write('index.html',page({content:C.landing(projects),jsonld:{'@context':'https://schema.org','@graph':[{'@type':'CollectionPage','@id':domain+'/design/#portfolio',name:'Iconka Designs | Graphic design work',url:domain+'/design/',description:'Selected brand identities, campaigns and event graphics by Papa Kojo Mensah of Iconka Designs in Kumasi, Ghana. The complete '+projects.length+'-project archive is available at /design/index.',inLanguage:'en-GH',creator:{'@id':identity},mainEntity:{'@type':'ItemList',name:'Graphic design portfolio',numberOfItems:projects.length,itemListElement:projects.map((p,i)=>({'@type':'ListItem',position:i+1,name:p.title,url:domain+C.url(p)}))}}]}}),domain+'/design/');
+
+/* Sketchbook */
+write('sketchbook/index.html',page({content:C.sketchbook(projects),jsonld:{'@context':'https://schema.org','@type':'CollectionPage',name:'Sketchbook | Iconka Designs',url:domain+'/design/sketchbook',creator:{'@id':identity},isPartOf:{'@id':domain+'/design/#portfolio'}},meta:{
+ title:'Sketchbook | Smaller Graphic Design Work | Iconka Designs',description:'A sketchbook of smaller graphic design pieces and visual experiments by Papa Kojo Mensah of Iconka Designs, based in Kumasi, Ghana.',robots:'index, follow, max-image-preview:large, max-snippet:-1',url:domain+'/design/sketchbook',type:'website',socialTitle:'Iconka Sketchbook | Graphic Design by Papa Kojo Mensah',socialDescription:'Smaller posters, social graphics and experiments from the Iconka Designs archive.',image:abs(projects.find(p=>p.key==='iconka-identity').pieces[0].preview)}}),domain+'/design/sketchbook');
+
+/* One page per project. Only projects with verified case-study notes are indexable. */
+for(const p of projects){
+ const story=stories[p.key]||{},loc=domain+'/design/'+p.key+'/',title=story.title||p.title;
+ const summary=(story.brief||p.summary||'Original graphic design by Papa Kojo Mensah.').slice(0,285);
+ const jsonld={'@context':'https://schema.org','@graph':[
+  {'@type':'WebPage','@id':loc+'#page',url:loc,name:title+' | Iconka Designs',description:summary,inLanguage:'en-GH',mainEntity:{'@id':loc+'#work'},isPartOf:{'@id':domain+'/design/#portfolio'}},
+  {'@type':'CreativeWork','@id':loc+'#work',name:title,description:summary,url:loc,image:p.pieces.map(x=>abs(x.preview)),creator:{'@id':identity},genre:story.kind||p.category,isPartOf:{'@id':domain+'/design/#portfolio'}},
+  {'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'PKM portfolio',item:domain+'/'},{'@type':'ListItem',position:2,name:'Graphic design',item:domain+'/design/'},{'@type':'ListItem',position:3,name:title,item:loc}]}]};
+ write(p.key+'/index.html',page({content:C.detail(p,projects),jsonld,meta:{title:title+' | Iconka Designs Graphic Design Portfolio',description:summary,robots:stories[p.key]?'index, follow, max-image-preview:large, max-snippet:-1':'noindex, follow, max-image-preview:large',url:loc,type:'article',socialTitle:title+' | Iconka Designs',image:abs(p.pieces[0].preview)}}),loc);
+}
+
+/* Sitemap: keep every non-design entry, then list the design pages that are meant to be indexed. */
 const oldMap=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
 const oldDates=new Map([...oldMap.matchAll(/<url><loc>([^<]+)<\/loc>(?:<lastmod>([^<]+)<\/lastmod>)?/g)].map(x=>[x[1],x[2]]));
-const modifiedPages=new Set();
-for(const p of projects){
- const story=stories[p.key]||{},loc=domain+'/design/'+p.key+'/',pic=abs(p.pieces[0].preview);
- let html=metadata(template,p,story,loc,pic);
- html=html.replace(/<div id="archive-app">[\s\S]*?<\/div><\/main>/,'<div id="archive-app">'+projectBody(p,story)+'</div></main>');
- const dest=path.join(dir,p.key,'index.html');if(!fs.existsSync(dest)||fs.readFileSync(dest,'utf8')!==html)modifiedPages.add(loc);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,html);
-}
 const keep=(oldMap.match(/<url>[\s\S]*?<\/url>/g)||[]).filter(x=>!x.includes('/design/'));
 const today=new Date().toISOString().slice(0,10),feat=projects.filter(p=>stories[p.key]);
 const entry=(loc,images=[])=>{const lastmod=modifiedPages.has(loc)?today:(oldDates.get(loc)||today);return '<url><loc>'+loc+'</loc><lastmod>'+lastmod+'</lastmod>'+images.map(i=>'<image:image><image:loc>'+i+'</image:loc></image:image>').join('')+'</url>';};
 const others=keep.map(x=>x.replace(/<priority>[^<]*<\/priority>/g,''));
 const vals=[entry(domain+'/design/',feat.slice(0,8).map(p=>abs(p.pieces[0].preview))),entry(domain+'/design/sketchbook'),...feat.map(p=>entry(domain+'/design/'+p.key+'/',p.pieces.map(x=>abs(x.preview))))];
 fs.writeFileSync(path.join(root,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n'+others.concat(vals).join('\n')+'\n</urlset>\n');
-console.log('Generated '+projects.length+' project pages; '+feat.length+' detailed case studies remain indexable. Run `node cv/design/verify-assets.cjs` before publishing.');
+console.log('Generated the selected-work page, Sketchbook and '+projects.length+' project pages (v'+VERSION+'); '+feat.length+' case studies are indexable. Run `node cv/design/verify-assets.cjs` before publishing.');
