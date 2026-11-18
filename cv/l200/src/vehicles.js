@@ -225,7 +225,7 @@ export function buildVehicle(THREE, id, opts = {}) {
     const bev = glass ? 0.05 : 0.075;
     const shape = resample(shape0, segs);
     const g0 = new THREE.ExtrudeGeometry(shape, { depth: width - 2 * bev, steps: 1, bevelEnabled: true, bevelThickness: bev, bevelSize: bev * 0.85, bevelOffset: -bev * 0.85, bevelSegments: 5, curveSegments: segs });
-    const g = refine(g0, 0.14, 7);
+    const g = refine(g0, 0.2, 6);
     const p = g.attributes.position, half = width / 2, k = width / W;
     const cap = new Int8Array(p.count);
     for (let i = 0; i < p.count; i++) {
@@ -706,6 +706,46 @@ export function buildVehicle(THREE, id, opts = {}) {
   body.traverse((o) => { if (o.isMesh && o.userData.ind) o.material = indMats[o.userData.ind]; });
   const brakeMat = M.tail.clone();
   for (const t of brakes) t.material = brakeMat;
+
+  // ---------- merge static siblings that share a material (far fewer draw calls) ----------
+  function mergeStatic(node) {
+    for (const child of [...node.children]) if (!child.isMesh && child.children.length) mergeStatic(child);
+    const groups = new Map();
+    for (const m of node.children) {
+      if (!m.isMesh || m.userData.panel || Array.isArray(m.material) || m.material.transparent) continue;
+      const key = m.material.uuid + (m.castShadow ? 's' : 'n');
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(m);
+    }
+    for (const list of groups.values()) {
+      if (list.length < 2) continue;
+      const parts = list.map((m) => {
+        m.updateMatrix();
+        const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+        g.applyMatrix4(m.matrix);
+        if (!g.attributes.normal) g.computeVertexNormals();
+        return g;
+      });
+      const count = parts.reduce((n, g) => n + g.attributes.position.count, 0);
+      const pos = new Float32Array(count * 3), nor = new Float32Array(count * 3), uv = new Float32Array(count * 2);
+      let o = 0;
+      for (const g of parts) {
+        const n = g.attributes.position.count;
+        pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3);
+        if (g.attributes.uv) uv.set(g.attributes.uv.array, o * 2);
+        o += n; g.dispose();
+      }
+      const merged = new THREE.BufferGeometry();
+      merged.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      merged.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+      merged.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      const mesh = new THREE.Mesh(merged, list[0].material);
+      mesh.castShadow = list[0].castShadow; mesh.receiveShadow = true;
+      for (const m of list) node.remove(m);
+      node.add(mesh);
+    }
+  }
+  mergeStatic(car);
 
   // ---------- public API ----------
   const state = { head: false, brake: false, reverse: false, left: false, right: false, hazard: false, interiorGlow: 0 };

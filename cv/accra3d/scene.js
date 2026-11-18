@@ -2788,7 +2788,7 @@ async function openDrive(auto = false) {
   button.textContent = 'Opening…';
   loadingDrive = true;
   try {
-    const { mountDrive } = await import('./drive-mode.js?v=2');
+    const { mountDrive } = await import('./drive-mode.js?v=3');
     await detailReady;
     if (!shell.running) return;
     driveMode ??= mountDrive({

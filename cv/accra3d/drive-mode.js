@@ -1,4 +1,4 @@
-import * as drive from '/l200/pkm-drive.js?v=2';
+import * as drive from '/l200/pkm-drive.js?v=3';
 
 export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, params, stopTour }) {
   const $ = (id) => document.getElementById(id);
@@ -27,7 +27,7 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   }
 
   const audio = new drive.VehicleAudio();
-  audio.setMuted(store.get('pkm.drive.muted', true));
+  audio.setMuted(store.get('pkm.drive.muted', false));
   const vehicles = {};
   let ctrl, hud, active = false, last = 0, statusTimer;
   const picker = $('drivePick');

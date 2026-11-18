@@ -9,6 +9,18 @@ const tex = (w, h, draw, srgb = true) => {
 };
 const rng = (seed) => () => ((seed = Math.imul(seed ^ (seed >>> 15), 2246822519) + 0x9e3779b9 | 0) >>> 0) / 4294967296;
 
+// Adds film-grain style noise to whatever is already drawn: one typed-array pass,
+// much faster than drawing thousands of tiny rectangles.
+function grain(x, w, h, amount, tint = [1, 1, 1], seed = 1) {
+  const img = x.getImageData(0, 0, w, h), d = img.data; let r = seed >>> 0;
+  for (let i = 0; i < d.length; i += 4) {
+    r = (Math.imul(r, 1664525) + 1013904223) >>> 0;
+    const n = ((r >>> 8) / 16777216 - 0.5) * amount;
+    d[i] += n * tint[0]; d[i + 1] += n * tint[1]; d[i + 2] += n * tint[2];
+  }
+  x.putImageData(img, 0, 0);
+}
+
 export const FONT = '"Inter", ui-sans-serif, system-ui, sans-serif';
 
 // ------------------------------------------------------------------ showroom
@@ -19,11 +31,11 @@ export function buildShowroom({ quality, reflections }) {
   // polished epoxy floor with subtle tile joints
   const floorTex = tex(1024, 1024, (x, w, h) => {
     x.fillStyle = '#1e1e1e'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 9000; i++) { const v = 26 + R() * 12; x.fillStyle = `rgb(${v},${v},${v})`; x.fillRect(R() * w, R() * h, 2, 2); }
+    grain(x, w, h, 14, [1, 1, 1], 7);
     x.strokeStyle = '#1b1b1b'; x.lineWidth = 3; for (let i = 0; i <= 4; i++) { x.beginPath(); x.moveTo(i * w / 4, 0); x.lineTo(i * w / 4, h); x.stroke(); x.beginPath(); x.moveTo(0, i * h / 4); x.lineTo(w, i * h / 4); x.stroke(); }
   });
   floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(10, 10);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshPhysicalMaterial({ map: floorTex, roughness: 0.32, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.3 }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshPhysicalMaterial({ map: floorTex, roughness: 0.48, metalness: 0, clearcoat: 0.22, clearcoatRoughness: 0.45 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; g.add(floor);
   let mirror = null;
   if (reflections) {
@@ -139,7 +151,7 @@ export function buildCourse({ quality }) {
   // asphalt texture
   const asphalt = tex(512, 512, (x, w, h) => {
     x.fillStyle = '#3b3c3d'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 26000; i++) { const v = 40 + R() * 40; x.fillStyle = `rgba(${v},${v},${v + 2},.9)`; x.fillRect(R() * w, R() * h, 1.5, 1.5); }
+    grain(x, w, h, 46, [1, 1, 1.03], 11);
     x.fillStyle = '#e9e6dc'; x.fillRect(10, 0, 14, h); x.fillRect(w - 24, 0, 14, h);
     x.fillStyle = '#e9c45a'; for (let y = 0; y < h; y += 128) x.fillRect(w / 2 - 5, y, 10, 64);
   });
@@ -167,19 +179,19 @@ export function buildCourse({ quality }) {
   // grass with the PKM letters mowed into the infield
   const grassTex = tex(512, 512, (x, w, h) => {
     x.fillStyle = '#4d6b33'; x.fillRect(0, 0, w, h);
-    for (let i = 0; i < 30000; i++) { const gg = 80 + R() * 50; x.fillStyle = `rgba(${gg * 0.55 | 0},${gg},${gg * 0.4 | 0},.5)`; x.fillRect(R() * w, R() * h, 1, 3); }
+    grain(x, w, h, 40, [0.6, 1, 0.45], 13);
   });
   grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping; grassTex.repeat.set(90, 90);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.95 }));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; g.add(ground);
-  const mowTex = tex(2048, 820, (x, w, h) => {
+  const mowTex = tex(1024, 410, (x, w, h) => {
     x.fillStyle = '#56763a'; x.fillRect(0, 0, w, h);
     for (let i = 0; i < 16; i++) { x.fillStyle = i % 2 ? 'rgba(130,160,90,.35)' : 'rgba(40,70,25,.25)'; x.fillRect(i * w / 16, 0, w / 16, h); }
-    x.save(); x.font = `900 640px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; if ('letterSpacing' in x) x.letterSpacing = '30px';
-    x.fillStyle = 'rgba(178,205,120,.95)'; x.fillText('PKM', w / 2, h / 2 + 40);
+    x.save(); x.font = `900 320px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; if ('letterSpacing' in x) x.letterSpacing = '15px';
+    x.fillStyle = 'rgba(178,205,120,.95)'; x.fillText('PKM', w / 2, h / 2 + 20);
     x.globalCompositeOperation = 'source-atop'; for (let i = 0; i < 40; i++) { x.fillStyle = i % 2 ? 'rgba(255,255,220,.18)' : 'rgba(30,60,10,.12)'; x.fillRect(0, i * h / 40, w, h / 40); }
     x.restore();
-    for (let i = 0; i < 20000; i++) { const gg = 80 + R() * 60; x.fillStyle = `rgba(${gg * 0.5 | 0},${gg},${gg * 0.35 | 0},.25)`; x.fillRect(R() * w, R() * h, 2, 4); }
+    grain(x, w, h, 34, [0.55, 1, 0.4], 17);
   });
   const mowZ = 8, mowW = 74, mowH = 30;
   const mow = new THREE.Mesh(new THREE.PlaneGeometry(mowW, mowH), new THREE.MeshStandardMaterial({ map: mowTex, roughness: 0.95, polygonOffset: true, polygonOffsetFactor: -1 }));
@@ -189,7 +201,7 @@ export function buildCourse({ quality }) {
   // laterite shortcut through the infield
   const dirtPts = [[118, -40], [70, -20], [40, 10], [20, 40]].map(([x, z]) => new THREE.Vector3(x, 0, z));
   const dirtCurve = new THREE.CatmullRomCurve3(dirtPts);
-  const dirtTex = tex(256, 256, (x, w, h) => { x.fillStyle = '#9a4f2c'; x.fillRect(0, 0, w, h); for (let i = 0; i < 9000; i++) { const r = 120 + R() * 60; x.fillStyle = `rgba(${r},${r * 0.5 | 0},${r * 0.3 | 0},.6)`; x.fillRect(R() * w, R() * h, 2, 2); } });
+  const dirtTex = tex(256, 256, (x, w, h) => { x.fillStyle = '#9a4f2c'; x.fillRect(0, 0, w, h); grain(x, w, h, 60, [1, 0.55, 0.32], 19); });
   dirtTex.wrapS = dirtTex.wrapT = THREE.RepeatWrapping;
   const dirtSamples = dirtCurve.getSpacedPoints(120);
   {

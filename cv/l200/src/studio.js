@@ -59,7 +59,7 @@ if (high) {
 // ---------------------------------------------------------------- world
 const showroom = buildShowroom({ quality: effQ(), reflections: high });
 scene.add(showroom.group);
-const audio = new VehicleAudio(); audio.setMuted(store.get('pkm.drive.muted', true));
+const audio = new VehicleAudio(); audio.setMuted(store.get('pkm.drive.muted', false));
 
 const cars = {};
 function getVehicle(id) {
@@ -76,12 +76,17 @@ let carId = Object.hasOwn(SPECS, savedCar) ? savedCar : 'volta';
 let mode = 'showroom', mood = 'studio';
 const car = () => getVehicle(carId);
 
+const otherId = () => (carId === 'volta' ? 'regent' : 'volta');
 function parkShowroom() {
   for (const v of Object.values(cars)) v.root.removeFromParent();
   const v = car();
   showroom.table.add(v.root); v.root.position.set(0, 0.1, 0); v.root.rotation.set(0, 0, 0);
-  v.body.rotation.set(0, 0, 0); v.body.position.set(0, 0, 0);
-  for (const w of v.wheels) { w.pivot.rotation.y = 0; w.pivot.position.y = w.baseY; }
+  for (const p of Object.values(cars)) {
+    p.body.rotation.set(0, 0, 0); p.body.position.set(0, 0, 0);
+    for (const w of p.wheels) { w.pivot.rotation.y = 0; w.pivot.position.y = w.baseY; }
+  }
+  const o = cars[otherId()]; // the other car waits beside the turntable; click it to swap
+  if (o) { showroom.group.add(o.root); o.root.position.set(-9.2, 0, 1.5); o.root.rotation.set(0, 0.6, 0); }
 }
 
 // ---------------------------------------------------------------- drive
@@ -336,7 +341,7 @@ const SECRETS = {
 const savedSecrets = store.get('pkm.drive.secrets', []);
 const found = new Set(Array.isArray(savedSecrets) ? savedSecrets.filter((key) => Object.hasOwn(SECRETS, key)) : []);
 function renderSecrets() {
-  $('#secretCount').textContent = `${found.size}/${Object.keys(SECRETS).length}`;
+  for (const el of document.querySelectorAll('[data-secret-count], #secretCount')) el.textContent = `${found.size}/${Object.keys(SECRETS).length}`;
   $('#secretList').innerHTML = Object.entries(SECRETS).map(([k, [t, hint]]) => `<li data-found="${found.has(k)}"><strong>${found.has(k) ? t : 'Hidden'}</strong><span>${hint}</span></li>`).join('');
 }
 function secret(k, title, msg) {
@@ -401,7 +406,7 @@ canvas.addEventListener('pointermove', (e) => {
 function pick(e) {
   const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
   ray.setFromCamera(ndc, camera);
-  const targets = mode === 'showroom' ? [...showroom.clickables, car().root] : course.clickables;
+  const targets = mode === 'showroom' ? [...showroom.clickables, ...Object.values(cars).map((v) => v.root)] : course.clickables;
   return ray.intersectObjects(targets, true).find((h) => h.object.visible) || null;
 }
 
@@ -493,10 +498,27 @@ if (compact.matches) {
   controls.target.y -= 0.33;
   camera.position.sub(controls.target).multiplyScalar(THREE.MathUtils.clamp(0.9 / camera.aspect, 1, 1.72)).add(controls.target);
 }
-controls.update(); render(0);
+controls.update();
+// compile every shader behind the loader so the first seconds do not stutter
+shell.progress('Preparing the paint and lights…');
+try { if (renderer.compileAsync) await renderer.compileAsync(scene, camera); } catch {}
+render(0);
 if (!shell.running) return;
 syncToggles();
 shell.ready();
+// after the first frame: build the second car beside the turntable, then warm up the test track
+const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2500 }) : setTimeout(fn, 600));
+idle(() => {
+  if (!shell.running) return;
+  const o = getVehicle(otherId()); o.root.traverse((n) => { if (n.isMesh) n.userData.car = o.spec.id; });
+  if (mode === 'showroom') parkShowroom();
+  invalidate();
+  idle(() => { if (shell.running && !course && !compact.matches) loadCourse(), course.group.visible = false; });
+});
+if (!store.get('pkm.drive.tip', false)) {
+  setTimeout(() => toast('Tip', 'Click a door, the bonnet or the PKM sign. The car beside the turntable swaps in when you click it.'), 1200);
+  store.set('pkm.drive.tip', true);
+}
 if (params.get('mode') === 'drive') {
   requestAnimationFrame(() => { if (shell.running) setMode('drive', false); });
 }

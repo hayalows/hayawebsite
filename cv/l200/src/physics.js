@@ -41,7 +41,7 @@ export function stepDynamics(s, input, env, dt) {
 
   // steering: slower at speed, smooth rack
   const maxSteer = 0.58 / (1 + Math.pow(Math.abs(s.vx) / 14, 1.4) * 0.9);
-  s.steer = damp(s.steer, input.steer * maxSteer, 7, dt);
+  s.steer = damp(s.steer, input.steer * maxSteer, 16, dt);
 
   // The brake always resists motion. Shifting is a separate control.
   const brk = input.brake;
@@ -54,7 +54,7 @@ export function stepDynamics(s, input, env, dt) {
   s.shiftT = Math.max(0, s.shiftT - dt);
   if (!s.reverse && s.shiftT === 0) {
     const cur = wheelRpm * gears[s.gear - 1] * S.finalDrive;
-    if (cur > S.shiftUp * (0.75 + 0.25 * thr) && s.gear < gears.length) { s.gear++; s.shiftT = S.engine === 'v8' ? 0.18 : 0.32; s.lastShift = 1; }
+    if (cur > S.shiftUp * (0.75 + 0.25 * thr) && s.gear < gears.length) { s.gear++; s.shiftT = S.engine === 'v8' ? 0.14 : 0.22; s.lastShift = 1; }
     else if (cur < S.shiftDown && s.gear > 1) { s.gear--; s.shiftT = 0.2; s.lastShift = -1; }
   }
   const ratio = (s.reverse ? 4.1 : gears[s.gear - 1]) * S.finalDrive;
@@ -67,13 +67,13 @@ export function stepDynamics(s, input, env, dt) {
   if (s.rpm > S.redline) thr *= 0.2; // limiter
 
   const engT = s.engine ? torqueAt(S, Math.max(s.rpm, S.idle)) * thr : 0;
-  let Fx = s.shiftT > 0 ? engT * ratio * 0.92 / tyreR * 0.3 : engT * ratio * 0.92 / tyreR;
+  let Fx = engT * ratio * 0.92 / tyreR * (s.shiftT > 0 ? 0.68 : 1);
   if (s.reverse) Fx = -Fx;
   const powerCap = S.power * 1000 / Math.max(2, Math.abs(s.vx)); Fx = clamp(Fx, -powerCap * 1.2, powerCap * 1.2);
   // brakes, rolling resistance, drag, engine braking
   const dir = Math.sign(s.vx) || 0;
   let Fb = brk * m_brake(s) + (input.handbrake ? 6000 : 0);
-  const roll = (s.m * g) * (0.015 + surf.rough * 0.05);
+  const roll = (s.m * g) * (0.013 + surf.rough * 0.02);
   const drag = 0.5 * 1.2 * (S.engine === 'v8' ? 1.25 : 1.1) * s.vx * Math.abs(s.vx);
   const engBrake = s.engine && thr < 0.05 ? (s.rpm / S.redline) * 900 * dir : 0;
   let Flong = Fx - drag - engBrake;
@@ -98,23 +98,21 @@ export function stepDynamics(s, input, env, dt) {
   const Cf = 9.5 * Wf / 1, Cr = 10.5 * Wr / 1;
   const rearMu = input.handbrake ? mu * 0.45 : mu;
   const corneringShare = Math.sqrt(1 - clamp(longUsed * 0.95, 0, 1) ** 2);
-  const tyre = (alpha, C, cap) => clamp(-C * alpha, -cap, cap);
+  const tyre = (alpha, C, cap) => cap > 1 ? cap * Math.tanh((-C * alpha) / cap) : 0; // smooth limit, no sudden cliff
   const Fyf = tyre(af, Cf, mu * Wf * corneringShare), Fyr = tyre(ar, Cr, rearMu * Wr * corneringShare);
   s.slip = clamp(Math.max(Math.abs(af), Math.abs(ar)) * Math.min(1, speed / 4) * 3 + s.wheelSpin * 0.6 + (input.handbrake && speed > 3 ? 0.5 : 0), 0, 1.5);
 
-  if (speed < 2.5) {
-    // low-speed kinematic blend (no singularities when parking)
-    const ax = Flong / s.m;
-    s.vx += ax * dt; s.vy = damp(s.vy, 0, 10, dt);
-    s.r = s.vx * Math.tan(s.steer) / (s.a + s.b);
-    s.ax = ax; s.ay = s.vx * s.r;
-  } else {
-    const ax = (Flong - Fyf * Math.sin(s.steer)) / s.m + s.vy * s.r;
-    const ay = (Fyf * Math.cos(s.steer) + Fyr) / s.m - s.vx * s.r;
-    const rr = (s.a * Fyf * Math.cos(s.steer) - s.b * Fyr) / s.Iz;
-    s.vx += ax * dt; s.vy += ay * dt; s.r += rr * dt;
-    s.ax = damp(s.ax, ax - s.vy * s.r, 12, dt); s.ay = damp(s.ay, ay + s.vx * s.r, 12, dt);
-  }
+  // dynamic model, blended into a kinematic one at parking speeds (no jolt at the hand-over)
+  const ax = (Flong - Fyf * Math.sin(s.steer)) / s.m + s.vy * s.r;
+  const ay = (Fyf * Math.cos(s.steer) + Fyr) / s.m - s.vx * s.r;
+  const rr = (s.a * Fyf * Math.cos(s.steer) - s.b * Fyr) / s.Iz;
+  const w = clamp((speed - 1) / 3, 0, 1), blend = w * w * (3 - 2 * w);
+  s.vx += (blend * ax + (1 - blend) * (Flong / s.m)) * dt;
+  s.vy = blend * (s.vy + ay * dt) + (1 - blend) * damp(s.vy, 0, 10, dt);
+  const rKin = s.vx * Math.tan(s.steer) / (s.a + s.b);
+  s.r = blend * (s.r + rr * dt) + (1 - blend) * rKin;
+  s.ax = damp(s.ax, blend * (ax - s.vy * s.r) + (1 - blend) * (Flong / s.m), 12, dt);
+  s.ay = damp(s.ay, blend * (ay + s.vx * s.r) + (1 - blend) * s.vx * s.r, 12, dt);
   if (brk > 0.15 && (vxBefore === 0 || vxBefore * s.vx < 0)) s.vx = 0;
   s.vx = clamp(s.vx, -6, S.top);
 
@@ -134,8 +132,10 @@ export function stepDynamics(s, input, env, dt) {
       const vn = vwx * c.nx + vwz * c.nz;
       if (vn < 0) {
         const impact = -vn; s.hit = Math.min(1, impact / 8);
-        const nvx = vwx - 1.35 * vn * c.nx, nvz = vwz - 1.35 * vn * c.nz;
-        s.vx = (nvx * sin + nvz * cos) * 0.6; s.vy = (nvx * cos - nvz * sin) * 0.4; s.r *= 0.5;
+        const nvx = (vwx - 1.12 * vn * c.nx) * 0.86, nvz = (vwz - 1.12 * vn * c.nz) * 0.86;
+        s.vx = nvx * sin + nvz * cos; s.vy = (nvx * cos - nvz * sin) * 0.5;
+        const side = Math.sin(s.yaw) * c.nz - Math.cos(s.yaw) * c.nx; // which way the hit twists the car
+        s.r = s.r * 0.6 + clamp(side * impact * 0.06, -0.8, 0.8);
         s.lastImpact = impact;
       }
     }

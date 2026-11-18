@@ -12,6 +12,19 @@ export function makeCollider({ bounds, circles = [], boxes = [], carR = 0.95, ca
     ...b, cs: Math.cos(b.rot || 0), sn: Math.sin(b.rot || 0),
     radius: Math.hypot(b.hx, b.hz) + carR,
   }));
+  // uniform grid: each obstacle is filed in every 16 m cell it can touch, so a query
+  // only looks at the handful of obstacles near the car instead of all of them
+  const CELL = 16, grid = new Map(), key = (i, j) => i * 73856093 ^ j * 19349663;
+  const file = (item, x, z, r) => {
+    for (let i = Math.floor((x - r) / CELL); i <= Math.floor((x + r) / CELL); i++)
+      for (let j = Math.floor((z - r) / CELL); j <= Math.floor((z + r) / CELL); j++) {
+        const k = key(i, j); let cell = grid.get(k); if (!cell) grid.set(k, cell = { boxes: [], circles: [] }); item.r !== undefined && !item.hx ? cell.circles.push(item) : cell.boxes.push(item);
+      }
+  };
+  for (const b of obstacles) file(b, b.x, b.z, b.radius);
+  for (const c of circles) file(c, c.x, c.z, c.r + carR);
+  const EMPTY = { boxes: [], circles: [] };
+  const near = (x, z) => grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) || EMPTY;
   // the car is three circles along its length
   return (x, z, yaw) => {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
@@ -23,14 +36,15 @@ export function makeCollider({ bounds, circles = [], boxes = [], carR = 0.95, ca
         test(1, 0, bounds.minX - (cx - carR)); test(-1, 0, (cx + carR) - bounds.maxX);
         test(0, 1, bounds.minZ - (cz - carR)); test(0, -1, (cz + carR) - bounds.maxZ);
       }
-      for (const c of circles) {
+      const cell = near(cx, cz);
+      for (const c of cell.circles) {
         const dx = cx - c.x, dz = cz - c.z, limit = c.r + carR;
         if (dx * dx + dz * dz >= limit * limit) continue;
         const d = Math.hypot(dx, dz);
         if (d > 1e-4) test(dx / d, dz / d, limit - d);
         else test(-fx, -fz, limit);
       }
-      for (const b of obstacles) {
+      for (const b of cell.boxes) {
         const bx = cx - b.x, bz = cz - b.z;
         if (bx * bx + bz * bz >= b.radius * b.radius) continue;
         const lx = bx * b.cs + bz * b.sn, lz = -bx * b.sn + bz * b.cs;
@@ -167,9 +181,16 @@ export class DriveController {
   }
   _smoothInput({ thr, brk, st, hb }, dt) {
     const I = this.input;
-    I.throttle = damp(I.throttle, thr, thr > I.throttle ? 5 : 9, dt);
-    I.brake = damp(I.brake, brk, 10, dt);
-    I.steer = damp(I.steer, st, st ? 5.5 : 7, dt);
+    // reverse: S drives backwards and W brakes, as in most driving games
+    if (this.dyn.reverse) { const t = thr; thr = brk; brk = t; }
+    I.throttle = damp(I.throttle, thr, thr > I.throttle ? 11 : 14, dt);
+    I.brake = damp(I.brake, brk, 16, dt);
+    const analog = Math.abs(st) > 0 && Math.abs(st) < 0.999;
+    if (analog) I.steer = damp(I.steer, st, 18, dt);
+    else { // keyboard: ramp like turning a wheel, return quicker, counter-steer fastest
+      const rate = st === 0 ? 6.5 : (I.steer * st < 0 ? 9 : 3.6);
+      I.steer += clamp(st - I.steer, -rate * dt, rate * dt);
+    }
     I.handbrake = hb;
   }
 
@@ -219,6 +240,16 @@ export class DriveController {
     }
     this.onEvent('engine', 'starting');
     return on;
+  }
+  _autoShift({ thr, brk }, dt) {
+    const d = this.dyn, stopped = Math.hypot(d.vx, d.vy) < 0.3 && d.engine;
+    const wantRev = !d.reverse && brk > 0.5 && thr < 0.05, wantDrive = d.reverse && thr > 0.5 && brk < 0.05;
+    this._holdT = stopped && (wantRev || wantDrive) ? (this._holdT || 0) + dt : 0;
+    if (this._holdT > 0.35) {
+      this._holdT = 0; d.reverse = !d.reverse; d.gear = 1;
+      this.input.throttle = 0; this.input.brake = 0;
+      this.onEvent('direction', d.reverse);
+    }
   }
   shiftDirection() {
     if (Math.hypot(this.dyn.vx, this.dyn.vy) > 0.4 || this.input.throttle > 0.08) {
@@ -296,6 +327,7 @@ export class DriveController {
     const rawInput = this._readInput();
     this.accumulator += dt;
     while (this.accumulator >= FIXED_STEP) {
+      this._autoShift(rawInput, FIXED_STEP);
       this._smoothInput(rawInput, FIXED_STEP);
       Object.assign(this.lastPose, { x: d.x, z: d.z, yaw: d.yaw });
       stepDynamics(d, this.input, this.env, FIXED_STEP);
@@ -425,7 +457,9 @@ export class DriveController {
     // shake: road texture, speed and impacts
     this.shake = damp(this.shake, 0, 3, dt);
     const sh = (this.camMode === 'cabin' || this.camMode === 'hood' ? 0.6 : 1) * (Math.min(1, speed / 45) ** 2 * 0.012 + (d.surface !== 'asphalt' && d.surface !== 'floor' ? Math.min(1, speed / 15) * 0.02 : 0) + this.shake * 0.09);
-    if (this.camMode !== 'cine' && !this.reducedMotion.matches) cam.position.add(this._tmp2.set((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh));
+    this._shakeT = (this._shakeT || 0) + dt * (8 + speed * 0.6);
+    const n = (a, b) => Math.sin(this._shakeT * a) * 0.6 + Math.sin(this._shakeT * b + 1.7) * 0.4;
+    if (this.camMode !== 'cine' && !this.reducedMotion.matches) cam.position.add(this._tmp2.set(n(1.3, 2.9) * sh * 0.5, n(1.7, 3.7) * sh * 0.5, n(1.1, 2.3) * sh * 0.5));
     cam.lookAt(this.camLook);
     if (this.camMode === 'cabin' && !this.reducedMotion.matches) cam.rotateZ(-d.roll * 0.6);
     this.fov = damp(this.fov, fov, 3, dt);
@@ -449,7 +483,10 @@ export const HUD_CSS = `
 .pkm-hud__ind{display:flex;gap:8px;font-size:15px;color:#3a3a3a}.pkm-hud__ind .on{color:#93AE7C}.pkm-hud__ind .amber.on{color:#f0a330}.pkm-hud__ind .blue.on{color:#7fb2ff}
 .pkm-touch{position:absolute;inset:auto 0 max(14px,env(safe-area-inset-bottom)) 0;display:none;justify-content:space-between;padding:0 12px;z-index:7;pointer-events:none;user-select:none}
 .pkm-touch>div{display:flex;gap:8px;align-items:flex-end}.pkm-touch button{pointer-events:auto;touch-action:none;min-width:50px;height:60px;border-radius:16px;border:1px solid #575148;background:rgb(17 17 17 / .84);color:#F2F0EA;font:650 13px Inter,system-ui}
-.pkm-touch button.tall{height:78px;min-width:58px}.pkm-touch button:active,.pkm-touch button.down{background:#BBA783;color:#080808}
+.pkm-touch button.tall{height:78px;min-width:58px}
+.pkm-steer{pointer-events:auto;touch-action:none;position:relative;width:150px;height:64px;border-radius:32px;border:1px solid #575148;background:rgb(17 17 17 / .84);display:grid;place-items:center;color:#9A948B;font:600 11px Inter,system-ui;letter-spacing:.06em}
+.pkm-steer i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#F2F0EA;box-shadow:0 4px 14px #0008;transition:transform .12s}
+.pkm-steer.down i{background:#BBA783;transition:none}.pkm-touch button:active,.pkm-touch button.down{background:#BBA783;color:#080808}
 @media (pointer:coarse){.pkm-touch{display:flex}.pkm-hud{bottom:auto;top:76px;transform:translateX(-50%) scale(.82)}}
 `;
 
@@ -486,14 +523,23 @@ export function createHud(container) {
 
 export function createTouch(container, ctrl) {
   const el = document.createElement('div'); el.className = 'pkm-touch';
-  el.innerHTML = `<div><button data-k="left" aria-label="Steer left">◀</button><button data-k="right" aria-label="Steer right">▶</button></div>
+  el.innerHTML = `<div class="pkm-steer" role="slider" aria-label="Steering: slide left or right" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0"><i></i><span>◀ steer ▶</span></div>
     <div><button data-k="brake" class="tall">Brake</button><button data-k="gas" class="tall" aria-label="Accelerate">Go</button></div>`;
   container.appendChild(el);
-  const state = { left: 0, right: 0, gas: 0, brake: 0 };
-  const apply = () => ctrl.setTouch({ steer: state.left - state.right, throttle: state.gas, brake: state.brake });
+  const state = { steer: 0, gas: 0, brake: 0 };
+  const apply = () => ctrl.setTouch({ steer: state.steer, throttle: state.gas, brake: state.brake });
   const buttons = [...el.querySelectorAll('button')];
+  // analog steering: drag sideways on the pad; the further you slide, the more it turns
+  const pad = el.querySelector('.pkm-steer'), knob = pad.querySelector('i');
+  let startX = null;
+  const setSteer = (v) => { state.steer = Math.abs(v) < 0.06 ? 0 : clamp(v, -0.998, 0.998); knob.style.transform = `translateX(${-state.steer * 44}px)`; pad.setAttribute('aria-valuenow', (-state.steer).toFixed(2)); apply(); };
+  pad.addEventListener('pointerdown', (e) => { e.preventDefault(); pad.setPointerCapture(e.pointerId); startX = e.clientX; pad.classList.add('down'); });
+  pad.addEventListener('pointermove', (e) => { if (startX !== null) setSteer(-(e.clientX - startX) / 60); });
+  const release = () => { startX = null; pad.classList.remove('down'); setSteer(0); };
+  pad.addEventListener('pointerup', release); pad.addEventListener('pointercancel', release); pad.addEventListener('lostpointercapture', release);
   ctrl.resetTouch = () => {
     for (const b of buttons) { state[b.dataset.k] = 0; b.classList.remove('down'); }
+    startX = null; state.steer = 0; knob.style.transform = ''; pad.classList.remove('down');
   };
   for (const b of buttons) {
     const k = b.dataset.k;
