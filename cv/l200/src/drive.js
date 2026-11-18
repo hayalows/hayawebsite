@@ -122,9 +122,14 @@ export class DriveController {
   setEnabled(enabled) {
     this.clearInput();
     this.enabled = enabled;
-    if (enabled) this.dom.focus({ preventScroll: true });
+    if (enabled) {
+      this.dom.focus({ preventScroll: true });
+      document.body.dataset.driveCamera = this.camMode;
+      this.vehicle.setCabinView(this.camMode === 'cabin');
+    }
     else {
       this.vehicle.setCabinView(false);
+      delete document.body.dataset.driveCamera;
       this.toggleEngine(false);
       Object.assign(this.dyn, { vx: 0, vy: 0, r: 0, slip: 0, throttle: 0 });
       this.audio?.update(this.dyn, this.vehicle.spec, 0);
@@ -280,6 +285,7 @@ export class DriveController {
     if (['cabin', 'hood', 'cine'].includes(previous) || ['cabin', 'hood', 'cine'].includes(this.camMode)) this.snapCamera();
     this.vehicle.setCabinView(this.camMode === 'cabin');
     if (this.audio) this.audio.cabin = this.camMode === 'cabin' ? 1 : 0;
+    document.body.dataset.driveCamera = this.camMode;
     this.onEvent('camera', this.camMode);
     return this.camMode;
   }
@@ -352,6 +358,7 @@ export class DriveController {
     this._sync(dt, this.accumulator / FIXED_STEP);
     const blink = v.update(dt, { engine: d.engine, night: this.env.night });
     if (blink !== null && blink !== this._lastBlink && this.audio) this.audio.tick(blink); this._lastBlink = blink;
+    v.drawNav?.(this.camMode === 'cabin' && this.env.navMap ? (this._navPaint ??= (g, w, h) => this.env.navMap(g, w, h, this.dyn)) : null);
     if (this.camMode === 'cabin') v.drawCluster(Math.abs(d.vx) * 3.6, d.rpm, d.reverse ? 'R' : d.engine ? 'D' + d.gear : 'P');
     if (this.audio) this.audio.update(d, v.spec, dt);
     // dust / smoke / skids
@@ -430,8 +437,8 @@ export class DriveController {
       case 'cabin': {
         v.body.localToWorld(want.copy(v.driverEye));
         const calm = this.reducedMotion.matches;
-        const glance = clamp(this.orbitYaw, -1.22, 1.22) + (calm ? 0 : d.steer * 0.14);
-        const tilt = -0.14 - this.orbitPitch * 0.7;
+        const glance = clamp(this.orbitYaw - 0.1, -1.22, 1.22) + (calm ? 0 : d.steer * 0.14);
+        const tilt = -0.18 - this.orbitPitch * 0.7;
         v.body.getWorldQuaternion(this.cabinRotation);
         this.cabinDirection.set(Math.cos(glance), tilt, -Math.sin(glance)).applyQuaternion(this.cabinRotation);
         look.copy(want).addScaledVector(this.cabinDirection, 10);
@@ -459,7 +466,7 @@ export class DriveController {
         this.cine.t += dt; want.copy(this.cine.p); look.copy(pos); look.y += 0.9; fov = this.cine.fov; stiff = 1000; break;
       }
     }
-    if (!this._camInit) { this.camPos.copy(want); this.camLook.copy(look); this._camInit = true; }
+    if (!this._camInit) { this.camPos.copy(want); this.camLook.copy(look); this.fov = fov; this._camInit = true; } // a cut, not a zoom
     const k = 1 - Math.exp(-stiff * dt);
     this.camPos.lerp(want, k); this.camLook.lerp(look, Math.min(1, k * 1.6));
     if (this.env.groundY && this.camMode !== 'cabin') this.camPos.y = Math.max(this.camPos.y, this.env.groundY(this.camPos.x, this.camPos.z) + 0.35);
@@ -517,6 +524,30 @@ export const HUD_CSS = `
 .pkm-steer{pointer-events:auto;touch-action:none;position:relative;width:150px;height:64px;border-radius:32px;border:1px solid #575148;background:rgb(17 17 17 / .84);display:grid;place-items:center;color:#9A948B;font:600 11px Inter,system-ui;letter-spacing:.06em}
 .pkm-steer i{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:#F2F0EA;box-shadow:0 4px 14px #0008;transition:transform .12s}
 .pkm-steer.down i{background:#BBA783;transition:none}.pkm-touch button:active,.pkm-touch button.down{background:#BBA783;color:#080808}
+.pkm-bar{position:fixed;z-index:20;top:var(--pkm-bar-top,76px);left:14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 28px);font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#F2F0EA}
+.pkm-bar[hidden]{display:none}
+.pkm-bar button,.pkm-bar summary,.pkm-bar__sel{min-height:42px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:999px;border:1px solid #3a3833;background:rgb(12 12 11 / .72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:inherit;font:600 13px Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:background .2s,border-color .2s}
+.pkm-bar button:hover,.pkm-bar summary:hover,.pkm-bar__sel:hover{border-color:#6b655b;background:rgb(24 23 21 / .82)}
+.pkm-bar .pkm-bar__exit{background:#F2F0EA;color:#0b0b0a;border-color:#F2F0EA}.pkm-bar .pkm-bar__exit:hover{background:#fff}
+.pkm-bar__sel{padding:0 4px 0 14px;cursor:default}.pkm-bar__sel span{color:#9A948B;font-weight:550}
+.pkm-bar__sel select{appearance:none;-webkit-appearance:none;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23BBA783' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 10px center;border:0;color:#F2F0EA;font:inherit;padding:10px 28px 10px 2px;cursor:pointer;color-scheme:dark}
+.pkm-bar__sel select:focus-visible{outline:2px solid #e8cf98;outline-offset:2px;border-radius:999px}
+.pkm-bar [aria-pressed="true"]{border-color:#BBA783;background:#2a2620;color:#fff3dc}
+.pkm-bar__more{position:relative}.pkm-bar__more summary{list-style:none}.pkm-bar__more summary::-webkit-details-marker{display:none}
+.pkm-bar__more[open] summary{border-color:#BBA783}
+.pkm-bar__more.flip .pkm-bar__menu{left:auto;right:0}
+.pkm-bar__menu{position:absolute;top:calc(100% + 8px);left:0;right:auto;width:min(300px,calc(100vw - 28px));padding:10px;border-radius:18px;border:1px solid #3a3833;background:rgb(14 14 13 / .94);box-shadow:0 18px 50px #0008;display:grid;grid-template-columns:1fr 1fr;gap:6px;animation:pkm-pop .18s ease}
+.pkm-bar__menu button{justify-content:center;border-radius:12px;padding:0 10px;background:#1a1916}
+.pkm-bar__menu .wide{grid-column:1/-1}
+.pkm-bar__keys{grid-column:1/-1;margin-top:4px;padding:10px 4px 2px;border-top:1px solid #2c2a26;font-size:12px;line-height:1.95;color:#a49d92}
+.pkm-bar__keys b{display:inline-block;min-width:21px;text-align:center;padding:0 5px;margin-right:2px;border-radius:6px;background:#1f1e1b;border:1px solid #3a3833;color:#F2F0EA;font-weight:600;font-size:11px;line-height:19px}
+@keyframes pkm-pop{from{opacity:0;transform:translateY(-4px)}}
+@media (pointer:coarse){.pkm-bar__keys{display:none}.pkm-bar button,.pkm-bar summary,.pkm-bar__sel{min-height:40px;font-size:12.5px;padding:0 12px}}
+@media (max-width:600px){.pkm-bar{left:10px;max-width:calc(100vw - 20px)}.pkm-bar__sel{padding-left:12px}}
+.pkm-veil{position:fixed;inset:0;z-index:60;background:#090908;opacity:0;pointer-events:none;transition:opacity .22s ease}.pkm-veil.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.pkm-veil,.pkm-bar__menu{transition:none;animation:none}}
+.pkm-hud{transition:opacity .35s ease}
+@media (pointer:fine){body[data-drive-camera="cabin"] .pkm-hud{opacity:0}}
 @media (pointer:coarse){.pkm-touch{display:flex}.pkm-hud{bottom:auto;top:76px;transform:translateX(-50%) scale(.82)}}
 `;
 
@@ -579,4 +610,108 @@ export function createTouch(container, ctrl) {
     b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off);
   }
   return el;
+}
+
+
+// One set of words and one control bar for every page that drives these cars.
+export const DRIVE_HINT = {
+  fine: 'W to drive · S to brake, hold it to reverse · C to change the view',
+  coarse: 'Slide to steer · hold Brake at a stop to reverse',
+};
+const CAMERA_NAMES = { chase: 'Chase', cabin: 'Cockpit', hood: 'Bonnet', far: 'Far chase', drone: 'Drone', cine: 'Cinematic' };
+const KEYS_HTML = `<div><b>W</b><b>↑</b> drive · <b>S</b><b>↓</b> brake, hold to reverse</div>
+  <div><b>A</b><b>D</b> steer · <b>Space</b> handbrake</div>
+  <div><b>C</b> view · <b>H</b> horn · <b>L</b> lights · <b>R</b> reset</div>
+  <div><b>Q</b><b>E</b> indicators · <b>X</b> hazards · <b>V</b> shift</div>`;
+
+export function createDriveBar(container, ctrl, { exitLabel, onExit, resetLabel = 'Reset car', onReset, places, onPlace, sound } = {}) {
+  const el = document.createElement('nav');
+  el.className = 'pkm-bar'; el.hidden = true; el.setAttribute('aria-label', 'Driving controls');
+  const option = (value, label) => `<option value="${value}">${label}</option>`;
+  el.innerHTML = `<button type="button" class="pkm-bar__exit" data-act="exit">← ${exitLabel}</button>
+    <label class="pkm-bar__sel"><span>View</span><select data-cam aria-label="Camera view">${Object.entries(CAMERA_NAMES).map(([k, v]) => option(k, v)).join('')}</select></label>
+    ${places ? `<label class="pkm-bar__sel"><select data-go aria-label="Go to a place">${option('', 'Go to…')}${places.map((p) => option(p.id, p.label)).join('')}</select></label>` : ''}
+    ${sound ? '<button type="button" data-act="sound" aria-pressed="false">Sound</button>' : ''}
+    <details class="pkm-bar__more"><summary aria-label="More driving controls">More</summary>
+      <div class="pkm-bar__menu">
+        <button type="button" data-act="lights" aria-pressed="false">Headlights</button>
+        <button type="button" data-act="shift" aria-pressed="false">Shift to reverse</button>
+        <button type="button" class="wide" data-act="reset">${resetLabel}</button>
+        <div class="pkm-bar__keys">${KEYS_HTML}</div>
+      </div></details>`;
+  container.appendChild(el);
+  const $ = (q) => el.querySelector(q), more = $('.pkm-bar__more');
+  const back = () => ctrl.dom.focus({ preventScroll: true });
+  const actions = {
+    exit: () => onExit?.(),
+    sound: () => { sound.toggle(); sync(); },
+    lights: () => ctrl.toggle('head'),
+    shift: () => { ctrl.shiftDirection(); more.open = false; back(); },
+    reset: () => { (onReset ?? (() => ctrl.recover()))(); more.open = false; back(); },
+  };
+  el.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) actions[b.dataset.act](); });
+  $('[data-cam]').addEventListener('change', (e) => { ctrl.cycleCamera(e.target.value); back(); });
+  $('[data-go]')?.addEventListener('change', (e) => { const id = e.target.value; e.target.value = ''; if (id) { onPlace(id); back(); } });
+  addEventListener('pointerdown', (e) => { if (more.open && !more.contains(e.target)) more.open = false; });
+  // Open the menu towards whichever side of the screen has room.
+  more.addEventListener('toggle', () => { if (more.open) more.classList.toggle('flip', more.getBoundingClientRect().left + 300 > innerWidth - 10); });
+  el.addEventListener('keydown', (e) => { if (e.key === 'Escape' && more.open) { e.stopPropagation(); more.open = false; $('summary').focus(); } });
+  function sync() {
+    const s = ctrl.vehicle.state, rev = !!ctrl.dyn.reverse;
+    $('[data-cam]').value = ctrl.camMode;
+    $('[data-act="lights"]').setAttribute('aria-pressed', !!s.head);
+    const shift = $('[data-act="shift"]'); shift.textContent = rev ? 'Shift to drive' : 'Shift to reverse'; shift.setAttribute('aria-pressed', rev);
+    if (sound) { const b = $('[data-act="sound"]'); b.textContent = sound.muted() ? 'Sound off' : 'Sound on'; b.setAttribute('aria-pressed', !sound.muted()); }
+  }
+  return { el, sync, show(on) { el.hidden = !on; more.open = false; if (on) sync(); } };
+}
+
+// A short fade through near-black hides scene swaps and long jumps.
+let veilEl;
+export function veil(run) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { run(); return Promise.resolve(); }
+  if (!veilEl) { veilEl = document.createElement('div'); veilEl.className = 'pkm-veil'; veilEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(veilEl); }
+  void veilEl.offsetWidth; veilEl.classList.add('on');
+  return new Promise((resolve) => setTimeout(() => {
+    try { run(); } finally { requestAnimationFrame(() => requestAnimationFrame(() => { veilEl.classList.remove('on'); resolve(); })); }
+  }, 230));
+}
+
+// Heading-up map for the centre screen. `world(g, px)` draws in world metres (x, z); px is one screen pixel in metres.
+export function paintNavMap(g, w, h, d, { scale = 0.9, title = '', detail = '', world, labels = [] }) {
+  const cx = w / 2, cy = h * 0.66, turn = Math.PI + d.yaw;
+  const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#111614'); bg.addColorStop(1, '#0c100e');
+  g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  g.save();
+  g.translate(cx, cy); g.rotate(turn); g.scale(scale, scale); g.translate(-d.x, -d.z);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  world(g, 1 / scale);
+  g.restore();
+  // labels stay upright: project their world point into the rotated frame
+  const cos = Math.cos(turn), sin = Math.sin(turn);
+  g.font = '600 17px Inter, Arial'; g.textAlign = 'center';
+  for (const l of labels) {
+    const dx = (l.x - d.x) * scale, dz = (l.z - d.z) * scale;
+    const sx = cx + dx * cos - dz * sin, sy = cy + dx * sin + dz * cos;
+    if (sx < 20 || sx > w - 20 || sy < 70 || sy > h - 14) continue;
+    g.fillStyle = l.color || '#e9dcc3'; g.fillText(l.text, sx, sy);
+  }
+  // the car
+  g.save(); g.translate(cx, cy);
+  const glow = g.createRadialGradient(0, 0, 0, 0, 0, 38); glow.addColorStop(0, 'rgba(232,200,130,.35)'); glow.addColorStop(1, 'rgba(232,200,130,0)');
+  g.fillStyle = glow; g.beginPath(); g.arc(0, 0, 38, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#f4d58f'; g.strokeStyle = '#0c100e'; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(0, -17); g.lineTo(11, 11); g.lineTo(0, 5); g.lineTo(-11, 11); g.closePath(); g.fill(); g.stroke();
+  g.restore();
+  // header and compass
+  const head = g.createLinearGradient(0, 0, 0, 74); head.addColorStop(0, 'rgba(10,13,12,.95)'); head.addColorStop(1, 'rgba(10,13,12,0)');
+  g.fillStyle = head; g.fillRect(0, 0, w, 74);
+  g.textAlign = 'left'; g.fillStyle = '#F2F0EA'; g.font = '700 25px Inter, Arial'; g.fillText(title, 26, 40);
+  g.fillStyle = '#a7c38f'; g.font = '500 17px Inter, Arial'; g.fillText(detail, 26, 64);
+  const nx = w - 40, ny = 38;
+  g.strokeStyle = '#3a443d'; g.lineWidth = 2; g.beginPath(); g.arc(nx, ny, 18, 0, Math.PI * 2); g.stroke();
+  g.save(); g.translate(nx, ny); g.rotate(turn); // world north (-z) through the same turn as the map
+  g.fillStyle = '#d0654f'; g.beginPath(); g.moveTo(0, -15); g.lineTo(5, -3); g.lineTo(-5, -3); g.closePath(); g.fill();
+  g.restore();
+  g.fillStyle = '#9A948B'; g.font = '600 12px Inter, Arial'; g.textAlign = 'center'; g.fillText('N', nx, ny + 34);
 }

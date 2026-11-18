@@ -1,4 +1,4 @@
-import * as drive from '/l200/pkm-drive.js?v=6';
+import * as drive from '/l200/pkm-drive.js?v=7';
 import { createRoadSurface, trafficContact } from './motion.js?v=2';
 
 export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, traffic, params, stopTour }) {
@@ -30,7 +30,7 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   const audio = new drive.VehicleAudio();
   audio.setMuted(store.get('pkm.drive.muted', false));
   const vehicles = {};
-  let ctrl, hud, active = false, last = 0, statusTimer;
+  let ctrl, hud, bar, active = false, last = 0, statusTimer, place = 'Liberation Road';
   const picker = $('drivePick');
   let saved;
   const previousPosition = new THREE.Vector3(), previousTarget = new THREE.Vector3();
@@ -43,7 +43,6 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   const env = {
     tyreContact: contact,
     groundY: (x, z) => contact(x, z).height,
-    autoShift: false,
     respawn(d) {
       const z = Math.max(-860, Math.min(860, d.z));
       return { x: roadXAt(z) - 5.5, z, yaw: 0 };
@@ -51,7 +50,50 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     cameraCollision: drive.makeCollider({ bounds, boxes, circles, carR: 0.22, carHalf: 0 }),
     dustColor: 0xb4643c,
     night: false,
+    navMap: (g, w, h, d) => paintMap(g, w, h, d),
   };
+  // Centre-screen map: the same roads and landmarks as the site plan, heading up and close in.
+  const roadPoints = ROAD.curve.getSpacedPoints(420);
+  const landmarks = [
+    { name: 'Jubilee House', x: JUB.pos.x, z: JUB.pos.z },
+    { name: 'Accra Ghana Temple', x: TMP.pos.x, z: TMP.pos.z },
+  ];
+  const metres = (m) => m < 950 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1)} km`;
+  function nextStop(d) {
+    const fx = Math.sin(d.yaw), fz = Math.cos(d.yaw);
+    let best = null;
+    for (const l of landmarks) {
+      const dx = l.x - d.x, dz = l.z - d.z, dist = Math.hypot(dx, dz), ahead = (dx * fx + dz * fz) / Math.max(1, dist);
+      const score = dist * (ahead > 0.2 ? 1 : 3);
+      if (!best || score < best.score) best = { ...l, dist, score };
+    }
+    return best;
+  }
+  function paintMap(g, w, h, d) {
+    const stop = nextStop(d);
+    const detail = stop.dist < 90 ? `Arrived at ${stop.name}` : `${stop.name} · ${metres(stop.dist)}`;
+    drive.paintNavMap(g, w, h, d, {
+      scale: 0.55, title: place, detail,
+      labels: [
+        { text: 'Jubilee House', x: JUB.pos.x, z: JUB.pos.z - 80 },
+        { text: 'Temple', x: TMP.pos.x, z: TMP.pos.z + 50 },
+      ],
+      world(ctx, px) {
+        ctx.fillStyle = '#1f3020'; ctx.fillRect(26, -480, 274, 270); ctx.fillRect(24, 285, 190, 167);
+        ctx.fillStyle = '#d7a948'; ctx.fillRect(JUB.pos.x - 20, JUB.pos.z - 65, 40, 130);
+        ctx.fillStyle = '#ece6da'; ctx.fillRect(TMP.pos.x - 16, TMP.pos.z - 18, 32, 36);
+        const road = (width, colour) => {
+          ctx.strokeStyle = colour; ctx.lineWidth = width;
+          ctx.beginPath(); roadPoints.forEach((p, i) => (i ? ctx.lineTo(p.x, p.z) : ctx.moveTo(p.x, p.z)));
+          ctx.moveTo(-600, ROAD.Zi); ctx.lineTo(800, ROAD.Zi); ctx.stroke();
+        };
+        road(30, '#2a332d'); road(19, '#8e8a80');
+        ctx.setLineDash([10 * px, 12 * px]); road(1.6 * px, '#d8d2c4'); ctx.setLineDash([]);
+        ctx.strokeStyle = '#d7a948'; ctx.lineWidth = 3 * px; ctx.setLineDash([6 * px, 6 * px]);
+        ctx.beginPath(); ctx.moveTo(d.x, d.z); ctx.lineTo(stop.x, stop.z); ctx.stroke(); ctx.setLineDash([]);
+      },
+    });
+  }
   const spots = {
     road: () => ({ x: roadXAt(-440) - 5.5, z: -440, yaw: 0 }),
     jubilee: () => { const point = jw(0, 118); return { x: point.x, z: point.z, yaw: Math.PI / 2 }; },
@@ -63,11 +105,6 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     target.textContent = text;
     clearTimeout(statusTimer);
     if (text) statusTimer = setTimeout(() => { target.textContent = ''; }, 5000);
-  }
-  function syncSound() {
-    const button = $('dMute');
-    button.setAttribute('aria-pressed', !audio.muted);
-    button.textContent = audio.muted ? 'Sound off' : 'Sound on';
   }
   function getVehicle(id) {
     const vehicle = vehicles[id] ??= drive.buildVehicle(THREE, id);
@@ -127,6 +164,19 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
       ctrl = new drive.DriveController({ THREE, scene, camera, dom: renderer.domElement, vehicle, audio, env, onEvent });
       hud = drive.createHud($('stage'));
       drive.createTouch($('stage'), ctrl);
+      bar = drive.createDriveBar($('stage'), ctrl, {
+        exitLabel: 'Exit drive', onExit: () => stop(),
+        resetLabel: 'Back to the road', onReset: () => ctrl.recover(),
+        places: [{ id: 'jubilee', label: 'Jubilee House' }, { id: 'temple', label: 'Accra Ghana Temple' }, { id: 'road', label: 'Liberation Road' }],
+        onPlace: (id) => drive.veil(() => { const p = spots[id](); ctrl.place(p.x, p.z, p.yaw); }),
+        sound: {
+          muted: () => audio.muted,
+          toggle() {
+            audio.setMuted(!audio.muted); store.set('pkm.drive.muted', audio.muted);
+            if (!audio.muted) void audio.unlock().catch(() => {});
+          },
+        },
+      });
     } else ctrl.setVehicle(vehicle);
     ctrl.place(spawn.x, spawn.z, spawn.yaw);
     controls.enabled = false;
@@ -134,14 +184,10 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     camera.updateProjectionMatrix();
     active = true;
     document.body.classList.add('driving');
-    $('drivebar').hidden = hud.el.hidden = false;
-    $('dKeyList').hidden = true;
-    $('dKeys').setAttribute('aria-expanded', 'false');
-    $('dLights').setAttribute('aria-pressed', vehicle.state.head);
-    syncSound();
-    onEvent('direction', false);
-    ctrl.cycleCamera('chase');
+    hud.el.hidden = false; place = '';
+    ctrl.cycleCamera(ctrl.camMode || 'chase');
     ctrl.setEnabled(true);
+    bar.show(true);
     ctrl.toggleEngine(true);
     last = performance.now();
   }
@@ -149,23 +195,28 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     showStatus('Starting the drive…');
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     if (document.body.dataset.sceneState !== 'ready') return;
-    try {
-      start(spawn);
-      showStatus(matchMedia('(pointer: coarse)').matches ? 'Slide to steer. Stop before shifting.' : 'W to go, S to brake, V to shift. C changes the camera.');
-    } catch {
-      stop();
-      showStatus('The car couldn’t start. The tour is still available.');
-    }
+    await drive.veil(() => {
+      try {
+        start(spawn);
+        showStatus(drive.DRIVE_HINT[matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine']);
+      } catch {
+        finish();
+        showStatus('The car couldn’t start. The tour is still available.');
+      }
+    });
   }
   function stop() {
+    if (active) void drive.veil(finish);
+  }
+  function finish() {
     if (!active) return;
     active = false;
     ctrl.setEnabled(false);
     scene.remove(ctrl.vehicle.root);
     audio.cabin = 0;
-    hud.el.hidden = $('drivebar').hidden = true;
+    hud.el.hidden = true; bar.show(false);
+    $('miniPlace').textContent = 'Site plan';
     document.body.classList.remove('driving');
-    delete document.body.dataset.driveCamera;
     camera.near = saved.near; camera.far = saved.far; camera.fov = saved.fov;
     camera.position.copy(previousPosition); camera.updateProjectionMatrix();
     controls.target.copy(previousTarget);
@@ -175,43 +226,12 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     showStatus('');
     $('takeWheel').focus({ preventScroll: true });
   }
-  function onEvent(type, value) {
-    if (type === 'camera') {
-      $('dCam').value = value;
-      document.body.dataset.driveCamera = value;
-    }
-    if (type === 'lights') $('dLights').setAttribute('aria-pressed', !!value.head);
-    if (type === 'direction') {
-      $('dShift').textContent = value ? 'Shift to drive' : 'Shift to reverse';
-      $('dShift').setAttribute('aria-pressed', value);
-    }
+  function onEvent(type) {
+    if (type === 'camera' || type === 'lights' || type === 'direction') bar?.sync();
+    if (type === 'direction') showStatus(ctrl.dyn.reverse ? 'Reverse. Press W or the Go pedal to drive forward.' : '');
     if (type === 'shift-blocked') showStatus('Stop and release the accelerator before shifting.');
   }
 
-  $('dExit').addEventListener('click', stop);
-  $('dCam').addEventListener('change', (e) => {
-    ctrl.cycleCamera(e.target.value);
-    renderer.domElement.focus({ preventScroll: true });
-  });
-  $('dLights').addEventListener('click', () => ctrl.toggle('head'));
-  $('dMute').addEventListener('click', () => {
-    audio.setMuted(!audio.muted);
-    store.set('pkm.drive.muted', audio.muted);
-    syncSound();
-    if (!audio.muted) void audio.unlock().catch(() => {});
-  });
-  $('dShift').addEventListener('click', () => { ctrl.shiftDirection(); renderer.domElement.focus({ preventScroll: true }); });
-  function visit(p) {
-    ctrl.place(p.x, p.z, p.yaw);
-    renderer.domElement.focus({ preventScroll: true });
-  }
-  $('dJub').addEventListener('click', () => visit(spots.jubilee()));
-  $('dTmp').addEventListener('click', () => visit(spots.temple()));
-  $('dKeys').addEventListener('click', () => {
-    const keys = $('dKeyList');
-    keys.hidden = !keys.hidden;
-    $('dKeys').setAttribute('aria-expanded', !keys.hidden);
-  });
   window.addEventListener('keydown', (e) => { if (active && e.key === 'Escape') stop(); });
 
   return {
@@ -244,7 +264,7 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
       const nearTemple = Math.abs(position.z - TMP.pos.z) < 65 && position.x > 13;
       const name = nearJubilee ? 'Jubilee House' : nearTemple ? 'Accra Ghana Temple' :
         Math.abs(position.z - ROAD.Zi) < 18.5 && Math.abs(position.x - ROAD.Xc) > 9 ? 'Independence Avenue' : 'Liberation Road';
-      if ($('dLocation').textContent !== name) $('dLocation').textContent = name;
+      if (place !== name) { place = name; $('miniPlace').textContent = name; }
       controls.target.copy(position);
       for (const gate of gates) {
         const near = (gate.at.x - position.x) ** 2 + (gate.at.z - position.z) ** 2 < 45 ** 2;

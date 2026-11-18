@@ -61,3 +61,30 @@ test('four tyre contacts affect bank and grade, and the brake holds on a slope',
   assert.equal(car.vx, 0);
   assert.equal(car.reverse, false);
 });
+
+test('full lock at speed turns without spinning, even while braking', async () => {
+  const [{ createDynamics, stepDynamics }, { SPECS }] = await modules;
+  for (const spec of Object.values(SPECS)) for (const brake of [0, 0.8]) {
+    const car = createDynamics(spec);
+    car.engine = true; car.vx = 25; car.gear = 4;
+    let worst = 0;
+    for (let i = 0; i < 2 / step; i++) {
+      stepDynamics(car, { ...neutral, steer: 1, throttle: brake ? 0 : 0.4, brake }, {}, step);
+      if (Math.hypot(car.vx, car.vy) > 5) worst = Math.max(worst, Math.abs(Math.atan2(car.vy, Math.abs(car.vx))));
+    }
+    assert.ok(worst < 0.3, `${spec.name} slid ${(worst * 57.3).toFixed(0)} degrees`);
+    assert.ok(car.vx >= 0, `${spec.name} spun round`);
+  }
+});
+
+test('the handbrake still lets the rear step out', async () => {
+  const [{ createDynamics, stepDynamics }, { SPECS }] = await modules;
+  const car = createDynamics(SPECS.volta);
+  car.engine = true; car.vx = 15; car.gear = 3;
+  let worst = 0;
+  for (let i = 0; i < 1.2 / step; i++) {
+    stepDynamics(car, { ...neutral, steer: 1, handbrake: true }, {}, step);
+    worst = Math.max(worst, Math.abs(Math.atan2(car.vy, Math.max(1, Math.abs(car.vx)))));
+  }
+  assert.ok(worst > 0.3, `slip only ${(worst * 57.3).toFixed(0)} degrees`);
+});

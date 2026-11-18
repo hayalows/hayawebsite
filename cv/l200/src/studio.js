@@ -6,7 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { buildVehicle, SPECS } from './vehicles.js';
 import { VehicleAudio } from './audio.js';
-import { DriveController, makeCollider, createHud, createTouch, HUD_CSS } from './drive.js';
+import { DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from './drive.js';
 import { buildShowroom, buildCourse } from './world.js';
 
 const vehicleThree = {
@@ -111,10 +111,30 @@ const env = {
   grip: (x, z) => mode === 'drive' ? course.grip(x, z) : { mu: 1, rough: 0, name: 'floor' },
   respawn: (d) => { const c = course.trackDist(d.x, d.z), p = course.samples[c.i], q = course.samples[(c.i + 3) % course.samples.length]; return { x: p.x, z: p.z, yaw: Math.atan2(q.x - p.x, q.z - p.z) }; },
   dustColor: 0xa4805a, night: false,
+  navMap(g, w, h, d) {
+    const lap = course.trackDist(d.x, d.z), total = course.samples.length;
+    paintNavMap(g, w, h, d, {
+      scale: 2.1, title: 'Kumasi test track', detail: `${Math.round(lap.i / total * 100)}% round the lap`,
+      world(ctx, px) {
+        ctx.beginPath(); course.samples.forEach((p, i) => (i ? ctx.lineTo(p.x, p.z) : ctx.moveTo(p.x, p.z))); ctx.closePath();
+        ctx.strokeStyle = '#26302a'; ctx.lineWidth = 34 * px; ctx.stroke();
+        ctx.strokeStyle = '#8e8a80'; ctx.lineWidth = 20 * px; ctx.stroke();
+        ctx.strokeStyle = '#c9c3b5'; ctx.setLineDash([8 * px, 10 * px]); ctx.lineWidth = 1.5 * px; ctx.stroke(); ctx.setLineDash([]);
+        const s0 = course.start; ctx.strokeStyle = '#f2f0ea'; ctx.lineWidth = 5 * px;
+        ctx.beginPath(); ctx.moveTo(s0.x - Math.cos(s0.yaw) * 5, s0.z + Math.sin(s0.yaw) * 5); ctx.lineTo(s0.x + Math.cos(s0.yaw) * 5, s0.z - Math.sin(s0.yaw) * 5); ctx.stroke();
+        ctx.fillStyle = '#d9a441'; for (const c of course.cones) { const p = c.position ?? c.mesh?.position ?? c; if (p?.x !== undefined) { ctx.beginPath(); ctx.arc(p.x, p.z, 1.2, 0, 7); ctx.fill(); } }
+      },
+    });
+  },
 };
 const hud = createHud($('#stage'));
 const drive = new DriveController({ THREE: vehicleThree, scene, camera, dom: canvas, vehicle: car(), audio, env, onEvent });
 createTouch($('#stage'), drive);
+const driveBar = createDriveBar($('#stage'), drive, {
+  exitLabel: 'Showroom', onExit: () => veil(() => setMode('showroom')),
+  resetLabel: 'Reset car and cones', onReset: () => { drive.recover(); resetCones(); },
+});
+if (params.has('debug')) window.__pkm = { camera, controls, drive, car: () => car() };
 
 // ---------------------------------------------------------------- environment / moods
 const envCache = {};
@@ -157,10 +177,12 @@ function moveCamera(to, target, interior = false) {
   if (shell.reducedMotion.matches) {
     flight = null;
     if (interior) setInteriorRange();
+    camera.fov = interior ? 62 : 36; camera.updateProjectionMatrix();
     camera.position.copy(to); controls.target.copy(target); controls.update();
     return;
   }
-  flight = { from: camera.position.clone(), to, tf: controls.target.clone(), tt: target, t0: performance.now(), interior };
+  // The lens widens as the camera settles into the seat, the way your eyes take in a cabin.
+  flight = { from: camera.position.clone(), to, tf: controls.target.clone(), tt: target, t0: performance.now(), interior, fov0: camera.fov, fov1: interior ? 62 : 36 };
 }
 function flyTo(name) {
   stopInterior(false);
@@ -182,10 +204,12 @@ function startInterior() {
   $('#interiorBtn').textContent = 'Exterior';
   const v = car(); v.root.updateMatrixWorld(true);
   const eye = v.driverEye.clone(); v.body.localToWorld(eye);
-  const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(v.root.getWorldQuaternion(new THREE.Quaternion()));
-  moveCamera(eye.clone().addScaledVector(fwd, -0.02), eye.clone().addScaledVector(fwd, 0.4), true);
+  // The body's forward axis is local +x. Look slightly down so the dash, wheel and screens frame the view.
+  const fwd = new THREE.Vector3(1, -0.16, 0).normalize().applyQuaternion(v.body.getWorldQuaternion(new THREE.Quaternion()));
+  moveCamera(eye.clone().addScaledVector(fwd, -0.02), eye.clone().addScaledVector(fwd, 0.45), true);
   $$('[data-cam]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.cam === 'interior'));
   v.setCabinView(true);
+  v.drawCluster(0, drive.dyn.engine ? drive.dyn.rpm : 0, 'P'); // gauges wake when you sit in
 }
 function stopInterior(fly = true) {
   if (!interiorOn) return; interiorOn = false;
@@ -214,8 +238,7 @@ function syncToggles() {
   for (const k of ['head', 'left', 'right', 'hazard']) { for (const b of $$(`[data-light="${k}"]`)) b.setAttribute('aria-pressed', !!st[k]); }
   for (const [k, p] of Object.entries(car().panels)) { const b = $(`[data-panel="${k}"]`); if (b && p.userData) b.setAttribute('aria-pressed', p.userData.target === 1); }
   $('#engineBtn').textContent = drive.startTimer ? 'Cancel start' : drive.dyn.engine ? 'Stop engine' : 'Start engine';
-  $('#reverseBtn').textContent = drive.dyn.reverse ? 'Shift to drive' : 'Shift to reverse';
-  $('#reverseBtn').setAttribute('aria-pressed', drive.dyn.reverse);
+  driveBar.sync();
 }
 function selectCar(id) {
   if (id === carId || mode === 'drive') return;
@@ -274,7 +297,7 @@ $('#panelToggle').addEventListener('click', () => setPanel($('#panel').dataset.o
 $('.skip').addEventListener('click', (e) => {
   e.preventDefault();
   setPanel(true);
-  const target = mode === 'drive' ? $('#exitDrive') : $('#panelBody').querySelector('button');
+  const target = mode === 'drive' ? driveBar.el.querySelector('.pkm-bar__exit') : $('#panelBody').querySelector('button');
   target.focus();
 });
 $('#driveBtn').addEventListener('click', () => {
@@ -283,22 +306,17 @@ $('#driveBtn').addEventListener('click', () => {
   if (!audio.muted) void audio.unlock().catch(() => {});
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (!shell.running) return;
-    try { setMode('drive'); }
-    catch { toast('The track couldn’t open', 'Try again or drive through Accra.'); }
-    finally { $('#driveBtn').disabled = false; $('#driveBtn').textContent = 'Test track'; }
+    void veil(() => {
+      try { setMode('drive'); }
+      catch { toast('The track couldn’t open', 'Try again or drive through Accra.'); }
+      finally { $('#driveBtn').disabled = false; $('#driveBtn').textContent = 'Test track'; }
+    });
   }));
 });
-$('#exitDrive').addEventListener('click', () => setMode('showroom'));
-$('#camBtn').addEventListener('click', () => drive.cycleCamera());
-$('#reverseBtn').addEventListener('click', () => { drive.shiftDirection(); canvas.focus({ preventScroll: true }); });
-$('#helpBtn').addEventListener('click', () => {
-  $('#keys').hidden = !$('#keys').hidden; $('#helpBtn').setAttribute('aria-expanded', !$('#keys').hidden);
-});
-$('#resetBtn').addEventListener('click', () => { drive.recover(); resetCones(); });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!$('#secrets').hidden) { setSecrets(false); $('#secretsBtn').focus(); }
-  else if (mode === 'drive') setMode('showroom');
+  else if (mode === 'drive') void veil(() => setMode('showroom'));
   else if ($('#panel').dataset.open === 'true' && compact.matches) { setPanel(false); $('#panelToggle').focus(); }
   else if (interiorOn) flyTo('hero');
 });
@@ -317,11 +335,11 @@ function setMode(m, focus = true) {
     drive.place(course.start.x, course.start.z, course.start.yaw);
     resetCones();
     hud.el.hidden = false; drive.toggleEngine(true);
-    $('#keys').hidden = true; $('#helpBtn').setAttribute('aria-expanded', 'false');
-    toast('Kumasi test track', matchMedia('(pointer: coarse)').matches ? 'Use the pedals and arrows below.' : 'W to go, S to brake, V to shift. C changes the camera.');
+    driveBar.show(true);
+    toast('Kumasi test track', DRIVE_HINT[matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine']);
     canvas.setAttribute('aria-label', 'Kumasi test track. W to accelerate, S to brake, V to shift.');
   } else {
-    drive.setEnabled(false); hud.el.hidden = true;
+    drive.setEnabled(false); hud.el.hidden = true; driveBar.show(false);
     showroom.group.visible = true; course.group.visible = false;
     controls.enabled = true; camera.near = 0.1; camera.fov = 36; camera.updateProjectionMatrix();
     audio.cabin = 0; parkShowroom(); flyTo('hero');
@@ -369,7 +387,7 @@ function onEvent(type, data) {
   if (type === 'engine' || type === 'direction') syncToggles();
   if (type === 'shift-blocked') toast('Stop before shifting', 'Bring the car to a stop and release the accelerator.');
   invalidate();
-  if (type === 'camera') { $('#camBtn').textContent = 'Camera: ' + { chase: 'Chase', far: 'Far chase', cabin: 'Cockpit', hood: 'Bonnet', cine: 'Cinematic', drone: 'Drone' }[data]; if (data === 'drone' && mode === 'drive') toast('Drone camera', 'Look down at the infield.'); }
+  if (type === 'camera') { driveBar.sync(); if (data === 'drone' && mode === 'drive') toast('Drone camera', 'Look down at the infield.'); }
   if (type === 'lights') syncToggles();
 }
 
@@ -452,6 +470,7 @@ function loop(now) {
     if (flight) {
       const t = Math.min(1, (now - flight.t0) / 1000), k = 1 - Math.pow(1 - t, 3);
       camera.position.lerpVectors(flight.from, flight.to, k); controls.target.lerpVectors(flight.tf, flight.tt, k);
+      if (flight.fov0 !== flight.fov1) { camera.fov = flight.fov0 + (flight.fov1 - flight.fov0) * k; camera.updateProjectionMatrix(); }
       if (flight.interior && t > 0.62 && camera.near !== 0.02) setInteriorRange();
       if (t >= 1) flight = null;
     }

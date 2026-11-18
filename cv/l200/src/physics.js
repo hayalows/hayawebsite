@@ -64,7 +64,11 @@ export function stepDynamics(s, input, env, dt) {
   s.surface = surf.name;
 
   // steering: slower at speed, smooth rack
-  const maxSteer = (S.steeringLock ?? 0.58) / (1 + Math.pow(Math.abs(s.vx) / 14, 1.4) * 0.9);
+  // Speed-sensitive rack, then a grip limit: at speed, full lock asks for only a little more
+  // cornering force than the tyres have, so a keyboard tap turns instead of spinning the car.
+  const lock = (S.steeringLock ?? 0.58) / (1 + Math.pow(Math.abs(s.vx) / 14, 1.4) * 0.9);
+  const gripLock = Math.atan((S.steerReserve ?? 1.3) * surf.mu * g * S.wheelbase / Math.max(1, s.vx * s.vx));
+  const maxSteer = input.handbrake ? lock : Math.min(lock, gripLock);
   s.steer = damp(s.steer, input.steer * maxSteer, 16, dt);
 
   // The brake always resists motion. Shifting is a separate control.
@@ -114,8 +118,11 @@ export function stepDynamics(s, input, env, dt) {
   const capacityFront = Math.max(1, muFront * Wf), capacityRear = Math.max(1, muRear * Wr);
   const frontShare = brakeHold ? 0.62 : S.driveFront ?? 0.44;
   const demand = Flong;
-  const forceFront = clamp(demand * frontShare, -capacityFront, capacityFront);
-  const forceRear = clamp(demand * (1 - frontShare), -capacityRear, capacityRear);
+  // ABS and brake-force distribution keep a share of each axle's grip for steering while braking.
+  const braking = brakeHold && demand * (s.vx || 1) < 0 && !input.handbrake;
+  const limitFront = capacityFront * (braking ? 0.9 : 1), limitRear = capacityRear * (braking ? 0.62 : 1);
+  const forceFront = clamp(demand * frontShare, -limitFront, limitFront);
+  const forceRear = clamp(demand * (1 - frontShare), -limitRear, limitRear);
   Flong = forceFront + forceRear;
   const spinDemand = Math.abs(Fx) - (capacityFront + capacityRear);
   s.wheelSpin = damp(s.wheelSpin, clamp(spinDemand / (s.m * g), 0, 1) * 5, 8, dt);
@@ -140,6 +147,17 @@ export function stepDynamics(s, input, env, dt) {
   s.vy = blend * (s.vy + ay * dt) + (1 - blend) * damp(s.vy, 0, 10, dt);
   const rKin = s.vx * Math.tan(s.steer) / (s.a + s.b);
   s.r = blend * (s.r + rr * dt) + (1 - blend) * rKin;
+  // Stability assist: trims yaw and body slip beyond what the tyres can hold. The handbrake turns it off.
+  const assist = input.handbrake ? 0 : (S.assist ?? 1) * blend;
+  if (assist > 0) {
+    const muAvg = (muFront + muRear) * 0.5;
+    const rCap = muAvg * g * 1.15 / Math.max(3, Math.abs(s.vx));
+    const rWant = clamp(rKin, -rCap, rCap);
+    const excess = s.r - rWant, allow = 0.06;
+    if (Math.abs(excess) > allow) s.r -= Math.sign(excess) * (Math.abs(excess) - allow) * (1 - Math.exp(-12 * assist * dt));
+    const beta = Math.atan2(s.vy, Math.max(1, Math.abs(s.vx))), betaMax = 0.12;
+    if (Math.abs(beta) > betaMax) s.vy = damp(s.vy, Math.tan(Math.sign(beta) * betaMax) * Math.max(1, Math.abs(s.vx)), 8 * assist, dt);
+  }
   s.ax = damp(s.ax, blend * (ax - s.vy * s.r) + (1 - blend) * (Flong / s.m), 12, dt);
   s.ay = damp(s.ay, blend * (ay + s.vx * s.r) + (1 - blend) * s.vx * s.r, 12, dt);
   if (brakeHold && (vxBefore === 0 || vxBefore * s.vx < 0)) s.vx = 0;

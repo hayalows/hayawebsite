@@ -18,8 +18,8 @@
 <title>Liberation Road — Jubilee House to the Accra Ghana Temple</title>
 <link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/assets/posters/accra-1600.webp" imagesrcset="/assets/posters/accra-900.webp 900w, /assets/posters/accra-1600.webp 1600w" imagesizes="100vw" fetchpriority="high">
-<link rel="modulepreload" href="/assets/scene-shell.js?v=7">
-<link rel="modulepreload" href="/accra3d/scene.js?v=7">
+<link rel="modulepreload" href="/assets/scene-shell.js?v=8">
+<link rel="modulepreload" href="/accra3d/scene.js?v=8">
 <link rel="modulepreload" href="/accra3d/motion.js?v=2">
 <link rel="modulepreload" href="/accra3d/three-r128.min.js">
 <link rel="stylesheet" href="/assets/scene-shell.css?v=4">
@@ -102,12 +102,6 @@
   #drivePick .row a { color: var(--muted); font-size: 12.5px; }
   #drivePick .go { background: var(--gold); color: #1d1606; font-weight: 700; padding: 10px 16px; }
   #drivePick .x { position: absolute; right: 10px; top: 8px; font-size: 20px; }
-  #drivebar { position: fixed; z-index: 20; left: 18px; top: 170px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-  #drivebar .btns { display: flex; gap: 6px; flex-wrap: wrap; max-width: 520px; }
-  #drivebar .btns button { background: rgba(10,10,10,.62); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid #383838; border-radius: 999px; padding: 7px 13px; }
-  #drivebar .btns .light { background: #F2F0EA; color: #080808; border-color: #F2F0EA; }
-  #drivebar .keys { padding: 12px 14px; font-size: 12.5px; color: var(--muted); line-height: 1.95; }
-  #drivebar .keys b { display: inline-block; min-width: 22px; text-align: center; padding: 0 6px; margin-right: 3px; border-radius: 6px; background: #1d1d1d; border: 1px solid #383838; color: var(--text); font-weight: 600; font-size: 11.5px; line-height: 20px; }
   body.driving #dock, body.driving #info, body.driving #hint, body.driving #caption, body.driving #labels { display: none !important; }
 
   /* info card */
@@ -166,21 +160,18 @@
   #caption:not(.show) { visibility: hidden; }
   #drivePick { color: var(--text); background: #211c14; margin: 0; border: 1px solid var(--line); }
   #drivePick::backdrop { background: #0009; }
-  #drivePick button, #drivebar button { min-height: 42px; }
+  #drivePick button { min-height: 42px; }
   #drivePick .sw button { width: 44px; height: 44px; }
   #driveStatus { position: fixed; z-index: 12; left: 50%; transform: translateX(-50%); bottom: max(80px, calc(env(safe-area-inset-bottom) + 72px)); background: #171510f2; border-radius: 10px; color: #fff2d5; padding: 10px 14px; width: max-content; max-width: 90vw; }
   #driveStatus:empty { display: none; }
   body.driving #driveStatus { bottom: 120px; }
   #info.hide { visibility: hidden; }
   #mini canvas { display: block; }
-  #drivebar .keys { max-height: 30dvh; overflow: auto; }
-  #dCam { min-height: 42px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; font: 600 13px Inter, sans-serif; color: var(--text); background: #171510e6; color-scheme: dark; }
-  #dLocation { padding: 7px 11px; background: #171510e6; border: 1px solid var(--line); border-radius: 8px; color: #eddfc6; font-size: 12px; }
-  body[data-drive-camera="cabin"] .pkm-hud { opacity: .8; }
-  @media (min-width: 901px) and (pointer: fine) {
-    body[data-drive-camera="cabin"] .pkm-hud { left: 18px; bottom: 18px; transform: none; }
-  }
   body.driving #mini { pointer-events: none; }
+  /* Driving keeps the road clear: one control bar, the speed readout and the plan. */
+  body { --pkm-bar-top: max(18px, env(safe-area-inset-top)); }
+  body.driving #title { display: none; }
+  body[data-drive-camera="cabin"] #mini { display: none !important; }
   @media (max-width: 900px) {
     .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: #171510e6; }
     #title { padding: 10px 12px; width: max-content; max-width: calc(100% - 114px); top: max(10px, env(safe-area-inset-top)); left: 10px; }
@@ -196,12 +187,10 @@
     #mini { display: none; }
     #caption { bottom: calc(78px + env(safe-area-inset-bottom)); } #caption .t { font-size: 21px; }
     #hint { display: none; }
-    #drivebar { top: calc(82px + env(safe-area-inset-top)); left: 10px; right: 10px; }
-    #drivebar .btns button { font-size: 12px; padding: 6px 9px; }
-    #dCam { font-size: 12px; }
     body.driving #mini { display: block; right: 10px; bottom: calc(192px + env(safe-area-inset-bottom)); padding: 5px; }
     body.driving #mini canvas { width: 94px !important; height: 94px !important; }
     body.driving #mini .cap { display: none; }
+    body.driving #sceneSettings { display: none; }
     #caption { padding: 12px 12px 6px; max-width: 400px; background: #171510e6; border-radius: 14px; }
   }
   @media (pointer: coarse) {
@@ -209,7 +198,7 @@
     .pkm-hud { top: auto !important; bottom: calc(100px + env(safe-area-inset-bottom)) !important; transform: translateX(-50%) scale(.85) !important; }
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
-  @media (max-height: 500px) and (orientation: landscape) { #info { max-width: 330px; } #drivebar .keys { max-height: 22dvh; } }
+  @media (max-height: 500px) and (orientation: landscape) { #info { max-width: 330px; } }
 </style>
 </head>
 <body>
@@ -290,7 +279,7 @@
 </div>
 
 <div id="mini" class="glass">
-  <div class="cap"><span>Site plan</span><span>N ↑</span></div>
+  <div class="cap"><span id="miniPlace">Site plan</span><span>N ↑</span></div>
   <canvas id="miniC" width="380" height="380" style="width:190px;height:190px"></canvas>
 </div>
 
@@ -313,37 +302,9 @@
   <div class="sw" id="pickPaint"></div>
   <div class="row"><button class="go" id="pickGo">Start driving</button><a href="/l200/">Drive Studio ↗</a></div>
 </dialog>
-<div id="drivebar" hidden>
-  <div class="btns">
-    <button id="dExit" class="light">← Exit drive</button>
-    <select id="dCam" aria-label="Driving camera">
-      <option value="chase">Chase</option>
-      <option value="cabin">Cockpit</option>
-      <option value="hood">Bonnet</option>
-      <option value="far">Far chase</option>
-      <option value="drone">Drone</option>
-      <option value="cine">Cinematic</option>
-    </select>
-    <button id="dLights">Lights</button>
-    <button id="dMute" aria-pressed="false">Sound off</button>
-    <button id="dShift" aria-pressed="false">Shift to reverse</button>
-    <button id="dJub">To Jubilee House</button>
-    <button id="dTmp">To the Temple</button>
-    <button id="dKeys" aria-expanded="false" aria-controls="dKeyList">Controls</button>
-  </div>
-  <div id="dLocation">Liberation Road</div>
-  <div class="keys glass" id="dKeyList" hidden>
-    <div><b>W</b><b>↑</b> go · <b>S</b><b>↓</b> brake · <b>A</b><b>D</b> steer</div>
-    <div><b>Space</b> handbrake · <b>C</b> camera · <b>H</b> horn · <b>L</b> lights</div>
-    <div><b>Q</b><b>E</b> indicators · <b>X</b> hazards · <b>R</b> back to the road</div>
-    <div><b>V</b> shift at a stop · <b>W</b> moves in either gear</div>
-    <div>Drag to look around the cockpit · gamepad <b>X</b> to shift</div>
-  </div>
-</div>
-
 <p id="driveStatus" role="status"></p>
 </div>
-<script type="module" src="/assets/scene-shell.js?v=7"></script>
+<script type="module" src="/assets/scene-shell.js?v=8"></script>
 <script src="/analytics-tracker.js?v=3" defer></script>
 </body>
 </html>

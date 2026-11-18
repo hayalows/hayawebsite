@@ -614,21 +614,35 @@ export function buildVehicle(THREE, id, opts = {}) {
   cluster.position.set(dashX - 0.19, belt + 0.13, -0.38); cluster.rotation.y = -Math.PI / 2;
   const binnacle = rbox(0.04, 0.18, isV8 ? 0.45 : 0.39, 0.016, M.trim, interior);
   binnacle.position.set(dashX - 0.148, belt + 0.13, -0.38);
+  // Centre screen: a live map while driving, a quiet brand page in the showroom.
+  const navCanvas = document.createElement('canvas'); navCanvas.width = 512; navCanvas.height = 290;
+  const navTex = srgb(new THREE.CanvasTexture(navCanvas));
   const info = add(new THREE.PlaneGeometry(0.3, 0.17), screenM.clone(), interior, false);
-  info.position.set(dashX - 0.2, belt + 0.12, 0.05); info.rotation.y = -Math.PI / 2;
-  info.material.map = info.material.emissiveMap = srgb(new THREE.CanvasTexture(canvas(512, 290, (g, w, h) => {
-    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#0f1412'); gr.addColorStop(1, '#1b2420'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
-    g.strokeStyle = '#93AE7C'; g.lineWidth = 6; g.beginPath(); g.moveTo(30, 230); g.bezierCurveTo(160, 210, 200, 90, 330, 110); g.lineTo(480, 60); g.stroke();
-    g.fillStyle = '#BBA783'; g.beginPath(); g.arc(330, 110, 10, 0, 7); g.fill();
-    g.fillStyle = '#F2F0EA'; g.font = '600 28px Inter, Arial'; g.fillText('Jubilee House → Temple', 30, 50);
-    g.fillStyle = '#B3ACA1'; g.font = '400 22px Inter, Arial'; g.fillText('Liberation Road · Accra', 30, 84);
-  })));
+  // angled toward the driver, as most centre screens are
+  info.position.set(dashX - 0.2, belt + 0.12, -0.03); info.rotation.y = -Math.PI / 2 - 0.32;
+  info.material.map = info.material.emissiveMap = navTex; info.material.emissiveIntensity = 0.75;
+  const navIdle = (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#0e1211'); gr.addColorStop(1, '#192019'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#BBA783'; g.font = '600 18px Inter, Arial'; g.textAlign = 'left'; g.fillText('PKM MOTORS', 34, 58);
+    g.fillStyle = '#F2F0EA'; g.font = '700 46px Inter, Arial'; g.fillText(S.name, 32, 118);
+    g.fillStyle = '#9A948B'; g.font = '500 20px Inter, Arial'; g.fillText(isV8 ? 'V8 · 10-speed · AWD' : '2.8 turbo-diesel · 4×4', 34, 154);
+    g.strokeStyle = '#2b342e'; g.lineWidth = 2; g.beginPath(); g.moveTo(34, 196); g.lineTo(w - 34, 196); g.stroke();
+    g.fillStyle = '#93AE7C'; g.font = '500 18px Inter, Arial'; g.fillText('Map starts when you drive', 34, 238);
+  };
+  let navLast = -Infinity, navLive = false;
+  function drawNav(paint) {
+    const now = performance.now();
+    if (!paint) { if (navLive) { navLive = false; navIdle(navCanvas.getContext('2d'), 512, 290); navTex.needsUpdate = true; } return; }
+    if (now - navLast < 110) return; navLast = now; navLive = true;
+    const g = navCanvas.getContext('2d'); g.save(); paint(g, 512, 290); g.restore(); navTex.needsUpdate = true;
+  }
+  navIdle(navCanvas.getContext('2d'), 512, 290); navTex.needsUpdate = true;
   // steering wheel
   const wheelPivot = new THREE.Group(); wheelPivot.position.set(dashX - 0.3, belt + 0.06, -0.38); wheelPivot.rotation.z = -0.42; interior.add(wheelPivot);
   const steer = new THREE.Group(); wheelPivot.add(steer);
   const rim = add(new THREE.TorusGeometry(0.185, 0.018, 12, 40), M.leather, steer); rim.rotation.y = Math.PI / 2;
   const hub = rbox(0.05, 0.1, 0.12, 0.03, M.interior, steer);
-  for (const a of [0, 2.1, -2.1]) { const sp = boxAt(0.02, 0.17, 0.035, 0, 0, 0, M.satin, steer); sp.position.set(0, Math.cos(a) * -0.09, Math.sin(a) * 0.09); sp.rotation.x = a; }
+  for (const a of [0, 2.1, -2.1]) { const sp = boxAt(0.018, 0.15, 0.026, 0, 0, 0, M.trim, steer); sp.position.set(0, Math.cos(a) * -0.09, Math.sin(a) * 0.09); sp.rotation.x = a; }
   const hb2 = add(new THREE.CircleGeometry(0.032, 24), M.emblem, steer); hb2.position.x = -0.03; hb2.rotation.y = -Math.PI / 2;
   const column = add(new THREE.CylinderGeometry(0.03, 0.04, 0.3, 10), M.trim, wheelPivot); column.rotation.z = Math.PI / 2; column.position.x = 0.15;
   // seats
@@ -667,6 +681,16 @@ export function buildVehicle(THREE, id, opts = {}) {
     color: col('#aad4de'), side: THREE.DoubleSide, transparent: true, opacity: 0.065, depthWrite: false,
   }), interior, false);
   pane.visible = false;
+
+  // Trim the inside of the A pillars so the painted pillar never reads as a flat slab from the seat.
+  const pillarTrim = new THREE.MeshStandardMaterial({ color: col(isV8 ? '#b7a994' : '#2f3231'), roughness: 0.85 });
+  for (const side of [-1, 1]) {
+    const a = new THREE.Vector3(cowlX - 0.05, belt + 0.03, side * (ghHalf(cowlX - 0.05, belt + 0.03) - 0.04));
+    const b = new THREE.Vector3(wsTopX - 0.01, roof - 0.09, side * (ghHalf(wsTopX - 0.01, roof - 0.09) - 0.04));
+    const m = add(new THREE.BoxGeometry(a.distanceTo(b), 0.075, 0.03), pillarTrim, interior, false);
+    m.position.copy(a).add(b).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), b.sub(a).normalize());
+  }
 
   // ---------- wheels ----------
   const wheels = [];
@@ -871,7 +895,7 @@ export function buildVehicle(THREE, id, opts = {}) {
 
   return {
     spec: S, root, car, body, wheels, steer, interior, panels, clickable, state, materials: M,
-    setPaint, togglePanel, update, drawCluster, setCabinView,
+    setPaint, togglePanel, update, drawCluster, drawNav, setCabinView,
     driverEye: new THREE.Vector3(seatX - 0.12, Math.min(roof - 0.19, belt + 0.36), -0.38), // ahead of the headrest
     dims: { length: xF - xR, width: W, height: roof, front: xF, rear: xR },
   };
