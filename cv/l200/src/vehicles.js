@@ -13,6 +13,8 @@ export const SPECS = {
     width: 1.88, wheelbase: 3.08, front: 2.52, rear: -2.80, track: 1.58,
     tyreR: 0.392, tyreW: 0.27, archR: 0.49, archY: 0.42, sill: 0.47, belt: 1.18, roof: 1.84,
     mass: 2150, power: 150, torque: 500, idle: 780, redline: 4000, shiftUp: 3300, shiftDown: 1500,
+    frontWeight: 0.56, cgHeight: 0.71, steeringLock: 0.60, driveFront: 0.38,
+    springRate: 49, springDamping: 8, bodyRoll: 0.0078,
     gears: [4.71, 2.84, 1.79, 1.39, 1.0, 0.78], finalDrive: 3.73, top: 49,
     engine: 'diesel', horn: [404, 508],
     paints: [
@@ -31,6 +33,8 @@ export const SPECS = {
     width: 2.06, wheelbase: 3.07, front: 2.52, rear: -2.88, track: 1.74,
     tyreR: 0.405, tyreW: 0.285, archR: 0.475, archY: 0.43, sill: 0.44, belt: 1.25, roof: 1.93,
     mass: 2700, power: 313, torque: 624, idle: 620, redline: 6000, shiftUp: 5400, shiftDown: 2000,
+    frontWeight: 0.53, cgHeight: 0.73, steeringLock: 0.55, driveFront: 0.46,
+    springRate: 62, springDamping: 12, bodyRoll: 0.0064,
     gears: [4.7, 2.99, 2.15, 1.77, 1.52, 1.28, 1.0, 0.85, 0.69, 0.64], finalDrive: 3.23, top: 59,
     engine: 'v8', horn: [350, 440],
     paints: [
@@ -349,7 +353,7 @@ export function buildVehicle(THREE, id, opts = {}) {
   gh.quadraticCurveTo(roofRearX, roof - 0.01, roofRearX - (isV8 ? 0.1 : 0.06), roof - 0.08);
   gh.lineTo(ghRearBase, belt - 0.02);
   const ghW = W - 0.06;
-  add(extrudeProfile(gh, ghW, true, 24), M.glass);
+  const glazing = add(extrudeProfile(gh, ghW, true, 24), M.glass);
   // painted roof skin
   const rf = new THREE.Shape();
   rf.moveTo(wsTopX - 0.05, roof - 0.05);
@@ -596,12 +600,20 @@ export function buildVehicle(THREE, id, opts = {}) {
   const dashX = cowlX - 0.28;
   const dash = rbox(0.42, 0.22, W - 0.26, 0.08, M.interior, interior); dash.position.set(dashX, belt + 0.02, 0);
   const dashTop = rbox(0.3, 0.05, W - 0.3, 0.02, M.trim, interior); dashTop.position.set(dashX + 0.05, belt + 0.14, 0);
+  const cabinAccent = new THREE.MeshStandardMaterial({ color: col(isV8 ? '#73523b' : '#3e4845'), roughness: isV8 ? 0.38 : 0.7 });
+  boxAt(0.028, 0.053, W - 0.38, dashX - 0.22, belt + 0.02, 0, cabinAccent, interior);
+  for (const z of [-0.68, -0.18, 0.27, 0.68]) {
+    boxAt(0.022, 0.078, 0.12, dashX - 0.236, belt + 0.055, z, M.black, interior);
+    for (let i = -1; i <= 1; i++) boxAt(0.012, 0.005, 0.105, dashX - 0.251, belt + 0.055 + i * 0.018, z, M.satin, interior);
+  }
   // displays
   const clusterCanvas = document.createElement('canvas'); clusterCanvas.width = 512; clusterCanvas.height = 192;
   const clusterTex = srgb(new THREE.CanvasTexture(clusterCanvas));
   const screenM = new THREE.MeshStandardMaterial({ map: clusterTex, emissive: col('#ffffff'), emissiveMap: clusterTex, emissiveIntensity: 0.9, roughness: 0.3 });
-  const cluster = add(new THREE.PlaneGeometry(0.34, 0.13), screenM, interior, false);
-  cluster.position.set(dashX - 0.17, belt + 0.12, -0.38); cluster.rotation.y = -Math.PI / 2; cluster.rotation.x = -0.15;
+  const cluster = add(new THREE.PlaneGeometry(isV8 ? 0.4 : 0.34, 0.14), screenM, interior, false);
+  cluster.position.set(dashX - 0.19, belt + 0.13, -0.38); cluster.rotation.y = -Math.PI / 2;
+  const binnacle = rbox(0.04, 0.18, isV8 ? 0.45 : 0.39, 0.016, M.trim, interior);
+  binnacle.position.set(dashX - 0.148, belt + 0.13, -0.38);
   const info = add(new THREE.PlaneGeometry(0.3, 0.17), screenM.clone(), interior, false);
   info.position.set(dashX - 0.2, belt + 0.12, 0.05); info.rotation.y = -Math.PI / 2;
   info.material.map = info.material.emissiveMap = srgb(new THREE.CanvasTexture(canvas(512, 290, (g, w, h) => {
@@ -609,7 +621,7 @@ export function buildVehicle(THREE, id, opts = {}) {
     g.strokeStyle = '#93AE7C'; g.lineWidth = 6; g.beginPath(); g.moveTo(30, 230); g.bezierCurveTo(160, 210, 200, 90, 330, 110); g.lineTo(480, 60); g.stroke();
     g.fillStyle = '#BBA783'; g.beginPath(); g.arc(330, 110, 10, 0, 7); g.fill();
     g.fillStyle = '#F2F0EA'; g.font = '600 28px Inter, Arial'; g.fillText('Jubilee House → Temple', 30, 50);
-    g.fillStyle = '#B3ACA1'; g.font = '400 22px Inter, Arial'; g.fillText('Liberation Road · 4.2 km', 30, 84);
+    g.fillStyle = '#B3ACA1'; g.font = '400 22px Inter, Arial'; g.fillText('Liberation Road · Accra', 30, 84);
   })));
   // steering wheel
   const wheelPivot = new THREE.Group(); wheelPivot.position.set(dashX - 0.3, belt + 0.06, -0.38); wheelPivot.rotation.z = -0.42; interior.add(wheelPivot);
@@ -638,6 +650,23 @@ export function buildVehicle(THREE, id, opts = {}) {
   headliner.material = new THREE.MeshStandardMaterial({ color: col(isV8 ? '#cdbfae' : '#3c3d3e'), roughness: 0.9 });
   const cabinLight = new THREE.PointLight(0xffe9cc, 0, 2.6, 1.5); cabinLight.position.set(seatX - 0.2, roof - 0.25, 0); interior.add(cabinLight);
   const ambient = boxAt(0.01, 0.006, W - 0.45, dashX - 0.2, belt - 0.02, 0, new THREE.MeshStandardMaterial({ color: col('#BBA783'), emissive: col('#BBA783'), emissiveIntensity: 0 }), interior);
+  const mirror = rbox(0.043, 0.075, 0.25, 0.02, M.black, interior);
+  mirror.position.set(wsTopX - 0.13, roof - 0.185, 0.02);
+  const mirrorFace = boxAt(0.004, 0.057, 0.216, wsTopX - 0.154, roof - 0.185, 0.02, M.satin, interior);
+  mirrorFace.castShadow = false;
+  // The exterior shell is tinted. Inside, use a clear face so the road and signal colours stay legible.
+  const paneGeo = new THREE.BufferGeometry();
+  const lower = belt + 0.04, upper = roof - 0.10;
+  const a = cowlX - 0.05, b = wsTopX + 0.045;
+  paneGeo.setAttribute('position', new THREE.Float32BufferAttribute([
+    a, lower, -ghHalf(a, lower), a, lower, ghHalf(a, lower),
+    b, upper, ghHalf(b, upper), b, upper, -ghHalf(b, upper),
+  ], 3));
+  paneGeo.setIndex([0, 1, 2, 0, 2, 3]); paneGeo.computeVertexNormals();
+  const pane = add(paneGeo, new THREE.MeshBasicMaterial({
+    color: col('#aad4de'), side: THREE.DoubleSide, transparent: true, opacity: 0.065, depthWrite: false,
+  }), interior, false);
+  pane.visible = false;
 
   // ---------- wheels ----------
   const wheels = [];
@@ -764,6 +793,11 @@ export function buildVehicle(THREE, id, opts = {}) {
 
   // ---------- public API ----------
   const state = { head: false, brake: false, reverse: false, left: false, right: false, hazard: false, interiorGlow: 0 };
+  function setCabinView(active) {
+    glazing.visible = !active;
+    pane.visible = active;
+    state.interiorGlow = active;
+  }
   function setPaint(hex, metal) {
     paint.color.copy(col(hex));
     paint.metalness = metal ?? paint.metalness;
@@ -804,32 +838,41 @@ export function buildVehicle(THREE, id, opts = {}) {
     indMats['-1'].emissiveIntensity = L ? 6 : 0;
     indMats['1'].emissiveIntensity = R ? 6 : 0;
     ambient.material.emissiveIntensity = s.engine ? 1.5 : 0;
-    cabinLight.intensity = state.interiorGlow ? 6 * LS : 0;
+    cabinLight.intensity = state.interiorGlow ? (nightish ? 2.6 : 1.6) * LS : 0;
     return (state.left || state.right || state.hazard) ? on : null;
   }
   const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
-  let clusterLast = 0;
+  let clusterLast = -Infinity;
   function drawCluster(speedKmh, rpm, gear) {
     const now = performance.now(); if (now - clusterLast < 100) return; clusterLast = now;
     const g = clusterCanvas.getContext('2d'), w = 512, h = 192;
     g.fillStyle = '#07090a'; g.fillRect(0, 0, w, h);
+    const accent = isV8 ? '#a7c9e4' : '#dab985';
     const arcGauge = (cx, frac, label, val) => {
+      const angle = Math.PI * (0.8 + 1.4 * Math.max(0, Math.min(1, frac)));
       g.strokeStyle = '#222'; g.lineWidth = 12; g.beginPath(); g.arc(cx, 110, 70, Math.PI * 0.8, Math.PI * 2.2); g.stroke();
-      g.strokeStyle = '#BBA783'; g.beginPath(); g.arc(cx, 110, 70, Math.PI * 0.8, Math.PI * (0.8 + 1.4 * Math.max(0, Math.min(1, frac)))); g.stroke();
+      g.strokeStyle = frac > 0.86 ? '#dc795e' : accent;
+      g.beginPath(); g.arc(cx, 110, 70, Math.PI * 0.8, angle); g.stroke();
+      if (!isV8) {
+        g.strokeStyle = '#fcf0db'; g.lineWidth = 3; g.beginPath();
+        g.moveTo(cx + Math.cos(angle) * 53, 110 + Math.sin(angle) * 53);
+        g.lineTo(cx + Math.cos(angle) * 80, 110 + Math.sin(angle) * 80); g.stroke();
+      }
       g.fillStyle = '#F2F0EA'; g.font = '700 40px Inter, Arial'; g.textAlign = 'center'; g.fillText(val, cx, 122);
       g.fillStyle = '#9A948B'; g.font = '500 16px Inter, Arial'; g.fillText(label, cx, 150);
     };
     arcGauge(120, speedKmh / (isV8 ? 220 : 180), 'km/h', Math.round(speedKmh));
     arcGauge(392, rpm / S.redline, 'rpm ×1000', (rpm / 1000).toFixed(1));
-    g.fillStyle = '#93AE7C'; g.font = '700 46px Inter, Arial'; g.textAlign = 'center'; g.fillText(gear, 256, 112);
+    g.fillStyle = accent; g.font = '700 46px Inter, Arial'; g.textAlign = 'center'; g.fillText(gear, 256, 112);
+    g.font = '600 15px Inter, Arial'; g.fillText(S.name.toUpperCase(), 256, 145);
     clusterTex.needsUpdate = true;
   }
 
   return {
     spec: S, root, car, body, wheels, steer, interior, panels, clickable, state, materials: M,
-    setPaint, togglePanel, update, drawCluster,
-    driverEye: new THREE.Vector3(seatX - 0.34, belt + 0.33, -0.38), // inner frame
+    setPaint, togglePanel, update, drawCluster, setCabinView,
+    driverEye: new THREE.Vector3(seatX - 0.12, Math.min(roof - 0.19, belt + 0.36), -0.38), // ahead of the headrest
     dims: { length: xF - xR, width: W, height: roof, front: xF, rear: xR },
   };
 }

@@ -1,6 +1,6 @@
 // Shared drive controller: input, physics stepping, visuals, cameras, HUD,
 // dust, skid marks. Used by Drive Studio and Accra 3D.
-import { createDynamics, stepDynamics } from './physics.js';
+import { createDynamics, sampleTyres, stepDynamics } from './physics.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const damp = (a, b, k, dt) => b + (a - b) * Math.exp(-k * dt);
@@ -25,12 +25,13 @@ export function makeCollider({ bounds, circles = [], boxes = [], carR = 0.95, ca
   for (const c of circles) file(c, c.x, c.z, c.r + carR);
   const EMPTY = { boxes: [], circles: [] };
   const near = (x, z) => grid.get(key(Math.floor(x / CELL), Math.floor(z / CELL))) || EMPTY;
+  const chassisSamples = carHalf ? [-carHalf, 0, carHalf] : [0];
   // the car is three circles along its length
   return (x, z, yaw) => {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
     let best = null;
-    for (const k of [-1, 0, 1]) {
-      const cx = x + fx * k * carHalf, cz = z + fz * k * carHalf;
+    for (const k of chassisSamples) {
+      const cx = x + fx * k, cz = z + fz * k;
       const test = (nx, nz, depth) => { if (depth > 0 && (!best || depth > best.depth)) best = { nx, nz, depth }; };
       if (bounds) {
         test(1, 0, bounds.minX - (cx - carR)); test(-1, 0, (cx + carR) - bounds.maxX);
@@ -81,6 +82,8 @@ export class DriveController {
     this.orbitYaw = 0; this.orbitPitch = 0; this.dragging = false; this.cine = null;
     this._tmp = new THREE.Vector3(); this._tmp2 = new THREE.Vector3(); this._q = new THREE.Quaternion();
     this.cameraWant = new THREE.Vector3(); this.cameraTarget = new THREE.Vector3(); this.cameraHeading = new THREE.Vector3();
+    this.cabinDirection = new THREE.Vector3(); this.cabinRotation = new THREE.Quaternion();
+    this.renderTyres = {};
     this.markMatrix = new THREE.Matrix4(); this.markScale = new THREE.Vector3(1, 1, 1);
     this.setVehicle(vehicle);
     this._initFx();
@@ -89,7 +92,7 @@ export class DriveController {
 
   setVehicle(v) {
     const keep = this.dyn ? { x: this.dyn.x, z: this.dyn.z, yaw: this.dyn.yaw } : null;
-    if (this.dyn) this.toggleEngine(false);
+    if (this.dyn) { this.toggleEngine(false); this.vehicle.setCabinView(false); }
     this.clearInput();
     this.vehicle = v; this.dyn = createDynamics(v.spec);
     if (keep) Object.assign(this.dyn, keep);
@@ -98,7 +101,10 @@ export class DriveController {
   }
   place(x, z, yaw = 0) {
     this.clearInput();
-    Object.assign(this.dyn, { x, z, yaw, vx: 0, vy: 0, r: 0, steer: 0, slip: 0, wheelSpin: 0, wheelSpeed: 0 });
+    Object.assign(this.dyn, {
+      x, z, yaw, vx: 0, vy: 0, r: 0, steer: 0, slip: 0, wheelSpin: 0, wheelSpeed: 0,
+      ax: 0, ay: 0, pitch: 0, pitchV: 0, roll: 0, rollV: 0, heave: 0, heaveV: 0, groundPitch: 0, groundRoll: 0,
+    });
     Object.assign(this.lastPose, { x, z, yaw });
     this._sync(0); this.snapCamera();
   }
@@ -109,6 +115,7 @@ export class DriveController {
     Object.assign(this.input, NEUTRAL);
     this.dragging = false;
     this.accumulator = 0;
+    this._holdT = 0;
     this.resetTouch?.();
   }
 
@@ -117,6 +124,7 @@ export class DriveController {
     this.enabled = enabled;
     if (enabled) this.dom.focus({ preventScroll: true });
     else {
+      this.vehicle.setCabinView(false);
       this.toggleEngine(false);
       Object.assign(this.dyn, { vx: 0, vy: 0, r: 0, slip: 0, throttle: 0 });
       this.audio?.update(this.dyn, this.vehicle.spec, 0);
@@ -154,7 +162,8 @@ export class DriveController {
     addEventListener('pointercancel', () => { this.dragging = false; });
     addEventListener('pointermove', (e) => {
       if (!this.enabled || !this.dragging) return;
-      this.orbitYaw -= (e.clientX - this._px) * 0.006; this.orbitPitch = clamp(this.orbitPitch + (e.clientY - this._py) * 0.004, -0.3, 0.9);
+      this.orbitYaw = clamp(this.orbitYaw - (e.clientX - this._px) * 0.006, -Math.PI, Math.PI);
+      this.orbitPitch = clamp(this.orbitPitch + (e.clientY - this._py) * 0.004, -0.3, this.camMode === 'cabin' ? 0.42 : 0.9);
       this._px = e.clientX; this._py = e.clientY; this._lookT = 0;
     });
   }
@@ -182,7 +191,7 @@ export class DriveController {
   _smoothInput({ thr, brk, st, hb }, dt) {
     const I = this.input;
     // reverse: S drives backwards and W brakes, as in most driving games
-    if (this.dyn.reverse) { const t = thr; thr = brk; brk = t; }
+    if (this.dyn.reverse && this.env.autoShift !== false) { const t = thr; thr = brk; brk = t; }
     I.throttle = damp(I.throttle, thr, thr > I.throttle ? 11 : 14, dt);
     I.brake = damp(I.brake, brk, 16, dt);
     const analog = Math.abs(st) > 0 && Math.abs(st) < 0.999;
@@ -265,8 +274,11 @@ export class DriveController {
   cycleCamera(mode) {
     const i = this.camModes.indexOf(this.camMode);
     const next = this.camModes[(i + 1) % this.camModes.length];
+    const previous = this.camMode;
     this.camMode = mode || (next === 'cine' && this.reducedMotion.matches ? 'drone' : next);
-    this.cine = null; this.orbitYaw = 0; this.orbitPitch = 0; this.snapCamera();
+    this.cine = null; this.orbitYaw = 0; this.orbitPitch = 0;
+    if (['cabin', 'hood', 'cine'].includes(previous) || ['cabin', 'hood', 'cine'].includes(this.camMode)) this.snapCamera();
+    this.vehicle.setCabinView(this.camMode === 'cabin');
     if (this.audio) this.audio.cabin = this.camMode === 'cabin' ? 1 : 0;
     this.onEvent('camera', this.camMode);
     return this.camMode;
@@ -327,7 +339,7 @@ export class DriveController {
     const rawInput = this._readInput();
     this.accumulator += dt;
     while (this.accumulator >= FIXED_STEP) {
-      this._autoShift(rawInput, FIXED_STEP);
+      if (this.env.autoShift !== false) this._autoShift(rawInput, FIXED_STEP);
       this._smoothInput(rawInput, FIXED_STEP);
       Object.assign(this.lastPose, { x: d.x, z: d.z, yaw: d.yaw });
       stepDynamics(d, this.input, this.env, FIXED_STEP);
@@ -340,7 +352,7 @@ export class DriveController {
     this._sync(dt, this.accumulator / FIXED_STEP);
     const blink = v.update(dt, { engine: d.engine, night: this.env.night });
     if (blink !== null && blink !== this._lastBlink && this.audio) this.audio.tick(blink); this._lastBlink = blink;
-    v.drawCluster(Math.abs(d.vx) * 3.6, d.rpm, d.reverse ? 'R' : d.engine ? (Math.abs(d.vx) < 0.2 && this.input.throttle < 0.05 ? 'D' : 'D' + d.gear) : 'P');
+    if (this.camMode === 'cabin') v.drawCluster(Math.abs(d.vx) * 3.6, d.rpm, d.reverse ? 'R' : d.engine ? 'D' + d.gear : 'P');
     if (this.audio) this.audio.update(d, v.spec, dt);
     // dust / smoke / skids
     const speed = Math.hypot(d.vx, d.vy), offroad = d.surface !== 'asphalt' && d.surface !== 'floor';
@@ -371,25 +383,28 @@ export class DriveController {
     const z = this.lastPose.z + (d.z - this.lastPose.z) * alpha;
     const yaw = this.lastPose.yaw + (d.yaw - this.lastPose.yaw) * alpha;
     const ground = this.env.groundY;
-    const gy = ground?.(x, z) ?? 0;
-    const sin = Math.sin(yaw), cos = Math.cos(yaw);
-    v.root.position.set(x, gy, z); v.root.rotation.set(0, yaw, 0);
-    v.body.rotation.x = d.roll; v.body.rotation.z = -d.pitch; v.body.position.y = d.heave * 0.6;
+    const tyres = this.env.tyreContact && sampleTyres(this.env.tyreContact, v.spec, x, z, yaw, this.renderTyres);
+    const gy = tyres ? (tyres.fl.height + tyres.fr.height + tyres.rl.height + tyres.rr.height) * 0.25 : ground?.(x, z) ?? 0;
+    this.rideHeight = tyres && dt ? damp(this.rideHeight ?? gy, gy, 20, dt) : gy;
+    v.root.position.set(x, this.rideHeight, z); v.root.rotation.set(0, yaw, 0);
+    v.body.rotation.x = d.roll + d.groundRoll;
+    v.body.rotation.z = d.groundPitch - d.pitch;
+    v.body.position.y = d.heave * 0.6;
     for (const w of v.wheels) {
       w.spin.rotation.z -= d.wheelSpeed * dt;
       if (w.front) {
         const radius = v.spec.wheelbase / Math.tan(d.steer);
         w.pivot.rotation.y = Math.atan(v.spec.wheelbase / (radius + w.z));
       }
-      const along = (w.front ? 1 : -1) * v.spec.wheelbase * 0.5;
-      const contact = ground ? ground(x + sin * along + cos * w.z, z + cos * along - sin * w.z) - gy : 0;
+      const contact = tyres ? tyres[w.front ? (w.side < 0 ? 'fl' : 'fr') : (w.side < 0 ? 'rl' : 'rr')].height - this.rideHeight : 0;
       const comp = contact - d.roll * w.z * 0.5 + (w.front ? -1 : 1) * d.pitch * 0.4 + d.heave * 0.3;
-      w.pivot.position.y = w.baseY + clamp(comp, -0.12, 0.14);
+      const height = w.baseY + clamp(comp, -0.16, 0.19);
+      w.pivot.position.y = dt ? damp(w.pivot.position.y, height, 22, dt) : height;
     }
     v.steer.rotation.x = -d.steer * 7;
   }
 
-  snapCamera() { this._camInit = false; }
+  snapCamera() { this._camInit = false; this.cameraArm = 1; }
 
   _camera(dt) {
     const THREE = this.THREE, d = this.dyn, v = this.vehicle, cam = this.camera;
@@ -413,11 +428,15 @@ export class DriveController {
         fov = 52 + Math.min(16, speed * 0.38); stiff = 4.5; break;
       }
       case 'cabin': {
-        const e = v.driverEye.clone(); v.body.localToWorld(e);
-        want.copy(e); stiff = 60; near = 0.03;
-        const lookYaw = d.yaw + this.orbitYaw * 1.6 + d.steer * 0.35;
-        look.set(e.x + Math.sin(lookYaw) * 10, e.y - 0.6 + this.orbitPitch * -4, e.z + Math.cos(lookYaw) * 10);
-        fov = 64 + Math.min(8, speed * 0.15); break;
+        v.body.localToWorld(want.copy(v.driverEye));
+        const calm = this.reducedMotion.matches;
+        const glance = clamp(this.orbitYaw, -1.22, 1.22) + (calm ? 0 : d.steer * 0.14);
+        const tilt = -0.14 - this.orbitPitch * 0.7;
+        v.body.getWorldQuaternion(this.cabinRotation);
+        this.cabinDirection.set(Math.cos(glance), tilt, -Math.sin(glance)).applyQuaternion(this.cabinRotation);
+        look.copy(want).addScaledVector(this.cabinDirection, 10);
+        stiff = 34; near = 0.018;
+        fov = cam.aspect < 0.9 ? 70 : 62 + Math.min(3, speed * 0.07); break;
       }
       case 'hood': {
         const e = new THREE.Vector3(v.spec.wheelbase / 2 - 0.3, v.spec.roof + 0.1, 0); v.body.localToWorld(e);
@@ -446,22 +465,33 @@ export class DriveController {
     if (this.env.groundY && this.camMode !== 'cabin') this.camPos.y = Math.max(this.camPos.y, this.env.groundY(this.camPos.x, this.camPos.z) + 0.35);
     cam.position.copy(this.camPos);
     if (this.env.cameraCollision && (this.camMode === 'chase' || this.camMode === 'far')) {
-      for (let step = 1; step <= 4; step++) {
-        const sample = this._tmp2.copy(pos).lerp(this.camPos, step / 4);
-        if (!this.env.cameraCollision(sample.x, sample.z, yaw)) continue;
-        cam.position.copy(pos).lerp(this.camPos, Math.max(0.2, (step - 1) / 4));
-        cam.position.y = Math.max(cam.position.y, pos.y + v.dims.height + 0.2);
+      const obstructed = (t) => {
+        const sample = this._tmp2.copy(pos).lerp(this.camPos, t);
+        return this.env.cameraCollision(sample.x, sample.z, yaw);
+      };
+      let limit = 1;
+      for (let step = 2; step <= 14; step++) {
+        if (!obstructed(step / 14)) continue;
+        let lo = (step - 1) / 14, hi = step / 14;
+        for (let refine = 0; refine < 4; refine++) {
+          const mid = (lo + hi) * 0.5;
+          if (obstructed(mid)) hi = mid; else lo = mid;
+        }
+        limit = Math.max(0.14, lo - 0.02);
         break;
       }
+      this.cameraArm = Math.min(limit, damp(this.cameraArm ?? 1, limit, 6, dt));
+      cam.position.copy(pos).lerp(this.camPos, this.cameraArm);
+      if (this.cameraArm < 0.8) cam.position.y = Math.max(cam.position.y, pos.y + v.dims.height + 0.25);
     }
     // shake: road texture, speed and impacts
     this.shake = damp(this.shake, 0, 3, dt);
     const sh = (this.camMode === 'cabin' || this.camMode === 'hood' ? 0.6 : 1) * (Math.min(1, speed / 45) ** 2 * 0.012 + (d.surface !== 'asphalt' && d.surface !== 'floor' ? Math.min(1, speed / 15) * 0.02 : 0) + this.shake * 0.09);
     this._shakeT = (this._shakeT || 0) + dt * (8 + speed * 0.6);
     const n = (a, b) => Math.sin(this._shakeT * a) * 0.6 + Math.sin(this._shakeT * b + 1.7) * 0.4;
-    if (this.camMode !== 'cine' && !this.reducedMotion.matches) cam.position.add(this._tmp2.set(n(1.3, 2.9) * sh * 0.5, n(1.7, 3.7) * sh * 0.5, n(1.1, 2.3) * sh * 0.5));
+    if (!['cine', 'cabin'].includes(this.camMode) && !this.reducedMotion.matches) cam.position.add(this._tmp2.set(n(1.3, 2.9) * sh * 0.5, n(1.7, 3.7) * sh * 0.5, n(1.1, 2.3) * sh * 0.5));
     cam.lookAt(this.camLook);
-    if (this.camMode === 'cabin' && !this.reducedMotion.matches) cam.rotateZ(-d.roll * 0.6);
+    if (this.camMode === 'cabin' && !this.reducedMotion.matches) cam.rotateZ(-d.roll * 0.36);
     this.fov = damp(this.fov, fov, 3, dt);
     if (Math.abs(cam.fov - this.fov) > 0.01 || cam.near !== near) { cam.fov = this.fov; cam.near = near; cam.updateProjectionMatrix(); }
   }
@@ -511,7 +541,7 @@ export function createHud(container) {
       write(gear, h.gear);
       bar.style.width = Math.min(100, h.rpm / h.redline * 100).toFixed(1) + '%';
       write(rpm, Math.round(h.rpm / 10) * 10 + ' rpm');
-      write(surface, { asphalt: 'Asphalt', grass: 'Grass', dirt: 'Laterite', floor: 'Showroom floor', kerb: 'Kerb' }[h.surface] || h.surface);
+      write(surface, { asphalt: 'Asphalt', grass: 'Grass', dirt: 'Laterite', floor: 'Showroom floor', kerb: 'Kerb', pavers: 'Pavers', drain: 'Drain' }[h.surface] || h.surface);
       const on = (blink % 0.74) < 0.4, L = h.lights;
       left.classList.toggle('on', (L.left || L.hazard) && on);
       right.classList.toggle('on', (L.right || L.hazard) && on);

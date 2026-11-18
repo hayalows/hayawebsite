@@ -1,6 +1,7 @@
-import * as drive from '/l200/pkm-drive.js?v=4';
+import * as drive from '/l200/pkm-drive.js?v=5';
+import { createRoadSurface, trafficContact } from './motion.js?v=1';
 
-export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, params, stopTour }) {
+export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, traffic, params, stopTour }) {
   const $ = (id) => document.getElementById(id);
   const store = {
     get(key, fallback) {
@@ -31,30 +32,18 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   const vehicles = {};
   let ctrl, hud, active = false, last = 0, statusTimer;
   const picker = $('drivePick');
-  const saved = { near: camera.near, far: camera.far, fov: camera.fov };
+  let saved;
   const previousPosition = new THREE.Vector3(), previousTarget = new THREE.Vector3();
   let previousAutoRotate;
   const bounds = { minX: -470, maxX: 640, minZ: -880, maxZ: 880 };
   const circles = colliders.filter((item) => item.r);
   const boxes = colliders.filter((item) => !item.r);
-  const inBox = (x, z, x0, x1, z0, z1) => x > x0 && x < x1 && z > z0 && z < z1;
-  const track = { mu: 1.05, rough: 0.02, name: 'asphalt' };
-  const paved = { mu: 1, rough: 0.05, name: 'asphalt' };
-  const kerb = { mu: 0.95, rough: 0.25, name: 'kerb' };
-  const dirt = { mu: 0.72, rough: 0.45, name: 'dirt' };
+  const contact = createRoadSurface(ROAD, roadXAt, JUB.terrace);
+  const neighbours = [];
   const env = {
-    grip(x, z) {
-      const offset = Math.abs(x - roadXAt(z));
-      if (offset < 9.3 || (Math.abs(z - ROAD.Zi) < 9.3 && x > -470)) return track;
-      if (inBox(x, z, 14, 360, -495, -200) || inBox(x, z, 16, 222, 278, 462)) return paved;
-      return offset < 12.6 ? kerb : dirt;
-    },
-    groundY(x, z) {
-      const terrace = JUB.terrace;
-      if (!terrace) return 0;
-      const edge = Math.max(Math.abs(x - terrace.c.x) - terrace.hx, Math.abs(z - terrace.c.z) - terrace.hz);
-      return terrace.h * (1 - Math.max(0, Math.min(1, edge / 5)));
-    },
+    tyreContact: contact,
+    groundY: (x, z) => contact(x, z).height,
+    autoShift: false,
     respawn(d) {
       const z = Math.max(-860, Math.min(860, d.z));
       return { x: roadXAt(z) - 5.5, z, yaw: 0 };
@@ -120,15 +109,20 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     $('views').open = $('sceneSettings').open = false;
     previousPosition.copy(camera.position);
     previousTarget.copy(controls.target);
+    saved = { near: camera.near, far: camera.far, fov: camera.fov };
     previousAutoRotate = controls.autoRotate;
     controls.autoRotate = false;
     for (const v of Object.values(vehicles)) scene.remove(v.root);
     const vehicle = getVehicle(carId);
     scene.add(vehicle.root);
-    env.collide = drive.makeCollider({
-      bounds, circles, boxes, carR: vehicle.spec.width * 0.48,
-      carHalf: vehicle.dims.length * 0.5 - vehicle.spec.width * 0.48,
-    });
+    const carR = vehicle.spec.width * 0.48, carHalf = vehicle.dims.length * 0.5 - carR;
+    const staticCollision = drive.makeCollider({ bounds, circles, boxes, carR, carHalf });
+    env.collide = (x, z, yaw) => {
+      const ground = staticCollision(x, z, yaw);
+      const moving = trafficContact(neighbours, x, z, yaw, carHalf, carR);
+      return moving && (!ground || moving.depth > ground.depth) ? moving : ground;
+    };
+    neighbours.length = 0;
     if (!ctrl) {
       ctrl = new drive.DriveController({ THREE, scene, camera, dom: renderer.domElement, vehicle, audio, env, onEvent });
       hud = drive.createHud($('stage'));
@@ -157,7 +151,7 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     if (document.body.dataset.sceneState !== 'ready') return;
     try {
       start(spawn);
-      showStatus(matchMedia('(pointer: coarse)').matches ? 'Use the pedals and arrows below.' : 'W to go, S to brake, V to shift.');
+      showStatus(matchMedia('(pointer: coarse)').matches ? 'Slide to steer. Stop before shifting.' : 'W to go, S to brake, V to shift. C changes the camera.');
     } catch {
       stop();
       showStatus('The car couldn’t start. The tour is still available.');
@@ -171,6 +165,7 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     audio.cabin = 0;
     hud.el.hidden = $('drivebar').hidden = true;
     document.body.classList.remove('driving');
+    delete document.body.dataset.driveCamera;
     camera.near = saved.near; camera.far = saved.far; camera.fov = saved.fov;
     camera.position.copy(previousPosition); camera.updateProjectionMatrix();
     controls.target.copy(previousTarget);
@@ -181,7 +176,10 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     $('takeWheel').focus({ preventScroll: true });
   }
   function onEvent(type, value) {
-    if (type === 'camera') $('dCam').textContent = 'Camera: ' + { chase: 'Chase', far: 'Far chase', cabin: 'Cockpit', hood: 'Bonnet', cine: 'Cinematic', drone: 'Drone' }[value];
+    if (type === 'camera') {
+      $('dCam').value = value;
+      document.body.dataset.driveCamera = value;
+    }
     if (type === 'lights') $('dLights').setAttribute('aria-pressed', !!value.head);
     if (type === 'direction') {
       $('dShift').textContent = value ? 'Shift to drive' : 'Shift to reverse';
@@ -191,7 +189,10 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   }
 
   $('dExit').addEventListener('click', stop);
-  $('dCam').addEventListener('click', () => ctrl.cycleCamera());
+  $('dCam').addEventListener('change', (e) => {
+    ctrl.cycleCamera(e.target.value);
+    renderer.domElement.focus({ preventScroll: true });
+  });
   $('dLights').addEventListener('click', () => ctrl.toggle('head'));
   $('dMute').addEventListener('click', () => {
     audio.setMuted(!audio.muted);
@@ -200,8 +201,12 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
     if (!audio.muted) void audio.unlock().catch(() => {});
   });
   $('dShift').addEventListener('click', () => { ctrl.shiftDirection(); renderer.domElement.focus({ preventScroll: true }); });
-  $('dJub').addEventListener('click', () => { const p = spots.jubilee(); ctrl.place(p.x, p.z, p.yaw); });
-  $('dTmp').addEventListener('click', () => { const p = spots.temple(); ctrl.place(p.x, p.z, p.yaw); });
+  function visit(p) {
+    ctrl.place(p.x, p.z, p.yaw);
+    renderer.domElement.focus({ preventScroll: true });
+  }
+  $('dJub').addEventListener('click', () => visit(spots.jubilee()));
+  $('dTmp').addEventListener('click', () => visit(spots.temple()));
   $('dKeys').addEventListener('click', () => {
     const keys = $('dKeyList');
     keys.hidden = !keys.hidden;
@@ -212,6 +217,7 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   return {
     get active() { return active; },
     get motion() { return active ? ctrl.dyn : null; },
+    get position() { return active ? ctrl.vehicle.root.position : null; },
     stop,
     open(auto) {
       if (auto) return startAfterPaint(params.get('at') === 'temple' ? spots.temple() : spots.road());
@@ -227,8 +233,18 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
         ctrl.vehicle.state._autoLit = true;
         if (!ctrl.vehicle.state.head) ctrl.toggle('head');
       }
+      neighbours.length = 0;
+      if (traffic.enabled) for (const car of traffic.vehicles) {
+        const dx = car.display.x - ctrl.dyn.x, dz = car.display.z - ctrl.dyn.z;
+        if (dx * dx + dz * dz < 20 ** 2) neighbours.push(car);
+      }
       ctrl.update(dt);
       const position = ctrl.vehicle.root.position;
+      const nearJubilee = Math.abs(position.z + 345) < 65 && position.x > 17;
+      const nearTemple = Math.abs(position.z - TMP.pos.z) < 65 && position.x > 13;
+      const name = nearJubilee ? 'Jubilee House' : nearTemple ? 'Accra Ghana Temple' :
+        Math.abs(position.z - ROAD.Zi) < 18.5 && Math.abs(position.x - ROAD.Xc) > 9 ? 'Independence Avenue' : 'Liberation Road';
+      if ($('dLocation').textContent !== name) $('dLocation').textContent = name;
       controls.target.copy(position);
       for (const gate of gates) {
         const near = (gate.at.x - position.x) ** 2 + (gate.at.z - position.z) ** 2 < 45 ** 2;

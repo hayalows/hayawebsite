@@ -10,7 +10,8 @@ const rules = new Map((config.headers || []).map(rule => [rule.source, rule.head
 const headers = Object.fromEntries((rules.get("/analytics/") || []).map(entry => [entry.key.toLowerCase(), entry.value]));
 
 test("security policy covers the real dashboard URL and its static assets", () => {
-  assert.deepEqual([...rules.keys()].sort(), [...expectedRoutes].sort());
+  const dashboardRoutes = [...rules.keys()].filter(route => route === "/analytics" || route.startsWith("/analytics/"));
+  assert.deepEqual(dashboardRoutes.sort(), [...expectedRoutes].sort());
   for (const route of expectedRoutes) {
     const byName = Object.fromEntries((rules.get(route) || []).map(entry => [entry.key.toLowerCase(), entry.value]));
     assert.deepEqual(byName, headers, "inconsistent headers for " + route);

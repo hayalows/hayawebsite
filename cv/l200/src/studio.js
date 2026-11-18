@@ -10,6 +10,7 @@ import { DriveController, makeCollider, createHud, createTouch, HUD_CSS } from '
 import { buildShowroom, buildCourse } from './world.js';
 
 const vehicleThree = {
+  DoubleSide: THREE.DoubleSide,
   BoxGeometry: THREE.BoxGeometry, BufferAttribute: THREE.BufferAttribute, BufferGeometry: THREE.BufferGeometry,
   CanvasTexture: THREE.CanvasTexture, CircleGeometry: THREE.CircleGeometry, Color: THREE.Color,
   ColorManagement: THREE.ColorManagement, CylinderGeometry: THREE.CylinderGeometry, ExtrudeGeometry: THREE.ExtrudeGeometry,
@@ -184,11 +185,11 @@ function startInterior() {
   const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(v.root.getWorldQuaternion(new THREE.Quaternion()));
   moveCamera(eye.clone().addScaledVector(fwd, -0.02), eye.clone().addScaledVector(fwd, 0.4), true);
   $$('[data-cam]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.cam === 'interior'));
-  v.state.interiorGlow = 1;
+  v.setCabinView(true);
 }
 function stopInterior(fly = true) {
   if (!interiorOn) return; interiorOn = false;
-  controls.minDistance = 4; controls.maxDistance = 18; camera.near = 0.1; camera.updateProjectionMatrix(); car().state.interiorGlow = 0;
+  controls.minDistance = 4; controls.maxDistance = 18; camera.near = 0.1; camera.updateProjectionMatrix(); car().setCabinView(false);
   if (fly) flyTo('hero');
 }
 let spin = !shell.reducedMotion.matches && store.get('pkm.drive.spin', false) === true;

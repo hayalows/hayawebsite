@@ -1,4 +1,5 @@
 import './three-r128.min.js';
+import { sampleArc } from './motion.js?v=1';
 
 export async function startAccra(shell) {
 const THREE = window.THREE;
@@ -2222,7 +2223,7 @@ function vehicleGeo(kind) {
     parts.push(tint(box(5.2, 0.18, P.w + 0.14, 0, 1.0, 0), 0xf2c200));
   }
   const g = merge(parts);
-  return { geo: g, len: P.body[1][0] - P.body[0][0], front: fx };
+  return { geo: g, len: P.body[1][0] - P.body[0][0], front: fx, radius: P.w * 0.48 };
 }
 
 BUILD.push(['Starting the traffic', function buildTraffic() {
@@ -2249,6 +2250,8 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
       const kind = rand() < 0.18 ? 'bus' : rand() < 0.35 ? 'suv' : 'sedan';
       const v = { lane, kind, idx: count[kind]++, s: (i + rand() * 0.6) / n * lane.len, v: 10, v0: rr(11, 15.5), color: pick(palette), pos: new THREE.Vector3(), yaw: 0 };
       if (kind === 'bus') v.color = pick([0xf2f2f0, 0xe8e4da, 0xd9d4c4]);
+      v.length = kinds[kind].len; v.radius = kinds[kind].radius;
+      v.previous = new THREE.Vector3(); v.display = new THREE.Vector3();
       lane.list.push(v); TRAFFIC.vehicles.push(v);
     }
   });
@@ -2291,67 +2294,83 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
 
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), up = new THREE.Vector3(0, 1, 0);
   const ahead = new THREE.Vector3();
+  function trafficPose(v, lane) {
+    const a = lane.pos(clamp(v.s - 1.5, 0, lane.len));
+    ahead.copy(lane.pos(clamp(v.s + 1.5, 0, lane.len)));
+    v.yaw = Math.atan2((a.z - ahead.z) * lane.dir, (ahead.x - a.x) * lane.dir);
+    v.pos.copy(lane.pos(v.s)).setY(0.03);
+  }
+  for (const v of TRAFFIC.vehicles) {
+    trafficPose(v, v.lane);
+    v.display.copy(v.pos); v.previous.copy(v.pos);
+    v.previousYaw = v.displayYaw = v.yaw;
+  }
   let trafficStep = 0;
+  const step = 1 / 30;
   UPDATERS.push((dt) => {
     if (!TRAFFIC.enabled) return;
     trafficStep += dt;
-    if (trafficStep < 1 / 30) return;
-    dt = Math.min(trafficStep, 0.1);
-    trafficStep = 0;
-    const player = driveMode?.motion;
-    TRAFFIC.clock = (TRAFFIC.clock + dt) % total;
-    let acc = 0; state.ns = 'r'; state.ew = 'r';
-    for (const [g, s, d] of CYCLE) { if (TRAFFIC.clock < acc + d) { if (g !== 'all') state[g] = s; break; } acc += d; }
-    setLamp('ns', state.ns); setLamp('ew', state.ew);
+    while (trafficStep >= step) {
+      trafficStep -= step;
+      const player = driveMode?.motion;
+      TRAFFIC.clock = (TRAFFIC.clock + step) % total;
+      let acc = 0; state.ns = 'r'; state.ew = 'r';
+      for (const [g, s, d] of CYCLE) { if (TRAFFIC.clock < acc + d) { if (g !== 'all') state[g] = s; break; } acc += d; }
+      setLamp('ns', state.ns); setLamp('ew', state.ew);
 
-    for (const lane of TRAFFIC.lanes) {
-      const prog = (v) => (lane.dir > 0 ? v.s : lane.len - v.s);
-      lane.list.sort((a, b) => prog(a) - prog(b));
-      const n = lane.list.length;
-      const stopProg = lane.dir > 0 ? lane.stop : lane.len - lane.stop;
-      for (let i = 0; i < n; i++) {
-        const v = lane.list[i], lead = lane.list[(i + 1) % n];
-        let gap = prog(lead) - prog(v); if (gap <= 0) gap += lane.len;
-        gap -= (kinds[v.kind].len + kinds[lead.kind].len) / 2;
-        let target = Math.min(v.v0, Math.max(0, (gap - 2.5) / 1.3));
-        if (player) {
-          const x = player.x - v.pos.x, z = player.z - v.pos.z;
-          const cos = Math.cos(v.yaw), sin = Math.sin(v.yaw);
-          const ahead = x * cos - z * sin;
-          if (ahead > 0 && ahead < 40 && Math.abs(x * sin + z * cos) < 2.8) {
-            target = Math.min(target, Math.max(0, (ahead - 5) / 1.5));
+      for (const lane of TRAFFIC.lanes) {
+        const prog = (v) => (lane.dir > 0 ? v.s : lane.len - v.s);
+        lane.list.sort((a, b) => prog(a) - prog(b));
+        const n = lane.list.length;
+        const stopProg = lane.dir > 0 ? lane.stop : lane.len - lane.stop;
+        for (let i = 0; i < n; i++) {
+          const v = lane.list[i], lead = lane.list[(i + 1) % n];
+          let gap = prog(lead) - prog(v); if (gap <= 0) gap += lane.len;
+          gap -= (kinds[v.kind].len + kinds[lead.kind].len) / 2;
+          let target = Math.min(v.v0, Math.max(0, (gap - 2.5) / 1.3));
+          if (player) {
+            const x = player.x - v.pos.x, z = player.z - v.pos.z;
+            const cos = Math.cos(v.yaw), sin = Math.sin(v.yaw);
+            const ahead = x * cos - z * sin;
+            if (ahead > 0 && ahead < 40 && Math.abs(x * sin + z * cos) < 2.8) {
+              target = Math.min(target, Math.max(0, (ahead - 5) / 1.5));
+            }
+          }
+          const toStop = stopProg - prog(v) - kinds[v.kind].len / 2;
+          if (state[lane.group] !== 'g' && toStop > -0.5 && toStop < 60) {
+            // stop if we can; on amber, carry on when too close to brake comfortably
+            const canStop = state[lane.group] === 'r' || toStop > v.v * v.v / (2 * 4.5);
+            if (canStop) target = Math.min(target, Math.max(0, (toStop - 0.5) / 1.6));
+          }
+          const dv = target - v.v;
+          v.v = Math.max(0, v.v + clamp(dv, -7 * step, 2.6 * step));
+          v.s += v.v * step * lane.dir;
+          if (v.s > lane.len) v.s -= lane.len; if (v.s < 0) v.s += lane.len;
+        }
+        for (const v of lane.list) {
+          v.previous.copy(v.pos); v.previousYaw = v.yaw;
+          trafficPose(v, lane);
+          if (v.pos.distanceToSquared(v.previous) > 100) {
+            v.previous.copy(v.pos); v.previousYaw = v.yaw;
           }
         }
-        const toStop = stopProg - prog(v) - kinds[v.kind].len / 2;
-        if (state[lane.group] !== 'g' && toStop > -0.5 && toStop < 60) {
-          // stop if we can; on amber, carry on when too close to brake comfortably
-          const canStop = state[lane.group] === 'r' || toStop > v.v * v.v / (2 * 4.5);
-          if (canStop) target = Math.min(target, Math.max(0, (toStop - 0.5) / 1.6));
-        }
-        const dv = target - v.v;
-        v.v = Math.max(0, v.v + clamp(dv, -7 * dt, 2.6 * dt));
-        v.s += v.v * dt * lane.dir;
-        if (v.s > lane.len) v.s -= lane.len; if (v.s < 0) v.s += lane.len;
-      }
-      for (const v of lane.list) {
-        const p = lane.pos(v.s);
-        const a = lane.pos(clamp(v.s - 1.5, 0, lane.len)); ahead.copy(lane.pos(clamp(v.s + 1.5, 0, lane.len)));
-        const dx = (ahead.x - a.x) * lane.dir, dz = (ahead.z - a.z) * lane.dir;
-        v.yaw = Math.atan2(-dz, dx);
-        v.pos.set(p.x, 0.03, p.z);
       }
     }
+    const lerpFactor = clamp(trafficStep / step, 0, 1);
     const hp = headGeo.attributes.position.array, tp = tailGeo.attributes.position.array;
     TRAFFIC.vehicles.forEach((v, i) => {
-      q.setFromAxisAngle(up, v.yaw);
-      m4.compose(v.pos, q, one);
+      const turn = v.yaw - v.previousYaw;
+      v.displayYaw = v.previousYaw + Math.atan2(Math.sin(turn), Math.cos(turn)) * lerpFactor;
+      v.display.copy(v.previous).lerp(v.pos, lerpFactor);
+      q.setFromAxisAngle(up, v.displayYaw);
+      m4.compose(v.display, q, one);
       meshes[v.kind].setMatrixAt(v.idx, m4);
-      const K = kinds[v.kind], c = Math.cos(v.yaw), s = Math.sin(v.yaw), hw = 0.6;
+      const K = kinds[v.kind], c = Math.cos(v.displayYaw), s = Math.sin(v.displayYaw), hw = 0.6;
       // local +x is forward → world (c, 0, −s); local z → world (s, 0, c)
       for (let k = 0; k < 2; k++) {
         const lz = k ? hw : -hw;
-        hp[i * 6 + k * 3] = v.pos.x + c * (K.front + 0.3) + s * lz; hp[i * 6 + k * 3 + 1] = 0.75; hp[i * 6 + k * 3 + 2] = v.pos.z - s * (K.front + 0.3) + c * lz;
-        tp[i * 6 + k * 3] = v.pos.x - c * (K.len / 2 + 0.1) + s * lz; tp[i * 6 + k * 3 + 1] = 0.85; tp[i * 6 + k * 3 + 2] = v.pos.z + s * (K.len / 2 + 0.1) + c * lz;
+        hp[i * 6 + k * 3] = v.display.x + c * (K.front + 0.3) + s * lz; hp[i * 6 + k * 3 + 1] = 0.75; hp[i * 6 + k * 3 + 2] = v.display.z - s * (K.front + 0.3) + c * lz;
+        tp[i * 6 + k * 3] = v.display.x - c * (K.len / 2 + 0.1) + s * lz; tp[i * 6 + k * 3 + 1] = 0.85; tp[i * 6 + k * 3 + 2] = v.display.z + s * (K.len / 2 + 0.1) + c * lz;
       }
     });
     headGeo.attributes.position.needsUpdate = true; tailGeo.attributes.position.needsUpdate = true;
@@ -2466,17 +2485,26 @@ function buildTour() {
   }
   const pc = new THREE.CatmullRomCurve3(K.map((k) => k.p), false, 'centripetal');
   const tc = new THREE.CatmullRomCurve3(K.map((k) => k.t), false, 'centripetal');
-  return { pc, tc, caps: K.map((k, i) => ({ u: i / (K.length - 1), cap: k.cap })).filter((c) => c.cap), dur: 62 };
+  const arc = sampleArc((t) => pc.getPoint(t));
+  const caps = K.flatMap((k, i) => k.cap ? [{ progress: arc.progressAt(i / (K.length - 1)), cap: k.cap }] : []);
+  return { pc, tc, arc, caps, duration: 64 };
 }
 let TOUR_DATA = null;
+function seekTour(progress, duration) {
+  tour.progress = clamp(progress, 0, 1);
+  tour.transition = shell.reducedMotion.matches ? null : {
+    position: camera.position.clone(), target: controls.target.clone(), started: performance.now(), duration,
+  };
+}
 function startTour() {
   if (!TOUR_DATA) TOUR_DATA = buildTour();
   $('views').open = false;
   flight = null;
   controls.enabled = false;
-  const now = performance.now();
   const manual = shell.reducedMotion.matches;
-  tour = { start: now, u: 0, paused: manual, lastCap: -1, pausedAt: now, manual };
+  tour = { progress: 0, paused: manual, index: -1, manual, orbit: controls.autoRotate, lastTime: performance.now() };
+  controls.autoRotate = false;
+  seekTour(0, 1500);
   $('tour').classList.add('on'); $('tour').textContent = manual ? 'Tour open' : 'Pause tour';
   $('tour').setAttribute('aria-pressed', 'true');
   $('info').classList.add('hide');
@@ -2485,7 +2513,8 @@ function startTour() {
 }
 function stopTour(arrived = false) {
   if (!tour) return;
-  const chapter = TOUR_DATA.caps.find((stop) => stop.u === tour.lastCap)?.cap[0];
+  const chapter = TOUR_DATA.caps[tour.index]?.cap[0];
+  controls.autoRotate = tour.orbit;
   tour = null;
   controls.enabled = true;
   controls.update();
@@ -2504,28 +2533,21 @@ function toggleTour() {
   if (!tour) return startTour();
   if (tour.manual) return stopTour();
   tour.paused = !tour.paused;
-  if (tour.paused) { tour.pausedAt = performance.now(); $('tour').textContent = 'Resume tour'; }
-  else { tour.start += performance.now() - tour.pausedAt; $('tour').textContent = 'Pause tour'; }
+  tour.lastTime = performance.now();
+  $('tour').textContent = tour.paused ? 'Resume tour' : 'Pause tour';
 }
 function goToChapter(direction) {
   if (!tour) return;
   const caps = TOUR_DATA.caps;
-  const index = caps.findIndex((c) => c.u === tour.lastCap);
-  const stop = caps[clamp(index + direction, 0, caps.length - 1)];
-  const now = performance.now();
-  // Invert the playback easing so the selected caption starts at its own stop.
-  let lo = 0, hi = 1;
-  for (let i = 0; i < 16; i++) {
-    const mid = (lo + hi) / 2;
-    if (easeIO(mid) * 0.12 + mid * 0.88 < stop.u) lo = mid; else hi = mid;
-  }
-  tour.u = hi;
-  tour.start = now - tour.u * TOUR_DATA.dur * 1000;
-  tour.pausedAt = now;
+  const index = clamp(tour.index + direction, 0, caps.length - 1);
+  seekTour(caps[index].progress, 840);
 }
 $('tour').addEventListener('click', toggleTour);
 $('prevChapter').addEventListener('click', () => goToChapter(-1));
 $('nextChapter').addEventListener('click', () => goToChapter(1));
+$('tourSeek').addEventListener('input', (event) => {
+  if (tour) seekTour(Number(event.target.value) / 1000, 500);
+});
 $('exitTour').addEventListener('click', () => { stopTour(); $('tour').focus(); });
 renderer.domElement.addEventListener('pointerdown', () => { if (tour) stopTour(); hideHint(); });
 renderer.domElement.addEventListener('wheel', () => { if (tour) stopTour(); hideHint(); }, { passive: true });
@@ -2535,21 +2557,38 @@ const _tp = new THREE.Vector3(), _tt = new THREE.Vector3();
 function updateCameraRig(now) {
   if (driveMode?.active) return driveMode.frame(now);
   if (tour) {
-    if (!tour.paused) tour.u = clamp((now - tour.start) / (TOUR_DATA.dur * 1000), 0, 1);
-    const u = easeIO(tour.u) * 0.12 + tour.u * 0.88; // gentle ease-in/out at the ends
-    TOUR_DATA.pc.getPoint(u, _tp); TOUR_DATA.tc.getPoint(u, _tt);
-    camera.position.copy(_tp); controls.target.copy(_tt); camera.lookAt(_tt);
-    let cap = null;
-    for (const c of TOUR_DATA.caps) if (u >= c.u - 0.005) cap = c;
-    if (cap && cap.u !== tour.lastCap) {
-      tour.lastCap = cap.u;
-      $('capT').textContent = cap.cap[0]; $('capS').textContent = cap.cap[1];
-      const index = TOUR_DATA.caps.indexOf(cap);
-      $('prevChapter').disabled = index === 0;
-      $('nextChapter').disabled = index === TOUR_DATA.caps.length - 1;
+    const elapsed = Math.max(0, Math.min(0.1, (now - tour.lastTime) / 1000));
+    tour.lastTime = now;
+    if (!tour.paused && !tour.transition) {
+      const endEase = clamp((1 - tour.progress) * 12, 0, 1);
+      tour.progress = clamp(tour.progress + elapsed * (0.43 + 0.57 * endEase) / TOUR_DATA.duration, 0, 1);
     }
-    $('capBar').style.width = (tour.u * 100).toFixed(1) + '%';
-    if (tour.u >= 1) stopTour(true);
+    const parameter = TOUR_DATA.arc.parameterAt(tour.progress);
+    TOUR_DATA.pc.getPoint(parameter, _tp);
+    TOUR_DATA.tc.getPoint(parameter, _tt);
+    if (camera.aspect < 0.9) _tp.sub(_tt).multiplyScalar(clamp(0.9 / camera.aspect, 1, 1.32)).add(_tt);
+    if (tour.transition) {
+      const { position, target, started, duration } = tour.transition;
+      const t = clamp((now - started) / duration, 0, 1);
+      const blend = t * t * t * (t * (t * 6 - 15) + 10);
+      _tp.lerp(position, 1 - blend);
+      _tt.lerp(target, 1 - blend);
+      if (t === 1) tour.transition = null;
+    }
+    camera.position.copy(_tp); controls.target.copy(_tt); camera.lookAt(_tt);
+    const { caps } = TOUR_DATA;
+    let index = 0;
+    for (let i = 1; i < caps.length; i++) if (tour.progress >= caps[i].progress - 0.00001) index = i;
+    if (index !== tour.index) {
+      tour.index = index;
+      $('capT').textContent = caps[index].cap[0]; $('capS').textContent = caps[index].cap[1];
+      $('prevChapter').disabled = index === 0;
+      $('nextChapter').disabled = index === caps.length - 1;
+      $('tourChapter').textContent = `${index + 1} of ${caps.length}`;
+    }
+    const seek = String(Math.round(tour.progress * 1000));
+    if ($('tourSeek').value !== seek) $('tourSeek').value = seek;
+    if (tour.progress >= 1 && !tour.manual && !tour.transition) stopTour(true);
     return true;
   }
   if (flight) {
@@ -2623,6 +2662,17 @@ function drawMini() {
   if (!miniBase) return;
   const g = MINI.c.getContext('2d'), W = MINI.c.width;
   g.drawImage(miniBase, 0, 0);
+  const car = driveMode?.position;
+  if (car) {
+    const [x, y] = m2c(car.x, car.z);
+    g.save();
+    g.translate(clamp(x, 13, W - 13), clamp(y, 13, W - 13));
+    g.rotate(Math.PI - driveMode.motion.yaw);
+    g.fillStyle = '#f6d88e'; g.strokeStyle = '#191811'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(0, -15); g.lineTo(9, 10); g.lineTo(0, 6); g.lineTo(-9, 10); g.closePath();
+    g.fill(); g.stroke(); g.restore();
+    return;
+  }
   const [cx, cy] = m2c(camera.position.x, camera.position.z), [tx, ty] = m2c(controls.target.x, controls.target.z);
   const a = Math.atan2(ty - cy, tx - cx), fov = 0.55;
   const grd = g.createRadialGradient(cx, cy, 0, cx, cy, 120);
@@ -2729,7 +2779,10 @@ function loop(now) {
   const raw = lastFrame === undefined ? 0 : (now - lastFrame) / 1000;
   lastFrame = now;
   if (document.hidden || raw > 0.5) {
-    if (tour && !tour.paused && raw > 0.5) tour.start += raw * 1000;
+    if (tour && raw > 0.5) {
+      tour.lastTime = now;
+      if (tour.transition) tour.transition.started += raw * 1000;
+    }
     return;
   }
   const driving = driveMode?.active;
@@ -2746,7 +2799,7 @@ function loop(now) {
   renderer.render(scene, camera);
   tick++;
   if (!driving && (tick % 3 === 0 || sceneDirty)) updateLabels();
-  if (innerWidth > 900 && (tick % 4 === 0 || sceneDirty)) drawMini();
+  if ((driving || innerWidth > 900) && (tick % 4 === 0 || sceneDirty)) drawMini();
   sceneDirty = false;
   nowSecond += raw; frames++;
   if (nowSecond >= 1.5) {
@@ -2772,7 +2825,21 @@ const detailReady = (async () => {
   const material = new THREE.PointsMaterial({ map: TEX.glow, size: 7, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd9a0 });
   const glows = new THREE.Points(geometry, material);
   scene.add(glows);
-  UPDATE_NIGHT.push((night) => { material.opacity = night; glows.visible = night > 0.01; });
+  const roadLampPools = LAMP_GLOWS.filter((p) => p.y > 8.5);
+  const poolMesh = new THREE.PlaneGeometry(10, 12); poolMesh.rotateX(-Math.PI / 2);
+  const poolMaterial = new THREE.MeshBasicMaterial({
+    map: TEX.glow, color: 0xffd49a, transparent: true, opacity: 0, depthWrite: false,
+    blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -1,
+  });
+  const pools = new THREE.InstancedMesh(poolMesh, poolMaterial, roadLampPools.length);
+  const transform = new THREE.Matrix4();
+  roadLampPools.forEach((p, i) => pools.setMatrixAt(i, transform.makeTranslation(p.x, 0.05, p.z)));
+  pools.frustumCulled = false;
+  scene.add(pools);
+  UPDATE_NIGHT.push((night) => {
+    material.opacity = night; glows.visible = night > 0.01;
+    poolMaterial.opacity = night * 0.32; pools.visible = night > 0.01;
+  });
   applyTime(TIME.elevation, true);
   cityReady = true;
   sceneDirty = true;
@@ -2788,12 +2855,12 @@ async function openDrive(auto = false) {
   button.textContent = 'Opening…';
   loadingDrive = true;
   try {
-    const { mountDrive } = await import('./drive-mode.js?v=4');
+    const { mountDrive } = await import('./drive-mode.js?v=5');
     await detailReady;
     if (!shell.running) return;
     driveMode ??= mountDrive({
       THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw,
-      colliders: DRIVE_COLLIDERS, gates: DRIVE_GATES, params, stopTour,
+      colliders: DRIVE_COLLIDERS, gates: DRIVE_GATES, traffic: TRAFFIC, params, stopTour,
     });
     await driveMode.open(auto);
   } catch {

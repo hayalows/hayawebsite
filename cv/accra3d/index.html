@@ -18,8 +18,9 @@
 <title>Liberation Road — Jubilee House to the Accra Ghana Temple</title>
 <link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/assets/posters/accra-1600.webp" imagesrcset="/assets/posters/accra-900.webp 900w, /assets/posters/accra-1600.webp 1600w" imagesizes="100vw" fetchpriority="high">
-<link rel="modulepreload" href="/assets/scene-shell.js?v=4">
-<link rel="modulepreload" href="/accra3d/scene.js?v=4">
+<link rel="modulepreload" href="/assets/scene-shell.js?v=5">
+<link rel="modulepreload" href="/accra3d/scene.js?v=5">
+<link rel="modulepreload" href="/accra3d/motion.js?v=1">
 <link rel="modulepreload" href="/accra3d/three-r128.min.js">
 <link rel="stylesheet" href="/assets/scene-shell.css?v=4">
 <style>@font-face{font-family:"Inter";src:url("/assets/fonts/inter-latin-wght.woff2") format("woff2");font-weight:100 900;font-display:swap}</style>
@@ -130,8 +131,9 @@
   #caption.show { opacity: 1; }
   #caption .t { font-family: 'Fraunces', Georgia, serif; font-size: 28px; font-weight: 600; text-shadow: 0 2px 20px rgba(0,0,0,0.55); }
   #caption .s { font-size: 14px; color: #f1e6d2; margin-top: 4px; text-shadow: 0 1px 10px rgba(0,0,0,0.7); }
-  #caption .bar { height: 3px; background: rgba(255,255,255,0.18); border-radius: 2px; margin: 14px auto 0; width: 260px; overflow: hidden; }
-  #caption .bar i { display: block; height: 100%; width: 0; background: var(--gold); }
+  .tour-track { width: min(360px, 100%); margin: 10px auto 0; display: flex; align-items: center; gap: 12px; }
+  #tourSeek { flex: 1; min-width: 0; height: 36px; margin: 0; cursor: pointer; }
+  #tourChapter { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   /* floating labels */
   #labels { position: fixed; inset: 0; pointer-events: none; }
@@ -172,6 +174,10 @@
   #info.hide { visibility: hidden; }
   #mini canvas { display: block; }
   #drivebar .keys { max-height: 30dvh; overflow: auto; }
+  #dCam { min-height: 42px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; font: 600 13px Inter, sans-serif; color: var(--text); background: #171510e6; color-scheme: dark; }
+  #dLocation { padding: 7px 11px; background: #171510e6; border: 1px solid var(--line); border-radius: 8px; color: #eddfc6; font-size: 12px; }
+  body[data-drive-camera="cabin"] .pkm-hud { opacity: .8; }
+  body.driving #mini { pointer-events: none; }
   @media (max-width: 900px) {
     .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: #171510e6; }
     #title { padding: 10px 12px; width: max-content; max-width: calc(100% - 114px); top: max(10px, env(safe-area-inset-top)); left: 10px; }
@@ -189,6 +195,11 @@
     #hint { display: none; }
     #drivebar { top: calc(82px + env(safe-area-inset-top)); left: 10px; right: 10px; }
     #drivebar .btns button { font-size: 12px; padding: 6px 9px; }
+    #dCam { font-size: 12px; }
+    body.driving #mini { display: block; right: 10px; bottom: calc(192px + env(safe-area-inset-bottom)); padding: 5px; }
+    body.driving #mini canvas { width: 94px !important; height: 94px !important; }
+    body.driving #mini .cap { display: none; }
+    #caption { padding: 12px 12px 6px; max-width: 400px; background: #171510e6; border-radius: 14px; }
   }
   @media (pointer: coarse) {
     body.driving #driveStatus { bottom: calc(168px + env(safe-area-inset-bottom)); }
@@ -282,7 +293,7 @@
 
 <section id="caption" aria-label="Tour chapter">
   <div class="t" id="capT"></div><div class="s" id="capS"></div>
-  <div class="bar" aria-hidden="true"><i id="capBar"></i></div>
+  <div class="tour-track"><input id="tourSeek" type="range" min="0" max="1000" value="0" aria-label="Tour progress"><span id="tourChapter"></span></div>
   <div id="tourNav"><button id="prevChapter">Previous</button><button id="nextChapter">Next</button><button id="exitTour">End tour</button></div>
 </section>
 <div id="hint" class="glass">Drag to orbit · right-drag to pan · scroll to zoom</div>
@@ -302,7 +313,14 @@
 <div id="drivebar" hidden>
   <div class="btns">
     <button id="dExit" class="light">← Exit drive</button>
-    <button id="dCam">Camera: Chase</button>
+    <select id="dCam" aria-label="Driving camera">
+      <option value="chase">Chase</option>
+      <option value="cabin">Cockpit</option>
+      <option value="hood">Bonnet</option>
+      <option value="far">Far chase</option>
+      <option value="drone">Drone</option>
+      <option value="cine">Cinematic</option>
+    </select>
     <button id="dLights">Lights</button>
     <button id="dMute" aria-pressed="false">Sound off</button>
     <button id="dShift" aria-pressed="false">Shift to reverse</button>
@@ -310,17 +328,19 @@
     <button id="dTmp">To the Temple</button>
     <button id="dKeys" aria-expanded="false" aria-controls="dKeyList">Controls</button>
   </div>
+  <div id="dLocation">Liberation Road</div>
   <div class="keys glass" id="dKeyList" hidden>
     <div><b>W</b><b>↑</b> go · <b>S</b><b>↓</b> brake · <b>A</b><b>D</b> steer</div>
     <div><b>Space</b> handbrake · <b>C</b> camera · <b>H</b> horn · <b>L</b> lights</div>
     <div><b>Q</b><b>E</b> indicators · <b>X</b> hazards · <b>R</b> back to the road</div>
-    <div><b>V</b> shift at a stop · gamepad <b>X</b> to shift</div>
+    <div><b>V</b> shift at a stop · <b>W</b> moves in either gear</div>
+    <div>Drag to look around the cockpit · gamepad <b>X</b> to shift</div>
   </div>
 </div>
 
 <p id="driveStatus" role="status"></p>
 </div>
-<script type="module" src="/assets/scene-shell.js?v=4"></script>
+<script type="module" src="/assets/scene-shell.js?v=5"></script>
 <script src="/analytics-tracker.js?v=3" defer></script>
 </body>
 </html>
