@@ -24,7 +24,7 @@ export function createDynamics(spec) {
     x: 0, z: 0, yaw: 0, vx: 0, vy: 0, r: 0,
     steer: 0, rpm: spec.idle, gear: 1, shiftT: 0, engine: false, starting: 0,
     throttle: 0, brake: 0, ax: 0, ay: 0, slip: 0, wheelSpin: 0, wheelSpeed: 0,
-    pitch: 0, pitchV: 0, roll: 0, rollV: 0, heave: 0, heaveV: 0,
+    pitch: 0, pitchV: 0, roll: 0, rollV: 0, heave: 0, heaveV: 0, distance: 0,
     surface: 'asphalt', hit: 0, reverse: false, lastShift: 0,
   };
 }
@@ -43,11 +43,10 @@ export function stepDynamics(s, input, env, dt) {
   const maxSteer = 0.58 / (1 + Math.pow(Math.abs(s.vx) / 14, 1.4) * 0.9);
   s.steer = damp(s.steer, input.steer * maxSteer, 7, dt);
 
-  // drive direction / reverse logic (automatic with brake-to-reverse)
-  let thr = input.throttle, brk = input.brake;
-  if (s.reverse) { if (thr > 0.05 && s.vx > -0.5) s.reverse = false; else { const t = brk; brk = thr; thr = t; } }
-  else if (brk > 0.05 && s.vx < 0.4 && thr < 0.05) { s.reverse = true; const t = brk; brk = thr; thr = t; }
-  if (!s.engine) thr = 0;
+  // The brake always resists motion. Shifting is a separate control.
+  const brk = input.brake;
+  let thr = s.engine && brk < 0.15 ? input.throttle : 0;
+  const vxBefore = s.vx;
 
   // gearbox
   const tyreR = S.tyreR, gears = S.gears;
@@ -83,7 +82,7 @@ export function stepDynamics(s, input, env, dt) {
   if (Math.abs(s.vx) < 0.15 && Math.abs(Fx) < Fb + roll) { s.vx = 0; Flong = 0; } else Flong -= resist;
 
   // load transfer
-  const Wf = s.m * g * s.b / (s.a + s.b) - s.m * s.ax * s.h / (s.a + s.b);
+  const Wf = clamp(s.m * g * s.b / (s.a + s.b) - s.m * s.ax * s.h / (s.a + s.b), s.m * g * 0.1, s.m * g * 0.9);
   const Wr = s.m * g - Wf;
   const mu = surf.mu;
   // traction circle on the driven axle (4WD split)
@@ -97,9 +96,10 @@ export function stepDynamics(s, input, env, dt) {
   const af = Math.atan2(s.vy + s.a * s.r, Math.abs(vxs)) - s.steer * Math.sign(vxs);
   const ar = Math.atan2(s.vy - s.b * s.r, Math.abs(vxs));
   const Cf = 9.5 * Wf / 1, Cr = 10.5 * Wr / 1;
-  const rearMu = input.handbrake ? mu * 0.45 : mu * (1 - 0.35 * clamp(longUsed - 0.6, 0, 1));
-  const tyre = (alpha, C, W, muE) => { const F = -C * alpha; const cap = muE * W; return Math.abs(F) > cap ? Math.sign(F) * cap * (1 - 0.15 * clamp((Math.abs(F) - cap) / cap, 0, 1)) : F; };
-  const Fyf = tyre(af, Cf, Wf, mu), Fyr = tyre(ar, Cr, Wr, rearMu);
+  const rearMu = input.handbrake ? mu * 0.45 : mu;
+  const corneringShare = Math.sqrt(1 - clamp(longUsed * 0.95, 0, 1) ** 2);
+  const tyre = (alpha, C, cap) => clamp(-C * alpha, -cap, cap);
+  const Fyf = tyre(af, Cf, mu * Wf * corneringShare), Fyr = tyre(ar, Cr, rearMu * Wr * corneringShare);
   s.slip = clamp(Math.max(Math.abs(af), Math.abs(ar)) * Math.min(1, speed / 4) * 3 + s.wheelSpin * 0.6 + (input.handbrake && speed > 3 ? 0.5 : 0), 0, 1.5);
 
   if (speed < 2.5) {
@@ -115,7 +115,8 @@ export function stepDynamics(s, input, env, dt) {
     s.vx += ax * dt; s.vy += ay * dt; s.r += rr * dt;
     s.ax = damp(s.ax, ax - s.vy * s.r, 12, dt); s.ay = damp(s.ay, ay + s.vx * s.r, 12, dt);
   }
-  s.vx = clamp(s.vx, -9, S.top);
+  if (brk > 0.15 && (vxBefore === 0 || vxBefore * s.vx < 0)) s.vx = 0;
+  s.vx = clamp(s.vx, -6, S.top);
 
   // integrate in world (forward = +z at yaw 0)
   const sin = Math.sin(s.yaw), cos = Math.cos(s.yaw);
@@ -145,7 +146,9 @@ export function stepDynamics(s, input, env, dt) {
   const pitchT = clamp(-s.ax * 0.0085, -0.06, 0.06), rollT = clamp(s.ay * 0.0072, -0.065, 0.065);
   s.pitchV += ((pitchT - s.pitch) * kP - s.pitchV * cP) * dt; s.pitch += s.pitchV * dt;
   s.rollV += ((rollT - s.roll) * kR - s.rollV * cR) * dt; s.roll += s.rollV * dt;
-  const bump = surf.rough * Math.min(1, speed / 6) * (Math.random() - 0.5) * 0.9;
+  s.distance += speed * dt;
+  const bump = surf.rough * Math.min(1, speed / 6) *
+    (Math.sin(s.distance * 13) * 0.24 + Math.sin(s.distance * 5.3) * 0.14);
   s.heaveV += ((-s.heave) * kH - s.heaveV * cH + bump * 60) * dt; s.heave += s.heaveV * dt;
   s.wheelSpeed = s.vx / tyreR + s.wheelSpin * 30 * Math.sign(thr || 1) * (s.reverse ? -1 : 1);
   s.throttle = damp(s.throttle, thr, 10, dt); s.brake = brk;

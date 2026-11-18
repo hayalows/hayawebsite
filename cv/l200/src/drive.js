@@ -4,8 +4,14 @@ import { createDynamics, stepDynamics } from './physics.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const damp = (a, b, k, dt) => b + (a - b) * Math.exp(-k * dt);
+const FIXED_STEP = 1 / 120;
+const NEUTRAL = { throttle: 0, brake: 0, steer: 0, handbrake: false };
 
 export function makeCollider({ bounds, circles = [], boxes = [], carR = 0.95, carHalf = 1.7 }) {
+  const obstacles = boxes.map((b) => ({
+    ...b, cs: Math.cos(b.rot || 0), sn: Math.sin(b.rot || 0),
+    radius: Math.hypot(b.hx, b.hz) + carR,
+  }));
   // the car is three circles along its length
   return (x, z, yaw) => {
     const fx = Math.sin(yaw), fz = Math.cos(yaw);
@@ -18,23 +24,27 @@ export function makeCollider({ bounds, circles = [], boxes = [], carR = 0.95, ca
         test(0, 1, bounds.minZ - (cz - carR)); test(0, -1, (cz + carR) - bounds.maxZ);
       }
       for (const c of circles) {
-        const dx = cx - c.x, dz = cz - c.z, d = Math.hypot(dx, dz), pen = c.r + carR - d;
-        if (pen > 0 && d > 1e-4) test(dx / d, dz / d, pen);
+        const dx = cx - c.x, dz = cz - c.z, limit = c.r + carR;
+        if (dx * dx + dz * dz >= limit * limit) continue;
+        const d = Math.hypot(dx, dz);
+        if (d > 1e-4) test(dx / d, dz / d, limit - d);
+        else test(-fx, -fz, limit);
       }
-      for (const b of boxes) {
-        const cs = Math.cos(-(b.rot || 0)), sn = Math.sin(-(b.rot || 0));
-        const lx = (cx - b.x) * cs - (cz - b.z) * sn, lz = (cx - b.x) * sn + (cz - b.z) * cs;
+      for (const b of obstacles) {
+        const bx = cx - b.x, bz = cz - b.z;
+        if (bx * bx + bz * bz >= b.radius * b.radius) continue;
+        const lx = bx * b.cs + bz * b.sn, lz = -bx * b.sn + bz * b.cs;
         const qx = clamp(lx, -b.hx, b.hx), qz = clamp(lz, -b.hz, b.hz);
         let dx = lx - qx, dz = lz - qz, d = Math.hypot(dx, dz);
         if (d < carR) {
           if (d < 1e-4) { // centre inside the box: push out on the shallow axis
             const px = b.hx - Math.abs(lx), pz = b.hz - Math.abs(lz);
-            if (px < pz) { dx = Math.sign(lx); dz = 0; d = -px; } else { dx = 0; dz = Math.sign(lz); d = -pz; }
-            const wx = dx * Math.cos(b.rot || 0) - dz * Math.sin(b.rot || 0), wz = dx * Math.sin(b.rot || 0) + dz * Math.cos(b.rot || 0);
+            if (px < pz) { dx = Math.sign(lx) || 1; dz = 0; d = -px; } else { dx = 0; dz = Math.sign(lz) || 1; d = -pz; }
+            const wx = dx * b.cs - dz * b.sn, wz = dx * b.sn + dz * b.cs;
             test(wx, wz, carR - d);
           } else {
-            const nx = dx / d, nz = dz / d, c2 = Math.cos(b.rot || 0), s2 = Math.sin(b.rot || 0);
-            test(nx * c2 - nz * s2, nx * s2 + nz * c2, carR - d);
+            const nx = dx / d, nz = dz / d;
+            test(nx * b.cs - nz * b.sn, nx * b.sn + nz * b.cs, carR - d);
           }
         }
       }
@@ -46,12 +56,18 @@ export function makeCollider({ bounds, circles = [], boxes = [], carR = 0.95, ca
 export class DriveController {
   constructor({ THREE, scene, camera, dom, vehicle, audio, env = {}, onEvent = () => {} }) {
     Object.assign(this, { THREE, scene, camera, dom, audio, env, onEvent });
+    this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     this.enabled = false; this.camMode = 'chase'; this.camModes = ['chase', 'far', 'cabin', 'hood', 'cine', 'drone'];
-    this.input = { throttle: 0, brake: 0, steer: 0, handbrake: false };
-    this.keys = new Set(); this.touch = { throttle: 0, brake: 0, steer: 0, handbrake: false };
+    this.input = { ...NEUTRAL };
+    this.keys = new Set(); this.touch = { ...NEUTRAL };
+    this.accumulator = 0;
+    this.lastPose = { x: 0, z: 0, yaw: 0 };
+    this.effectsTime = 0;
     this.camPos = new THREE.Vector3(); this.camLook = new THREE.Vector3(); this.fov = camera.fov; this.shake = 0;
     this.orbitYaw = 0; this.orbitPitch = 0; this.dragging = false; this.cine = null;
     this._tmp = new THREE.Vector3(); this._tmp2 = new THREE.Vector3(); this._q = new THREE.Quaternion();
+    this.cameraWant = new THREE.Vector3(); this.cameraTarget = new THREE.Vector3(); this.cameraHeading = new THREE.Vector3();
+    this.markMatrix = new THREE.Matrix4(); this.markScale = new THREE.Vector3(1, 1, 1);
     this.setVehicle(vehicle);
     this._initFx();
     this._bind();
@@ -59,17 +75,45 @@ export class DriveController {
 
   setVehicle(v) {
     const keep = this.dyn ? { x: this.dyn.x, z: this.dyn.z, yaw: this.dyn.yaw } : null;
+    if (this.dyn) this.toggleEngine(false);
+    this.clearInput();
     this.vehicle = v; this.dyn = createDynamics(v.spec);
     if (keep) Object.assign(this.dyn, keep);
+    Object.assign(this.lastPose, { x: this.dyn.x, z: this.dyn.z, yaw: this.dyn.yaw });
     this.audio && this.audio.setKind(v.spec.engine);
   }
-  place(x, z, yaw = 0) { Object.assign(this.dyn, { x, z, yaw, vx: 0, vy: 0, r: 0 }); this._sync(0); this.snapCamera(); }
+  place(x, z, yaw = 0) {
+    this.clearInput();
+    Object.assign(this.dyn, { x, z, yaw, vx: 0, vy: 0, r: 0, steer: 0, slip: 0, wheelSpin: 0, wheelSpeed: 0 });
+    Object.assign(this.lastPose, { x, z, yaw });
+    this._sync(0); this.snapCamera();
+  }
+
+  clearInput() {
+    this.keys.clear();
+    Object.assign(this.touch, NEUTRAL);
+    Object.assign(this.input, NEUTRAL);
+    this.dragging = false;
+    this.accumulator = 0;
+    this.resetTouch?.();
+  }
+
+  setEnabled(enabled) {
+    this.clearInput();
+    this.enabled = enabled;
+    if (enabled) this.dom.focus({ preventScroll: true });
+    else {
+      this.toggleEngine(false);
+      Object.assign(this.dyn, { vx: 0, vy: 0, r: 0, slip: 0, throttle: 0 });
+      this.audio?.update(this.dyn, this.vehicle.spec, 0);
+    }
+  }
 
   // ---------------- input ----------------
   _bind() {
     const down = (e) => {
-      if (!this.enabled) return;
-      if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+      if (!this.enabled || document.hidden || e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+      if (e.target?.closest?.('button, a, input, select, textarea, summary, [contenteditable]')) return;
       const k = e.key.toLowerCase();
       if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
       if (e.repeat) return;
@@ -81,16 +125,19 @@ export class DriveController {
       else if (k === 'x') this.toggle('hazard');
       else if (k === 'c') this.cycleCamera();
       else if (k === 'r') this.recover();
-      else if (k === 'enter' || k === 'i') this.toggleEngine();
+      else if (k === 'v') this.shiftDirection();
+      else if (k === 'i') this.toggleEngine();
     };
     const up = (e) => this.keys.delete(e.key.toLowerCase());
-    const unlock = () => { this.audio && this.audio.unlock().catch(() => {}); };
-    addEventListener('pointerdown', unlock, { passive: true }); addEventListener('keydown', unlock);
+    const unlock = () => { if (!this.audio?.muted) this.audio?.unlock().catch(() => {}); };
+    this.dom.addEventListener('pointerdown', unlock, { passive: true });
     addEventListener('keydown', down); addEventListener('keyup', up);
-    addEventListener('blur', () => this.keys.clear());
+    addEventListener('blur', () => this.clearInput());
+    document.addEventListener('visibilitychange', () => { if (document.hidden) this.clearInput(); });
     // drag to look around in chase views
     this.dom.addEventListener('pointerdown', (e) => { if (!this.enabled) return; this.dragging = true; this._px = e.clientX; this._py = e.clientY; this._lookT = 0; });
     addEventListener('pointerup', () => { this.dragging = false; });
+    addEventListener('pointercancel', () => { this.dragging = false; });
     addEventListener('pointermove', (e) => {
       if (!this.enabled || !this.dragging) return;
       this.orbitYaw -= (e.clientX - this._px) * 0.006; this.orbitPitch = clamp(this.orbitPitch + (e.clientY - this._py) * 0.004, -0.3, 0.9);
@@ -98,7 +145,7 @@ export class DriveController {
     });
   }
   setTouch(part) { Object.assign(this.touch, part); }
-  _readInput(dt) {
+  _readInput() {
     const k = this.keys, t = this.touch;
     let thr = (k.has('w') || k.has('arrowup')) ? 1 : t.throttle;
     let brk = (k.has('s') || k.has('arrowdown')) ? 1 : t.brake;
@@ -113,8 +160,12 @@ export class DriveController {
       if (p.buttons[0] && p.buttons[0].pressed) hb = true;
       if (p.buttons[3] && p.buttons[3].pressed && !this._padY) this.cycleCamera(); this._padY = p.buttons[3] && p.buttons[3].pressed;
       if (p.buttons[1] && p.buttons[1].pressed && !this._padB) this.horn(); this._padB = p.buttons[1] && p.buttons[1].pressed;
+      if (p.buttons[2]?.pressed && !this._padX) this.shiftDirection(); this._padX = p.buttons[2]?.pressed;
+      break;
     }
-    // smooth digital input (feels like a pedal and a wheel)
+    return { thr, brk, st, hb };
+  }
+  _smoothInput({ thr, brk, st, hb }, dt) {
     const I = this.input;
     I.throttle = damp(I.throttle, thr, thr > I.throttle ? 5 : 9, dt);
     I.brake = damp(I.brake, brk, 10, dt);
@@ -133,23 +184,57 @@ export class DriveController {
     return s[what];
   }
   horn() {
-    this.audio && this.audio.horn(this.vehicle.spec, 0.45);
+    if (this.audio && !this.audio.muted) void this.audio.unlock().then(() => this.audio.horn(this.vehicle.spec, 0.45)).catch(() => {});
     const now = performance.now(); this._horns = (this._horns || []).filter((t) => now - t < 1600); this._horns.push(now);
     this.onEvent('horn', this._horns.length);
   }
-  async toggleEngine(force) {
-    const d = this.dyn, on = force ?? !d.engine;
-    if (on === d.engine) return on;
-    if (on) {
-      if (this.audio) { this.audio.unlock().then(() => this.audio.starter(this.vehicle.spec)).catch(() => {}); }
-      d.starting = 0.9;
-      setTimeout(() => { d.engine = true; d.rpm = this.vehicle.spec.idle * 1.9; this.onEvent('engine', true); }, 750);
-    } else { d.engine = false; this.onEvent('engine', false); }
+  toggleEngine(force) {
+    const d = this.dyn, on = force ?? !(d.engine || this.startTimer);
+    if (on && (d.engine || this.startTimer)) return true;
+    if (!on) {
+      clearTimeout(this.startTimer);
+      this.startTimer = null;
+      this.stopStarter?.();
+      this.stopStarter = null;
+      d.engine = false;
+      d.starting = 0;
+      this.audio?.update(d, this.vehicle.spec, 0);
+      this.onEvent('engine', 'off');
+      return false;
+    }
+    const spec = this.vehicle.spec;
+    this.startTimer = setTimeout(() => {
+      this.startTimer = null;
+      d.engine = true;
+      d.starting = 0;
+      d.rpm = spec.idle * 1.4;
+      this.onEvent('engine', 'running');
+    }, 650);
+    d.starting = 0.65;
+    const timer = this.startTimer;
+    if (this.audio && !this.audio.muted) {
+      void this.audio.unlock().then(() => {
+        if (this.startTimer === timer) this.stopStarter = this.audio.starter(spec);
+      }).catch(() => {});
+    }
+    this.onEvent('engine', 'starting');
     return on;
+  }
+  shiftDirection() {
+    if (Math.hypot(this.dyn.vx, this.dyn.vy) > 0.4 || this.input.throttle > 0.08) {
+      this.onEvent('shift-blocked');
+      return false;
+    }
+    this.clearInput();
+    this.dyn.reverse = !this.dyn.reverse;
+    this.dyn.gear = 1;
+    this.onEvent('direction', this.dyn.reverse);
+    return true;
   }
   cycleCamera(mode) {
     const i = this.camModes.indexOf(this.camMode);
-    this.camMode = mode || this.camModes[(i + 1) % this.camModes.length];
+    const next = this.camModes[(i + 1) % this.camModes.length];
+    this.camMode = mode || (next === 'cine' && this.reducedMotion.matches ? 'drone' : next);
     this.cine = null; this.orbitYaw = 0; this.orbitPitch = 0; this.snapCamera();
     if (this.audio) this.audio.cabin = this.camMode === 'cabin' ? 1 : 0;
     this.onEvent('camera', this.camMode);
@@ -161,12 +246,12 @@ export class DriveController {
   _initFx() {
     const THREE = this.THREE, N = 260;
     const g = new THREE.BufferGeometry();
-    this.pPos = new Float32Array(N * 3); this.pVel = new Float32Array(N * 3); this.pLife = new Float32Array(N); this.pSize = new Float32Array(N);
+    this.pPos = new Float32Array(N * 3); this.pVel = new Float32Array(N * 3); this.pLife = new Float32Array(N);
     g.setAttribute('position', new THREE.BufferAttribute(this.pPos, 3));
     const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
     const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
     this.dustMat = new THREE.PointsMaterial({ size: 1.6, map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, opacity: 0.55, color: 0xb59a78, sizeAttenuation: true });
-    this.dust = new THREE.Points(g, this.dustMat); this.dust.frustumCulled = false; this.scene.add(this.dust);
+    this.dust = new THREE.Points(g, this.dustMat); this.dust.frustumCulled = false; this.dust.visible = false; this.scene.add(this.dust);
     for (let i = 0; i < N; i++) this.pPos[i * 3 + 1] = -100;
     this.pIdx = 0;
     // skid marks
@@ -189,61 +274,85 @@ export class DriveController {
   }
   _fx(dt) {
     const N = this.pLife.length;
+    let changed = false, visible = false;
     for (let i = 0; i < N; i++) {
       if (this.pLife[i] <= 0) continue;
+      changed = true;
       this.pLife[i] -= dt;
       this.pPos[i * 3] += this.pVel[i * 3] * dt; this.pPos[i * 3 + 1] += this.pVel[i * 3 + 1] * dt; this.pPos[i * 3 + 2] += this.pVel[i * 3 + 2] * dt;
-      this.pVel[i * 3 + 1] *= 0.97;
+      this.pVel[i * 3 + 1] *= Math.exp(-1.8 * dt);
       if (this.pLife[i] <= 0) this.pPos[i * 3 + 1] = -100;
+      else visible = true;
     }
-    this.dust.geometry.attributes.position.needsUpdate = true;
+    if (changed) this.dust.geometry.attributes.position.needsUpdate = true;
+    this.dust.visible = visible;
   }
 
   // ---------------- main update ----------------
   update(dt) {
-    if (!this.enabled) return;
-    dt = Math.min(dt, 0.05);
-    this._readInput(dt);
-    const d = this.dyn, v = this.vehicle, THREE = this.THREE;
-    const sub = 4; for (let i = 0; i < sub; i++) stepDynamics(d, this.input, this.env, dt / sub);
+    if (!this.enabled || document.hidden) return;
+    dt = Math.min(dt, 0.1);
+    const d = this.dyn, v = this.vehicle;
+    const rawInput = this._readInput();
+    this.accumulator += dt;
+    while (this.accumulator >= FIXED_STEP) {
+      this._smoothInput(rawInput, FIXED_STEP);
+      Object.assign(this.lastPose, { x: d.x, z: d.z, yaw: d.yaw });
+      stepDynamics(d, this.input, this.env, FIXED_STEP);
+      this.accumulator -= FIXED_STEP;
+    }
     if (d.lastImpact) { this.audio && this.audio.crash(d.lastImpact / 10); this.shake = Math.min(1, d.lastImpact / 8); this.onEvent('impact', d.lastImpact); d.lastImpact = 0; }
     if (d.lastShift) { this.onEvent('shift', d.gear); d.lastShift = 0; }
-    v.state.brake = this.input.brake > 0.1 && !d.reverse || (d.reverse && this.input.throttle > 0.1) || this.input.handbrake;
+    v.state.brake = this.input.brake > 0.1 || this.input.handbrake;
     v.state.reverse = d.reverse;
-    this._sync(dt);
+    this._sync(dt, this.accumulator / FIXED_STEP);
     const blink = v.update(dt, { engine: d.engine, night: this.env.night });
     if (blink !== null && blink !== this._lastBlink && this.audio) this.audio.tick(blink); this._lastBlink = blink;
     v.drawCluster(Math.abs(d.vx) * 3.6, d.rpm, d.reverse ? 'R' : d.engine ? (Math.abs(d.vx) < 0.2 && this.input.throttle < 0.05 ? 'D' : 'D' + d.gear) : 'P');
     if (this.audio) this.audio.update(d, v.spec, dt);
     // dust / smoke / skids
     const speed = Math.hypot(d.vx, d.vy), offroad = d.surface !== 'asphalt' && d.surface !== 'floor';
-    const rearWorld = [];
-    for (const w of v.wheels) if (!w.front) rearWorld.push(w.pivot.getWorldPosition(new THREE.Vector3()));
-    if ((offroad && speed > 3) || d.slip > 0.7 || d.wheelSpin > 0.4) {
-      for (const p of rearWorld) this._emit(p, offroad ? (this.env.dustColor || 0xb08a62) : 0xd8d8d8, offroad ? Math.ceil(speed / 9) : 1);
-    }
-    if (!offroad && (d.slip > 0.75 || d.wheelSpin > 0.5) && speed > 2) {
-      for (const p of rearWorld) {
-        const m = new THREE.Matrix4().compose(new THREE.Vector3(p.x, (this.env.groundY ? this.env.groundY(p.x, p.z) : 0) + 0.012, p.z), this._q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), d.yaw), new THREE.Vector3(1, 1, 1));
-        this.skid.setMatrixAt(this.skidI = (this.skidI + 1) % this.skid.count, m);
+    this.effectsTime += dt;
+    const dust = (offroad && speed > 3) || d.slip > 0.7 || d.wheelSpin > 0.4;
+    const marks = !offroad && (d.slip > 0.75 || d.wheelSpin > 0.5) && speed > 2;
+    if (this.effectsTime >= 1 / 30) {
+      this.effectsTime %= 1 / 30;
+      if (marks || dust) for (const w of v.wheels) {
+        if (w.front) continue;
+        const p = w.pivot.getWorldPosition(this._tmp2);
+        if (dust) this._emit(p, offroad ? (this.env.dustColor || 0xb08a62) : 0xd8d8d8, offroad ? Math.ceil(speed / 9) : 1);
+        if (marks) {
+          p.y = (this.env.groundY?.(p.x, p.z) ?? 0) + 0.012;
+          const m = this.markMatrix.compose(p, this._q.setFromAxisAngle(this.cameraHeading.set(0, 1, 0), d.yaw), this.markScale);
+          this.skid.setMatrixAt(this.skidI = (this.skidI + 1) % this.skid.count, m);
+        }
       }
-      this.skid.instanceMatrix.needsUpdate = true;
+      if (marks) this.skid.instanceMatrix.needsUpdate = true;
     }
     this._fx(dt);
     this._camera(dt);
   }
 
-  _sync(dt) {
+  _sync(dt, alpha = 1) {
     const d = this.dyn, v = this.vehicle;
-    const gy = this.env.groundY ? this.env.groundY(d.x, d.z) : 0;
-    v.root.position.set(d.x, gy, d.z); v.root.rotation.set(0, d.yaw, 0);
-    v.body.rotation.x = d.roll; v.body.rotation.z = -d.pitch; v.body.position.y = d.heave * 0.6 + (d.surface === 'grass' ? 0 : 0);
+    const x = this.lastPose.x + (d.x - this.lastPose.x) * alpha;
+    const z = this.lastPose.z + (d.z - this.lastPose.z) * alpha;
+    const yaw = this.lastPose.yaw + (d.yaw - this.lastPose.yaw) * alpha;
+    const ground = this.env.groundY;
+    const gy = ground?.(x, z) ?? 0;
+    const sin = Math.sin(yaw), cos = Math.cos(yaw);
+    v.root.position.set(x, gy, z); v.root.rotation.set(0, yaw, 0);
+    v.body.rotation.x = d.roll; v.body.rotation.z = -d.pitch; v.body.position.y = d.heave * 0.6;
     for (const w of v.wheels) {
       w.spin.rotation.z -= d.wheelSpeed * dt;
-      if (w.front) w.pivot.rotation.y = d.steer;
-      // wheels follow body roll/pitch a little (suspension travel)
-      const comp = -d.roll * w.z * 0.5 + (w.front ? -1 : 1) * d.pitch * 0.4 + d.heave * 0.3;
-      w.pivot.position.y = w.baseY + clamp(comp, -0.05, 0.05) * 0.5;
+      if (w.front) {
+        const radius = v.spec.wheelbase / Math.tan(d.steer);
+        w.pivot.rotation.y = Math.atan(v.spec.wheelbase / (radius + w.z));
+      }
+      const along = (w.front ? 1 : -1) * v.spec.wheelbase * 0.5;
+      const contact = ground ? ground(x + sin * along + cos * w.z, z + cos * along - sin * w.z) - gy : 0;
+      const comp = contact - d.roll * w.z * 0.5 + (w.front ? -1 : 1) * d.pitch * 0.4 + d.heave * 0.3;
+      w.pivot.position.y = w.baseY + clamp(comp, -0.12, 0.14);
     }
     v.steer.rotation.x = -d.steer * 7;
   }
@@ -255,9 +364,10 @@ export class DriveController {
     const fwd = this._tmp.set(Math.sin(d.yaw), 0, Math.cos(d.yaw));
     const pos = v.root.position, speed = Math.hypot(d.vx, d.vy);
     if (!this.dragging) { this._lookT = (this._lookT || 0) + dt; if (this._lookT > 1.2) { this.orbitYaw = damp(this.orbitYaw, 0, 2.5, dt); this.orbitPitch = damp(this.orbitPitch, 0, 2.5, dt); } }
-    let want = new THREE.Vector3(), look = new THREE.Vector3(), fov = 55, stiff = 6, near = 0.1;
-    const yaw = d.yaw + this.orbitYaw + (d.vx < -0.5 && this.camMode !== 'cabin' ? 0 : 0);
-    const back = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+    const want = this.cameraWant, look = this.cameraTarget;
+    let fov = 55, stiff = 6, near = 0.1;
+    const yaw = v.root.rotation.y + this.orbitYaw;
+    const back = this.cameraHeading.set(Math.sin(yaw), 0, Math.cos(yaw));
     const len = v.dims.length;
     switch (this.camMode) {
       case 'chase': case 'far': {
@@ -303,19 +413,28 @@ export class DriveController {
     this.camPos.lerp(want, k); this.camLook.lerp(look, Math.min(1, k * 1.6));
     if (this.env.groundY && this.camMode !== 'cabin') this.camPos.y = Math.max(this.camPos.y, this.env.groundY(this.camPos.x, this.camPos.z) + 0.35);
     cam.position.copy(this.camPos);
+    if (this.env.cameraCollision && (this.camMode === 'chase' || this.camMode === 'far')) {
+      for (let step = 1; step <= 4; step++) {
+        const sample = this._tmp2.copy(pos).lerp(this.camPos, step / 4);
+        if (!this.env.cameraCollision(sample.x, sample.z, yaw)) continue;
+        cam.position.copy(pos).lerp(this.camPos, Math.max(0.2, (step - 1) / 4));
+        cam.position.y = Math.max(cam.position.y, pos.y + v.dims.height + 0.2);
+        break;
+      }
+    }
     // shake: road texture, speed and impacts
     this.shake = damp(this.shake, 0, 3, dt);
     const sh = (this.camMode === 'cabin' || this.camMode === 'hood' ? 0.6 : 1) * (Math.min(1, speed / 45) ** 2 * 0.012 + (d.surface !== 'asphalt' && d.surface !== 'floor' ? Math.min(1, speed / 15) * 0.02 : 0) + this.shake * 0.09);
-    if (this.camMode !== 'cine') cam.position.add(new THREE.Vector3((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh));
+    if (this.camMode !== 'cine' && !this.reducedMotion.matches) cam.position.add(this._tmp2.set((Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh, (Math.random() - 0.5) * sh));
     cam.lookAt(this.camLook);
-    if (this.camMode === 'cabin') cam.rotateZ(-d.roll * 0.6);
+    if (this.camMode === 'cabin' && !this.reducedMotion.matches) cam.rotateZ(-d.roll * 0.6);
     this.fov = damp(this.fov, fov, 3, dt);
     if (Math.abs(cam.fov - this.fov) > 0.01 || cam.near !== near) { cam.fov = this.fov; cam.near = near; cam.updateProjectionMatrix(); }
   }
 
   hud() {
     const d = this.dyn;
-    return { kmh: Math.abs(d.vx) * 3.6, rpm: d.rpm, redline: this.vehicle.spec.redline, gear: d.reverse ? 'R' : d.engine ? (d.gear + '') : 'P', engine: d.engine, surface: d.surface, cam: this.camMode, lights: this.vehicle.state };
+    return { kmh: Math.abs(d.vx) * 3.6, rpm: d.rpm, redline: this.vehicle.spec.redline, gear: d.reverse ? 'R' : d.engine ? 'D' + d.gear : 'P', engine: d.engine, surface: d.surface, cam: this.camMode, lights: this.vehicle.state };
   }
 }
 
@@ -328,9 +447,9 @@ export const HUD_CSS = `
 .pkm-hud__rev{width:150px}.pkm-hud__bar{height:6px;border-radius:6px;background:#232323;overflow:hidden}.pkm-hud__bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#93AE7C,#BBA783 70%,#d0654f);transition:width .08s linear}
 .pkm-hud__meta{display:flex;justify-content:space-between;font-size:11px;color:#9A948B;margin-top:6px;letter-spacing:.04em}
 .pkm-hud__ind{display:flex;gap:8px;font-size:15px;color:#3a3a3a}.pkm-hud__ind .on{color:#93AE7C}.pkm-hud__ind .amber.on{color:#f0a330}.pkm-hud__ind .blue.on{color:#7fb2ff}
-.pkm-touch{position:absolute;inset:auto 0 18px 0;display:none;justify-content:space-between;padding:0 14px;z-index:7;pointer-events:none}
-.pkm-touch>div{display:flex;gap:10px;align-items:flex-end}.pkm-touch button{pointer-events:auto;touch-action:none;width:64px;height:64px;border-radius:18px;border:1px solid #383838;background:rgb(17 17 17 / .7);color:#F2F0EA;font:600 20px Inter,system-ui;backdrop-filter:blur(10px)}
-.pkm-touch button.tall{height:92px}.pkm-touch button:active,.pkm-touch button.down{background:#BBA783;color:#080808}
+.pkm-touch{position:absolute;inset:auto 0 max(14px,env(safe-area-inset-bottom)) 0;display:none;justify-content:space-between;padding:0 12px;z-index:7;pointer-events:none;user-select:none}
+.pkm-touch>div{display:flex;gap:8px;align-items:flex-end}.pkm-touch button{pointer-events:auto;touch-action:none;min-width:50px;height:60px;border-radius:16px;border:1px solid #575148;background:rgb(17 17 17 / .84);color:#F2F0EA;font:650 13px Inter,system-ui}
+.pkm-touch button.tall{height:78px;min-width:58px}.pkm-touch button:active,.pkm-touch button.down{background:#BBA783;color:#080808}
 @media (pointer:coarse){.pkm-touch{display:flex}.pkm-hud{bottom:auto;top:76px;transform:translateX(-50%) scale(.82)}}
 `;
 
@@ -341,22 +460,26 @@ export function createHud(container) {
     <div class="pkm-hud__rev"><div class="pkm-hud__ind"><span class="amber" data-l>◀</span><span class="blue" data-h>◉</span><span data-e>⏻</span><span class="amber" data-r>▶</span></div>
     <div class="pkm-hud__bar" style="margin-top:8px"><i data-rpm></i></div><div class="pkm-hud__meta"><span data-rpmt>0 rpm</span><span data-surf>Asphalt</span></div></div>`;
   container.appendChild(el);
-  const q = (s) => el.querySelector(s);
-  let blink = 0;
+  const [speed, gear, left, head, engine, right, bar, rpm, surface] = el.querySelectorAll('[data-spd],[data-gear],[data-l],[data-h],[data-e],[data-r],[data-rpm],[data-rpmt],[data-surf]');
+  const write = (node, value) => { if (node.textContent !== value) node.textContent = value; };
+  let blink = 0, elapsed = 0.1;
   return {
     el,
     update(h, dt = 0.016) {
       blink += dt;
-      q('[data-spd]').textContent = Math.round(h.kmh);
-      q('[data-gear]').textContent = h.gear;
-      q('[data-rpm]').style.width = Math.min(100, h.rpm / h.redline * 100).toFixed(1) + '%';
-      q('[data-rpmt]').textContent = Math.round(h.rpm / 10) * 10 + ' rpm';
-      q('[data-surf]').textContent = { asphalt: 'Asphalt', grass: 'Grass', dirt: 'Laterite', floor: 'Showroom floor', kerb: 'Kerb' }[h.surface] || h.surface;
+      elapsed += dt;
+      if (elapsed < 0.05) return;
+      elapsed %= 0.05;
+      write(speed, String(Math.round(h.kmh)));
+      write(gear, h.gear);
+      bar.style.width = Math.min(100, h.rpm / h.redline * 100).toFixed(1) + '%';
+      write(rpm, Math.round(h.rpm / 10) * 10 + ' rpm');
+      write(surface, { asphalt: 'Asphalt', grass: 'Grass', dirt: 'Laterite', floor: 'Showroom floor', kerb: 'Kerb' }[h.surface] || h.surface);
       const on = (blink % 0.74) < 0.4, L = h.lights;
-      q('[data-l]').classList.toggle('on', (L.left || L.hazard) && on);
-      q('[data-r]').classList.toggle('on', (L.right || L.hazard) && on);
-      q('[data-h]').classList.toggle('on', !!L.head);
-      q('[data-e]').classList.toggle('on', h.engine);
+      left.classList.toggle('on', (L.left || L.hazard) && on);
+      right.classList.toggle('on', (L.right || L.hazard) && on);
+      head.classList.toggle('on', !!L.head);
+      engine.classList.toggle('on', h.engine);
     },
   };
 }
@@ -364,15 +487,20 @@ export function createHud(container) {
 export function createTouch(container, ctrl) {
   const el = document.createElement('div'); el.className = 'pkm-touch';
   el.innerHTML = `<div><button data-k="left" aria-label="Steer left">◀</button><button data-k="right" aria-label="Steer right">▶</button></div>
-    <div><button data-k="hand" aria-label="Handbrake">⏸</button><button data-k="brake" class="tall" aria-label="Brake or reverse">▼</button><button data-k="gas" class="tall" aria-label="Accelerate">▲</button></div>`;
+    <div><button data-k="brake" class="tall">Brake</button><button data-k="gas" class="tall" aria-label="Accelerate">Go</button></div>`;
   container.appendChild(el);
-  const state = { left: 0, right: 0, gas: 0, brake: 0, hand: 0 };
-  const apply = () => ctrl.setTouch({ steer: state.left - state.right, throttle: state.gas, brake: state.brake, handbrake: !!state.hand });
-  for (const b of el.querySelectorAll('button')) {
+  const state = { left: 0, right: 0, gas: 0, brake: 0 };
+  const apply = () => ctrl.setTouch({ steer: state.left - state.right, throttle: state.gas, brake: state.brake });
+  const buttons = [...el.querySelectorAll('button')];
+  ctrl.resetTouch = () => {
+    for (const b of buttons) { state[b.dataset.k] = 0; b.classList.remove('down'); }
+  };
+  for (const b of buttons) {
     const k = b.dataset.k;
-    const on = (e) => { e.preventDefault(); state[k] = 1; b.classList.add('down'); apply(); };
-    const off = (e) => { e.preventDefault(); state[k] = 0; b.classList.remove('down'); apply(); };
-    b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
+    const on = (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); state[k] = 1; b.classList.add('down'); apply(); };
+    const off = () => { state[k] = 0; b.classList.remove('down'); apply(); };
+    b.addEventListener('pointerdown', on); b.addEventListener('lostpointercapture', off);
+    b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off);
   }
   return el;
 }

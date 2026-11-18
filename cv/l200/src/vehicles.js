@@ -196,7 +196,7 @@ export function buildVehicle(THREE, id, opts = {}) {
     return new THREE.Shape(out);
   }
   function refine(g, maxLen, iters) {
-    let pos = Array.from(g.toNonIndexed().attributes.position.array);
+    let pos = Array.from((g.index ? g.toNonIndexed() : g).attributes.position.array);
     for (let it = 0; it < iters; it++) {
       const out = [];
       const P = (i) => [pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2]];

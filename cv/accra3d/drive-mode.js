@@ -1,144 +1,242 @@
-/* Accra 3D · drive mode.
-   Uses the shared PKM Motors vehicles, physics and engine audio from Drive Studio
-   (/l200/pkm-drive.js) so both pages drive the same cars. Reads the scene globals
-   defined by the main script: THREE, scene, camera, renderer, controls, ROAD,
-   roadXAt, JUB, TMP, jw, DRIVE_COLLIDERS, DRIVE_GATES. */
-(function () {
-  'use strict';
-  const P = window.PKMDrive;
-  const btn = document.getElementById('takeWheel');
-  if (!P) { if (btn) btn.hidden = true; return; }
+import * as drive from '/l200/pkm-drive.js?v=2';
+
+export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, params, stopTour }) {
   const $ = (id) => document.getElementById(id);
-  const params = new URLSearchParams(location.search);
-  const store = { get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
-  const style = document.createElement('style'); style.textContent = P.HUD_CSS; document.head.appendChild(style);
+  const store = {
+    get(key, fallback) {
+      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+    },
+    set(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+    },
+  };
+  const style = document.createElement('style');
+  style.textContent = drive.HUD_CSS;
+  document.head.appendChild(style);
 
-  let carId = P.SPECS[params.get('drive')] ? params.get('drive') : store.get('pkm.drive.car', 'volta');
-  const paintOf = (id) => store.get('pkm.drive.paint.' + id, 0);
-  if (params.get('paint') !== null && P.SPECS[params.get('drive')]) store.set('pkm.drive.paint.' + carId, +params.get('paint') || 0);
+  const preferred = params.get('drive') || store.get('pkm.drive.car', 'volta');
+  let carId = Object.hasOwn(drive.SPECS, preferred) ? preferred : 'volta';
+  const paintKey = (id) => 'pkm.drive.paint.' + id;
+  const paintOf = (id) => {
+    const index = Number(store.get(paintKey(id), 0));
+    return Object.hasOwn(drive.SPECS[id].paints, index) ? index : 0;
+  };
+  const linkedPaint = Number(params.get('paint'));
+  if (Object.hasOwn(drive.SPECS, params.get('drive')) && params.has('paint') && Object.hasOwn(drive.SPECS[carId].paints, linkedPaint)) {
+    store.set(paintKey(carId), linkedPaint);
+  }
 
-  const audio = new P.VehicleAudio(); audio.setMuted(store.get('pkm.drive.muted', false));
+  const audio = new drive.VehicleAudio();
+  audio.setMuted(store.get('pkm.drive.muted', true));
   const vehicles = {};
-  let ctrl = null, hud = null, active = false, last = 0;
+  let ctrl, hud, active = false, last = 0, statusTimer;
+  const picker = $('drivePick');
   const saved = { near: camera.near, far: camera.far, fov: camera.fov };
-
-  // ---------- world queries ----------
+  const previousPosition = new THREE.Vector3(), previousTarget = new THREE.Vector3();
+  let previousAutoRotate;
+  const bounds = { minX: -470, maxX: 640, minZ: -880, maxZ: 880 };
+  const circles = colliders.filter((item) => item.r);
+  const boxes = colliders.filter((item) => !item.r);
   const inBox = (x, z, x0, x1, z0, z1) => x > x0 && x < x1 && z > z0 && z < z1;
-  const circles = [], boxes = [];
+  const track = { mu: 1.05, rough: 0.02, name: 'asphalt' };
+  const paved = { mu: 1, rough: 0.05, name: 'asphalt' };
+  const kerb = { mu: 0.95, rough: 0.25, name: 'kerb' };
+  const dirt = { mu: 0.72, rough: 0.45, name: 'dirt' };
   const env = {
     grip(x, z) {
-      const off = Math.abs(x - roadXAt(z));
-      if (off < 9.3 || (Math.abs(z - ROAD.Zi) < 9.3 && x > -470)) return { mu: 1.05, rough: 0.02, name: 'asphalt' };
-      if (inBox(x, z, 14, 360, -495, -200) || inBox(x, z, 16, 222, 278, 462)) return { mu: 1, rough: 0.05, name: 'asphalt' };
-      if (off < 12.6) return { mu: 0.95, rough: 0.25, name: 'kerb' };
-      return { mu: 0.72, rough: 0.45, name: 'dirt' };
+      const offset = Math.abs(x - roadXAt(z));
+      if (offset < 9.3 || (Math.abs(z - ROAD.Zi) < 9.3 && x > -470)) return track;
+      if (inBox(x, z, 14, 360, -495, -200) || inBox(x, z, 16, 222, 278, 462)) return paved;
+      return offset < 12.6 ? kerb : dirt;
     },
     groundY(x, z) {
-      const t = JUB.terrace; if (!t) return 0;
-      const dx = Math.abs(x - t.c.x) - t.hx, dz = Math.abs(z - t.c.z) - t.hz, out = Math.max(dx, dz);
-      return out > 5 ? 0 : out < 0 ? t.h : t.h * (1 - out / 5);
+      const terrace = JUB.terrace;
+      if (!terrace) return 0;
+      const edge = Math.max(Math.abs(x - terrace.c.x) - terrace.hx, Math.abs(z - terrace.c.z) - terrace.hz);
+      return terrace.h * (1 - Math.max(0, Math.min(1, edge / 5)));
     },
-    respawn(d) { const z = Math.max(-860, Math.min(860, d.z)), x = roadXAt(z) - 5.5; return { x, z, yaw: 0 }; },
-    cineOk() { return true; },
-    dustColor: 0xb4643c, night: false,
+    respawn(d) {
+      const z = Math.max(-860, Math.min(860, d.z));
+      return { x: roadXAt(z) - 5.5, z, yaw: 0 };
+    },
+    cameraCollision: drive.makeCollider({ bounds, boxes, circles, carR: 0.22, carHalf: 0 }),
+    dustColor: 0xb4643c,
+    night: false,
   };
-
-  function ensureVehicle(id) {
-    if (!vehicles[id]) {
-      const v = P.buildVehicle(THREE, id);
-      v.root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-      vehicles[id] = v;
-    }
-    const v = vehicles[id], p = v.spec.paints[paintOf(id)] || v.spec.paints[0];
-    v.setPaint(p.hex, p.metal);
-    return v;
-  }
-
-  // ---------- picker ----------
-  function renderPicker() {
-    document.querySelectorAll('[data-pick]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.pick === carId));
-    const S = P.SPECS[carId], cur = paintOf(carId);
-    $('pickPaint').innerHTML = S.paints.map((p, i) => `<button style="--c:${p.hex}" data-paint="${i}" aria-pressed="${i === cur}" title="${p.name}" aria-label="${p.name}"></button>`).join('');
-  }
-  document.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => { carId = b.dataset.pick; store.set('pkm.drive.car', carId); renderPicker(); }));
-  $('pickPaint').addEventListener('click', (e) => { const b = e.target.closest('[data-paint]'); if (!b) return; store.set('pkm.drive.paint.' + carId, +b.dataset.paint); renderPicker(); });
-  btn.addEventListener('click', () => { if (active) return stop(); renderPicker(); $('drivePick').hidden = false; });
-  $('pickX').addEventListener('click', () => { $('drivePick').hidden = true; });
-  $('pickGo').addEventListener('click', () => { $('drivePick').hidden = true; start(); });
-
-  // ---------- start / stop ----------
-  function start(spawn) {
-    if (typeof stopTour === 'function' && typeof tour !== 'undefined' && tour) stopTour(false);
-    if (!circles.length && !boxes.length) for (const c of DRIVE_COLLIDERS) (c.r ? circles : boxes).push(c);
-    env.collide = P.makeCollider({ bounds: { minX: -470, maxX: 640, minZ: -880, maxZ: 880 }, circles, boxes, carR: 1.0, carHalf: 1.7 });
-    for (const v of Object.values(vehicles)) scene.remove(v.root);
-    const v = ensureVehicle(carId); scene.add(v.root);
-    if (!ctrl) {
-      ctrl = new P.DriveController({ THREE, scene, camera, dom: renderer.domElement, vehicle: v, audio, env, onEvent });
-      hud = P.createHud(document.body); P.createTouch(document.body, ctrl);
-    } else ctrl.setVehicle(v);
-    const sp = spawn || (P.SPECS[params.get('drive')] && params.get('at') === 'temple' ? spots.temple() : spots.road());
-    ctrl.enabled = true; active = true; ctrl.camMode = 'chase';
-    ctrl.place(sp.x, sp.z, sp.yaw);
-    controls.enabled = false;
-    camera.far = 3000; camera.updateProjectionMatrix();
-    document.body.classList.add('driving'); $('drivebar').hidden = false; hud.el.hidden = false;
-    btn.textContent = 'Exit drive';
-    ctrl.toggleEngine(true);
-    setTimeout(() => { if (active) $('dKeyList').hidden = true; }, 9000);
-    last = performance.now();
-  }
-  function stop() {
-    active = false; if (!ctrl) return;
-    ctrl.enabled = false; ctrl.toggleEngine(false); audio.cabin = 0;
-    hud.el.hidden = true; $('drivebar').hidden = true; document.body.classList.remove('driving');
-    camera.near = saved.near; camera.far = saved.far; camera.fov = saved.fov; camera.updateProjectionMatrix();
-    controls.enabled = true; controls.target.copy(ctrl.vehicle.root.position);
-    camera.position.copy(ctrl.vehicle.root.position).add(new THREE.Vector3(18, 12, 18));
-    btn.textContent = 'Take the wheel';
-  }
   const spots = {
     road: () => ({ x: roadXAt(-440) - 5.5, z: -440, yaw: 0 }),
-    jubilee: () => { const p = jw(0, 118); return { x: p.x, z: p.z, yaw: Math.PI / 2 }; },
+    jubilee: () => { const point = jw(0, 118); return { x: point.x, z: point.z, yaw: Math.PI / 2 }; },
     temple: () => ({ x: 44, z: TMP.pos.z, yaw: Math.PI / 2 }),
   };
 
-  // ---------- drive bar ----------
+  function showStatus(text) {
+    const target = $('driveStatus');
+    target.textContent = text;
+    clearTimeout(statusTimer);
+    if (text) statusTimer = setTimeout(() => { target.textContent = ''; }, 5000);
+  }
+  function syncSound() {
+    const button = $('dMute');
+    button.setAttribute('aria-pressed', !audio.muted);
+    button.textContent = audio.muted ? 'Sound off' : 'Sound on';
+  }
+  function getVehicle(id) {
+    const vehicle = vehicles[id] ??= drive.buildVehicle(THREE, id);
+    const paint = vehicle.spec.paints[paintOf(id)];
+    vehicle.setPaint(paint.hex, paint.metal);
+    return vehicle;
+  }
+
+  function renderPicker() {
+    document.querySelectorAll('[data-pick]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.pick === carId));
+    const spec = drive.SPECS[carId], chosen = paintOf(carId);
+    $('pickPaint').innerHTML = spec.paints.map((p, i) =>
+      `<button style="--c:${p.hex}" data-paint="${i}" aria-pressed="${i === chosen}" title="${p.name}" aria-label="${p.name}"></button>`
+    ).join('');
+  }
+  document.querySelectorAll('[data-pick]').forEach((b) => b.addEventListener('click', () => {
+    carId = b.dataset.pick;
+    store.set('pkm.drive.car', carId);
+    renderPicker();
+  }));
+  $('pickPaint').addEventListener('click', (e) => {
+    const button = e.target.closest('[data-paint]');
+    if (!button) return;
+    const index = Number(button.dataset.paint);
+    store.set(paintKey(carId), index);
+    renderPicker();
+    $('pickPaint').querySelector(`[data-paint="${index}"]`).focus();
+  });
+  $('pickX').addEventListener('click', () => picker.close());
+  $('pickGo').addEventListener('click', () => {
+    picker.close();
+    if (!audio.muted) void audio.unlock().catch(() => {});
+    void startAfterPaint();
+  });
+  picker.addEventListener('close', () => { if (!active) $('takeWheel').focus({ preventScroll: true }); });
+
+  function start(spawn) {
+    stopTour();
+    $('views').open = $('sceneSettings').open = false;
+    previousPosition.copy(camera.position);
+    previousTarget.copy(controls.target);
+    previousAutoRotate = controls.autoRotate;
+    controls.autoRotate = false;
+    for (const v of Object.values(vehicles)) scene.remove(v.root);
+    const vehicle = getVehicle(carId);
+    scene.add(vehicle.root);
+    env.collide = drive.makeCollider({
+      bounds, circles, boxes, carR: vehicle.spec.width * 0.48,
+      carHalf: vehicle.dims.length * 0.5 - vehicle.spec.width * 0.48,
+    });
+    if (!ctrl) {
+      ctrl = new drive.DriveController({ THREE, scene, camera, dom: renderer.domElement, vehicle, audio, env, onEvent });
+      hud = drive.createHud($('stage'));
+      drive.createTouch($('stage'), ctrl);
+    } else ctrl.setVehicle(vehicle);
+    ctrl.place(spawn.x, spawn.z, spawn.yaw);
+    controls.enabled = false;
+    camera.far = 3000;
+    camera.updateProjectionMatrix();
+    active = true;
+    document.body.classList.add('driving');
+    $('drivebar').hidden = hud.el.hidden = false;
+    $('dKeyList').hidden = true;
+    $('dKeys').setAttribute('aria-expanded', 'false');
+    $('dLights').setAttribute('aria-pressed', vehicle.state.head);
+    syncSound();
+    onEvent('direction', false);
+    ctrl.cycleCamera('chase');
+    ctrl.setEnabled(true);
+    ctrl.toggleEngine(true);
+    last = performance.now();
+  }
+  async function startAfterPaint(spawn = spots.road()) {
+    showStatus('Starting the drive…');
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    if (document.body.dataset.sceneState !== 'ready') return;
+    try {
+      start(spawn);
+      showStatus(matchMedia('(pointer: coarse)').matches ? 'Use the pedals and arrows below.' : 'W to go, S to brake, V to shift.');
+    } catch {
+      stop();
+      showStatus('The car couldn’t start. The tour is still available.');
+    }
+  }
+  function stop() {
+    if (!active) return;
+    active = false;
+    ctrl.setEnabled(false);
+    scene.remove(ctrl.vehicle.root);
+    audio.cabin = 0;
+    hud.el.hidden = $('drivebar').hidden = true;
+    document.body.classList.remove('driving');
+    camera.near = saved.near; camera.far = saved.far; camera.fov = saved.fov;
+    camera.position.copy(previousPosition); camera.updateProjectionMatrix();
+    controls.target.copy(previousTarget);
+    controls.autoRotate = previousAutoRotate;
+    controls.enabled = true;
+    controls.update();
+    showStatus('');
+    $('takeWheel').focus({ preventScroll: true });
+  }
+  function onEvent(type, value) {
+    if (type === 'camera') $('dCam').textContent = 'Camera: ' + { chase: 'Chase', far: 'Far chase', cabin: 'Cockpit', hood: 'Bonnet', cine: 'Cinematic', drone: 'Drone' }[value];
+    if (type === 'lights') $('dLights').setAttribute('aria-pressed', !!value.head);
+    if (type === 'direction') {
+      $('dShift').textContent = value ? 'Shift to drive' : 'Shift to reverse';
+      $('dShift').setAttribute('aria-pressed', value);
+    }
+    if (type === 'shift-blocked') showStatus('Stop and release the accelerator before shifting.');
+  }
+
   $('dExit').addEventListener('click', stop);
   $('dCam').addEventListener('click', () => ctrl.cycleCamera());
   $('dLights').addEventListener('click', () => ctrl.toggle('head'));
-  $('dJub').addEventListener('click', () => { const s = spots.jubilee(); ctrl.place(s.x, s.z, s.yaw); });
-  $('dTmp').addEventListener('click', () => { const s = spots.temple(); ctrl.place(s.x, s.z, s.yaw); });
-  $('dKeys').addEventListener('click', () => { $('dKeyList').hidden = !$('dKeyList').hidden; });
-  addEventListener('keydown', (e) => { if (active && e.key === 'Escape') stop(); });
+  $('dMute').addEventListener('click', () => {
+    audio.setMuted(!audio.muted);
+    store.set('pkm.drive.muted', audio.muted);
+    syncSound();
+    if (!audio.muted) void audio.unlock().catch(() => {});
+  });
+  $('dShift').addEventListener('click', () => { ctrl.shiftDirection(); renderer.domElement.focus({ preventScroll: true }); });
+  $('dJub').addEventListener('click', () => { const p = spots.jubilee(); ctrl.place(p.x, p.z, p.yaw); });
+  $('dTmp').addEventListener('click', () => { const p = spots.temple(); ctrl.place(p.x, p.z, p.yaw); });
+  $('dKeys').addEventListener('click', () => {
+    const keys = $('dKeyList');
+    keys.hidden = !keys.hidden;
+    $('dKeys').setAttribute('aria-expanded', !keys.hidden);
+  });
+  window.addEventListener('keydown', (e) => { if (active && e.key === 'Escape') stop(); });
 
-  function onEvent(type, data) {
-    if (type === 'camera') $('dCam').textContent = 'Camera: ' + { chase: 'Chase', far: 'Far chase', cabin: 'Cockpit', hood: 'Bonnet', cine: 'Cinematic', drone: 'Drone' }[data];
-    if (type === 'lights') $('dLights').setAttribute('aria-pressed', !!data.head);
-  }
-
-  // ---------- per-frame (called from updateCameraRig) ----------
-  const tmp = new THREE.Vector3();
-  function frame(now) {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    const slider = $('sunSlider'); env.night = slider ? +slider.value < 1.5 : false;
-    if (env.night && !ctrl.vehicle.state._autoLit) { ctrl.vehicle.state.head = true; ctrl.vehicle.state._autoLit = true; }
-    ctrl.update(dt);
-    const pos = ctrl.vehicle.root.position;
-    controls.target.copy(pos); // keeps the sun's shadow camera centred on the car
-    for (const g of DRIVE_GATES) {
-      const near = tmp.set(g.at.x - pos.x, 0, g.at.z - pos.z).length() < 45 ? 1 : 0;
-      g.open += (near - g.open) * Math.min(1, dt * 1.6);
-      g.pivot.rotation.y = -g.side * 1.45 * g.open;
-    }
-    hud.update(ctrl.hud(), dt);
-    return true;
-  }
-  window.ACCRA_DRIVE = { get active() { return active; }, frame, start, stop };
-
-  // deep link from Drive Studio: /accra3d/?drive=volta&paint=2
-  if (P.SPECS[params.get('drive')]) {
-    const wait = () => (window.__ready ? setTimeout(() => start(), 600) : setTimeout(wait, 200));
-    wait();
-  }
-})();
+  return {
+    get active() { return active; },
+    get motion() { return active ? ctrl.dyn : null; },
+    stop,
+    open(auto) {
+      if (auto) return startAfterPaint(params.get('at') === 'temple' ? spots.temple() : spots.road());
+      showStatus('');
+      renderPicker();
+      if (!picker.open) picker.showModal();
+    },
+    frame(now) {
+      const dt = Math.min(0.1, Math.max(0, (now - last) / 1000));
+      last = now;
+      env.night = Number($('sunSlider').value) < 1.5;
+      if (env.night && !ctrl.vehicle.state._autoLit) {
+        ctrl.vehicle.state._autoLit = true;
+        if (!ctrl.vehicle.state.head) ctrl.toggle('head');
+      }
+      ctrl.update(dt);
+      const position = ctrl.vehicle.root.position;
+      controls.target.copy(position);
+      for (const gate of gates) {
+        const near = (gate.at.x - position.x) ** 2 + (gate.at.z - position.z) ** 2 < 45 ** 2;
+        gate.open += (Number(near) - gate.open) * Math.min(1, dt * 1.6);
+        gate.pivot.rotation.y = -gate.side * 1.45 * gate.open;
+      }
+      hud.update(ctrl.hud(), dt);
+      return true;
+    },
+  };
+}

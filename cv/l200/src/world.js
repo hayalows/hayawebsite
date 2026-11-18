@@ -12,7 +12,7 @@ const rng = (seed) => () => ((seed = Math.imul(seed ^ (seed >>> 15), 2246822519)
 export const FONT = '"Inter", ui-sans-serif, system-ui, sans-serif';
 
 // ------------------------------------------------------------------ showroom
-export function buildShowroom({ quality }) {
+export function buildShowroom({ quality, reflections }) {
   const g = new THREE.Group(); g.name = 'showroom';
   const clickables = [];
   const R = rng(7);
@@ -26,9 +26,9 @@ export function buildShowroom({ quality }) {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshPhysicalMaterial({ map: floorTex, roughness: 0.32, metalness: 0, clearcoat: 0.5, clearcoatRoughness: 0.3 }));
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; g.add(floor);
   let mirror = null;
-  if (quality !== 'low') {
+  if (reflections) {
     const shader = { ...Reflector.ReflectorShader, fragmentShader: Reflector.ReflectorShader.fragmentShader.replace('gl_FragColor = vec4( blendOverlay( base.rgb, color ), 1.0 );', 'gl_FragColor = vec4( base.rgb * color, 1.0 );') };
-    mirror = new Reflector(new THREE.PlaneGeometry(40, 40), { textureWidth: 1024, textureHeight: 1024, color: 0x1a1a1a, shader, clipBias: 0.003 });
+    mirror = new Reflector(new THREE.PlaneGeometry(40, 40), { textureWidth: 512, textureHeight: 512, multisample: 0, color: 0x1a1a1a, shader, clipBias: 0.003 });
     mirror.material.transparent = true; mirror.material.blending = THREE.AdditiveBlending; mirror.material.depthWrite = false;
     mirror.rotation.x = -Math.PI / 2; mirror.position.y = 0.002; mirror.renderOrder = 1; g.add(mirror);
   }

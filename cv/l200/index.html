@@ -11,10 +11,10 @@
 <meta property="og:description" content="Two original vehicles, one showroom, one proving ground. Open the doors, start the engine and take it for a drive.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pkm.hayalows.com/l200/">
-<meta property="og:image" content="https://pkm.hayalows.com/assets/work/lab-drive.webp">
+<meta property="og:image" content="https://pkm.hayalows.com/assets/work/lab-drive.webp?v=2">
 <link rel="icon" href="/favicon.ico">
 <link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="modulepreload" href="/l200/studio.js">
+<link rel="stylesheet" href="/assets/scene-shell.css">
 <style>
 @font-face{font-family:"Inter";src:url("/assets/fonts/inter-latin-wght.woff2") format("woff2");font-weight:100 900;font-display:swap}
 :root{--bg:#080808;--surface:#111;--raised:#161616;--line:#232323;--line-strong:#383838;--text:#F2F0EA;--muted:#B3ACA1;--quiet:#9A948B;--accent:#BBA783;--accent-soft:rgb(187 167 131 / .14);--leaf:#93AE7C;--focus:#D2C5AD;--radius:22px;--radius-sm:14px;--ease:cubic-bezier(.23,1,.32,1);color-scheme:dark}
@@ -24,7 +24,8 @@ a{color:inherit}button,select{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
 .skip{position:absolute;left:-999px;top:8px;z-index:50;background:var(--text);color:var(--bg);padding:8px 12px;border-radius:10px}.skip:focus{left:8px}
 #stage{position:fixed;inset:0;background:#000}
-#view{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#view:focus-visible{outline-offset:-4px}
 .glass{background:rgb(10 10 10 / .62);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);border:1px solid var(--line);border-radius:var(--radius)}
 /* top bar */
 .top{position:fixed;z-index:10;top:14px;left:14px;right:14px;display:flex;align-items:center;gap:10px;pointer-events:none}
@@ -53,7 +54,8 @@ a{color:inherit}button,select{font:inherit;color:inherit;cursor:pointer}
 .switch{display:flex;gap:6px;margin-top:16px;padding:4px;border-radius:999px;background:#0d0d0d;border:1px solid var(--line)}
 .switch button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 10px;font-weight:600;font-size:13px;color:var(--muted)}
 .switch button[aria-current="true"]{background:var(--text);color:var(--bg)}
-.cta{display:flex;gap:8px;margin-top:12px}.cta .btn{flex:1;justify-content:center;padding:11px 14px;font-size:14px}
+.cta{display:flex;gap:8px;margin-top:12px}.cta .btn{flex:1;justify-content:center;min-height:44px;padding:9px 10px;font-size:14px}
+.drive-destinations {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.drive-destinations .btn{min-height:44px;justify-content:center}
 /* config panel */
 .panel{position:fixed;z-index:5;right:14px;top:76px;bottom:14px;width:300px;display:flex;flex-direction:column;overflow:hidden}
 .panel__head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--line)}
@@ -81,49 +83,68 @@ body:not([data-mode="drive"]) .drive-only{display:none}
 /* secrets + toast */
 .secrets{position:fixed;z-index:20;top:76px;left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 28px));padding:18px}
 .secrets h2{margin:0 0 4px;font-size:18px;letter-spacing:-.03em}.secrets p{margin:0 0 12px;color:var(--quiet);font-size:13px}
+.secrets__heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.secrets{max-height:calc(100dvh - 92px);overflow:auto}
 .secrets ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .secrets li{display:flex;flex-direction:column;padding:9px 12px;border-radius:12px;background:#121212;border:1px solid var(--line)}
 .secrets li strong{font-size:13px}.secrets li span{font-size:12px;color:var(--quiet)}
 .secrets li[data-found="true"]{border-color:#93AE7C55;background:#93AE7C14}.secrets li[data-found="true"] strong{color:var(--leaf)}
 .toast{position:fixed;z-index:30;top:76px;left:50%;transform:translate(-50%,-14px);opacity:0;padding:12px 18px;display:flex;flex-direction:column;gap:2px;max-width:min(460px,calc(100vw - 28px));pointer-events:none;transition:opacity .35s var(--ease),transform .5s var(--ease)}
 .toast.show{opacity:1;transform:translate(-50%,0)}.toast strong{font-size:13px;color:var(--accent)}.toast span{font-size:13.5px;color:var(--text)}
-/* loader (mirrors the portfolio's hello screen) */
-.loader{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:var(--bg);transition:opacity .7s var(--ease),visibility .7s}
-.loader.done{opacity:0;visibility:hidden}
-.loader__in{text-align:center;width:min(320px,80vw)}
-.loader__word{font-size:clamp(2.6rem,9vw,4.4rem);font-weight:760;letter-spacing:-.065em;margin:0;line-height:1}
-.loader__note{color:var(--quiet);margin:10px 0 18px;font-size:14px}
-.loader__bar{height:3px;background:#1d1d1d;border-radius:3px;overflow:hidden}.loader__bar i{display:block;height:100%;width:8%;background:var(--accent);transition:width .6s var(--ease)}
 .foot{position:fixed;z-index:4;right:330px;bottom:18px;font-size:11.5px;color:var(--quiet);text-align:right;line-height:1.5}
 .foot a{color:var(--muted)}
 @media (max-width:1100px){.foot{display:none}}
 @media (max-width:900px){
+  .glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgb(16 15 13 / .88)}
+  .top{top:max(10px,env(safe-area-inset-top));left:10px;right:10px;gap:6px}
+  .home,.nav .btn{min-height:44px}
+  .panel__body .btn{min-height:42px}
+  .swatch{width:38px;height:38px}
+  .card .switch{margin-top:10px}
+  .card .kick{font-size:10px}
+  .drivebar{right:10px;left:10px;top:72px}
+  .drivebar .btn{min-height:40px;font-size:12px;padding:6px 10px}
   .title{display:none}
   .panel{top:auto;left:14px;right:14px;width:auto;bottom:14px;max-height:62svh;transform:translateY(calc(100% - 52px));transition:transform .45s var(--ease)}
   .panel[data-open="true"]{transform:none}
   .panel__toggle{display:inline-flex}
   .card{bottom:76px;padding:16px}.card .tag,.chips{display:none}.card h1{font-size:2.6rem}
   .nav .hide-sm{display:none}
+  .card{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .panel{bottom:max(14px,env(safe-area-inset-bottom))}
+  .panel[data-open="true"]{z-index:9}
 }
 @media (max-width:520px){.home small{display:none}.nav .btn{padding:6px 10px;font-size:12px}}
 body:not([data-mode="drive"]) .pkm-touch{display:none!important}
-@media (pointer:coarse){.keys,#helpBtn{display:none!important}.pkm-hud{top:auto!important;bottom:126px!important;transform:translateX(-50%) scale(.85)!important}}
+@media (pointer:coarse){.pkm-hud{top:auto!important;bottom:calc(100px + env(safe-area-inset-bottom))!important;transform:translateX(-50%) scale(.85)!important}}
+@media (max-height:500px) and (orientation:landscape){.card{width:320px}.card .trim,.card .tag{display:none}.panel{max-height:58dvh}.keys{line-height:1.6;padding:8px 12px;max-height:32dvh;overflow:auto}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body data-mode="showroom">
-<a class="skip" href="#panel">Skip to controls</a>
 <div id="stage">
   <canvas id="view" tabindex="0" aria-label="3D showroom. Drag to orbit, scroll to zoom, click a door to open it."></canvas>
 </div>
-
+<img class="scene-preview" src="/assets/work/lab-drive.webp?v=2" alt="" width="1080" height="720" fetchpriority="high">
+<main class="scene-intro" data-scene="studio">
+  <div class="scene-intro__body">
+    <h1>Drive Studio</h1>
+    <p>Two original PKM Motors vehicles. Explore the Volta pickup and Regent V8 SUV.</p>
+    <p role="status">The 3D showroom needs JavaScript and WebGL.</p>
+    <div class="scene-intro__actions">
+      <a data-scene-retry href="/l200/" hidden>Try 3D again</a>
+      <a href="/accra3d/">Explore Accra</a>
+      <a href="/#lab">Back to portfolio</a>
+    </div>
+  </div>
+</main>
+<div data-scene-controls hidden>
+<a class="skip" href="#panel">Skip to controls</a>
 <header class="top">
   <a class="home glass" href="/" title="Back to the portfolio"><img src="/assets/papa-kojo-portrait.webp" alt="" width="32" height="32"><span>Papa Kojo<small>← Back to portfolio</small></span></a>
   <div class="title glass">Drive Studio <span>·</span> PKM Motors</div>
   <nav class="nav glass" aria-label="Drive Studio">
-    <button class="btn pill" id="secretsBtn" title="Easter eggs found">✦ <span id="secretCount">0/8</span></button>
-    <a class="btn hide-sm" id="accraLink" href="/accra3d/">Accra 3D ↗</a>
-    <button class="btn hide-sm" id="mute" aria-pressed="true">Sound on</button>
+    <button class="btn" id="mute" aria-pressed="false">Sound off</button>
     <button class="btn hide-sm" id="fullscreen">Fullscreen</button>
   </nav>
 </header>
@@ -140,7 +161,11 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
   </div>
   <div class="cta">
     <button class="btn" id="engineBtn" aria-pressed="false">Start engine</button>
-    <button class="btn btn--accent" id="driveBtn">Take it for a drive →</button>
+    <button class="btn" id="interiorBtn">Interior</button>
+  </div>
+  <div class="drive-destinations">
+    <button class="btn btn--accent" id="driveBtn">Test track</button>
+    <a class="btn" id="accraLink" href="/accra3d/">Drive Accra ↗</a>
   </div>
 </section>
 
@@ -151,7 +176,7 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
     <div class="grp"><h3>View</h3><div class="grid three">
       <button class="btn" data-cam="hero" aria-pressed="true">Hero</button><button class="btn" data-cam="front">Front</button><button class="btn" data-cam="rear">Rear</button>
       <button class="btn" data-cam="side">Side</button><button class="btn" data-cam="top">Top</button><button class="btn" data-cam="wheel">Wheel</button>
-      <button class="btn" data-cam="interior" style="grid-column:span 2">Sit inside</button><button class="btn" id="spin" aria-pressed="true">Turntable</button>
+      <button class="btn" data-cam="interior" style="grid-column:span 2">Sit inside</button><button class="btn" id="spin" aria-pressed="false">Turntable</button>
     </div></div>
     <div class="grp"><h3>Open up</h3><div class="grid">
       <button class="btn" data-panel="frontLeft">Driver door</button><button class="btn" data-panel="frontRight">Passenger door</button>
@@ -167,6 +192,7 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
       <button class="btn" data-mood="studio" aria-pressed="true">Studio</button><button class="btn" data-mood="sunset">Sunset</button><button class="btn" data-mood="night">Night</button>
     </div></div>
     <div class="grp"><h3>Quality</h3><select class="sel" id="quality" aria-label="Rendering quality"><option value="auto">Auto</option><option value="high">High</option><option value="low">Low (faster)</option></select></div>
+    <div class="grp"><button class="btn pill" id="secretsBtn" aria-expanded="false" aria-controls="secrets">Secrets found <span id="secretCount">0/8</span></button></div>
   </div>
 </aside>
 
@@ -176,33 +202,30 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
     <button class="btn" id="camBtn">Camera: Chase</button>
     <button class="btn" data-light="head">Lights</button>
     <button class="btn" id="resetBtn">Reset</button>
-    <button class="btn" id="helpBtn">Keys</button>
+    <button class="btn" id="reverseBtn" aria-pressed="false">Shift to reverse</button>
+    <button class="btn" id="helpBtn" aria-expanded="false" aria-controls="keys">Controls</button>
   </div>
-  <div class="keys glass" id="keys">
-    <div><b>W</b><b>↑</b> accelerate · <b>S</b><b>↓</b> brake / reverse</div>
+  <div class="keys glass" id="keys" hidden>
+    <div><b>W</b><b>↑</b> accelerate · <b>S</b><b>↓</b> brake</div>
     <div><b>A</b><b>D</b> steer · <b>Space</b> handbrake</div>
     <div><b>C</b> camera · <b>H</b> horn · <b>L</b> lights</div>
     <div><b>Q</b><b>E</b> indicators · <b>X</b> hazards · <b>R</b> reset</div>
-    <div><b>Enter</b> engine · gamepads work too</div>
+    <div><b>V</b> shift at a stop · <b>I</b> engine</div>
+    <div>Gamepad: X to shift, triggers for pedals.</div>
   </div>
 </div>
 
-<div class="secrets glass" id="secrets" hidden>
-  <h2>Secrets</h2><p>Small things hidden around the studio and the proving ground. Progress stays on this device.</p>
+<section class="secrets glass" id="secrets" aria-labelledby="secretsTitle" hidden>
+  <div class="secrets__heading"><h2 id="secretsTitle">Secrets</h2><button class="btn" id="closeSecrets">Close</button></div>
+  <p>Small things hidden around the studio and the proving ground. Progress stays on this device.</p>
   <ul id="secretList"></ul>
-</div>
+</section>
 <div class="toast glass" id="toast" role="status" aria-live="polite" hidden></div>
 
 <p class="foot showroom-only">Original vehicles designed for this study. Engine sounds are synthesised live.<br>Part of the <a href="/#lab">Lab</a> on <a href="/">pkm.hayalows.com</a> · Also try <a href="/accra3d/">Accra 3D</a></p>
 
-<div class="loader" id="loader"><div class="loader__in"><p class="loader__word">Akwaaba</p><p class="loader__note" id="loadStep">Polishing the paint…</p><div class="loader__bar"><i id="loadBar"></i></div></div></div>
-
-<noscript><p style="position:fixed;inset:auto 0 40% 0;text-align:center">Drive Studio needs JavaScript and WebGL. <a href="/">Back to the portfolio</a></p></noscript>
-<script>
-(function(){var ok=false;try{var c=document.createElement('canvas');ok=!!(c.getContext('webgl2')||c.getContext('webgl'));}catch(e){}
-if(!ok){window.__noGL=true;document.getElementById('loadStep').innerHTML='Drive Studio needs 3D graphics (WebGL), and this browser has it switched off.<br>Try a recent Chrome, Edge, Safari or Firefox. <a href="/" style="color:#BBA783">Back to the portfolio</a>';document.getElementById('loadBar').style.width='0';}})();
-</script>
-<script type="module" src="/l200/studio.js"></script>
+</div>
+<script type="module" src="/assets/scene-shell.js?v=2"></script>
 <script src="/analytics-tracker.js?v=3" defer></script>
 </body>
 </html>

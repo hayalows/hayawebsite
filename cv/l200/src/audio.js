@@ -94,7 +94,7 @@ export class VehicleAudio {
     if (!this.ctx) return; const c = this.ctx;
     notes.forEach((f, i) => { const t = c.currentTime + i * 0.11; const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = f; const g = c.createGain(); o.connect(g).connect(this.master); this._env(g, t, 0.01, 0.2, 0.5); o.start(t); o.stop(t + 0.6); });
   }
-  starter(spec, ok) {
+  starter(spec) {
     if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
     const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 160;
     const lfo = c.createOscillator(); lfo.frequency.value = spec.engine === 'diesel' ? 9 : 11; const lg = c.createGain(); lg.gain.value = 40; lfo.connect(lg).connect(o.frequency);
@@ -102,6 +102,10 @@ export class VehicleAudio {
     const g = c.createGain(); o.connect(lp).connect(g).connect(this.master);
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.2, t + 0.05); g.gain.setValueAtTime(0.2, t + 0.75); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
     o.start(t); lfo.start(t); o.stop(t + 1); lfo.stop(t + 1);
+    return () => {
+      g.gain.cancelScheduledValues(c.currentTime);
+      g.gain.setTargetAtTime(0, c.currentTime, 0.02);
+    };
   }
   blowoff() {
     if (!this.ctx) return; const c = this.ctx, t = c.currentTime;
