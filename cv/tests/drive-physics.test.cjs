@@ -54,9 +54,9 @@ test('four tyre contacts affect bank and grade, and the brake holds on a slope',
   const car = createDynamics(SPECS.volta);
   const slope = (x, z) => ({ name: 'pavers', mu: 0.85, rough: 0.15, height: x * 0.04 + z * 0.08 });
   const tyres = sampleTyres(slope, car.spec, 0, 0, 0, {});
-  assert.ok(tyres.fr.height > tyres.fl.height && tyres.fl.height > tyres.rl.height);
+  assert.ok(tyres.fl.height > tyres.fr.height && tyres.fr.height > tyres.rr.height);
   for (let i = 0; i < 1 / step; i++) stepDynamics(car, neutral, { tyreContact: slope }, step);
-  assert.ok(car.vx < -0.2 && car.groundPitch > 0 && car.groundRoll < 0);
+  assert.ok(car.vx < -0.2 && car.groundPitch > 0 && car.groundRoll > 0);
   for (let i = 0; i < 2 / step; i++) stepDynamics(car, { ...neutral, brake: 1 }, { tyreContact: slope }, step);
   assert.equal(car.vx, 0);
   assert.equal(car.reverse, false);

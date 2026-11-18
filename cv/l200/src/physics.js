@@ -35,10 +35,11 @@ export function createDynamics(spec) {
 export function sampleTyres(contact, spec, x, z, yaw, out) {
   const sin = Math.sin(yaw), cos = Math.cos(yaw);
   const a = spec.wheelbase * 0.5, b = spec.track * 0.5;
-  out.fl = contact(x + a * sin - b * cos, z + a * cos + b * sin);
-  out.fr = contact(x + a * sin + b * cos, z + a * cos - b * sin);
-  out.rl = contact(x - a * sin - b * cos, z - a * cos + b * sin);
-  out.rr = contact(x - a * sin + b * cos, z - a * cos - b * sin);
+  // At yaw zero the car faces +Z, and the driver's left is +X.
+  out.fl = contact(x + a * sin + b * cos, z + a * cos - b * sin);
+  out.fr = contact(x + a * sin - b * cos, z + a * cos + b * sin);
+  out.rl = contact(x - a * sin + b * cos, z - a * cos - b * sin);
+  out.rr = contact(x - a * sin - b * cos, z - a * cos + b * sin);
   return out;
 }
 
