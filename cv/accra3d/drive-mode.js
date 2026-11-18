@@ -1,4 +1,4 @@
-import * as drive from '/l200/pkm-drive.js?v=3';
+import * as drive from '/l200/pkm-drive.js?v=4';
 
 export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, params, stopTour }) {
   const $ = (id) => document.getElementById(id);

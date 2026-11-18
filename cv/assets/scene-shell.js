@@ -19,7 +19,9 @@ const shell = {
     clearTimeout(deadline);
     document.body.dataset.sceneState = 'ready';
     controls.hidden = false;
-    intro.hidden = preview.hidden = true;
+    // fade the poster and intro away over the live scene, then remove them
+    const done = () => { intro.hidden = preview.hidden = true; };
+    if (reducedMotion.matches) done(); else setTimeout(done, 750);
   },
   fail(message) {
     if (phase === 'failed') return;
@@ -39,10 +41,10 @@ retry.href = location.href;
 try {
   await afterPaint();
   if (intro.dataset.scene === 'accra') {
-    const { startAccra } = await import('/accra3d/scene.js?v=3');
+    const { startAccra } = await import('/accra3d/scene.js?v=4');
     if (shell.running) await startAccra(shell);
   } else {
-    const { startStudio } = await import('/l200/studio.js?v=3');
+    const { startStudio } = await import('/l200/studio.js?v=4');
     if (shell.running) await startStudio(shell);
   }
 } catch (error) {

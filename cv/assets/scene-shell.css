@@ -34,3 +34,19 @@
 .scene-intro__actions a { display: inline-grid; align-items: center; min-height: 44px; }
 .scene-intro__actions [data-scene-retry] { background: #e8d3aa; color: #201910; border-radius: 8px; padding: 0 14px; text-decoration: none; font-weight: 650; }
 body:not([data-scene-state="ready"]) :is(.pkm-hud, .pkm-touch) { display: none !important; }
+
+/* Loading: slow push-in on the poster, a quiet progress line, then a cross-fade into the live 3D */
+.scene-preview, .scene-intro { transition: opacity .7s cubic-bezier(.23,1,.32,1); }
+body[data-scene-state="ready"] .scene-preview, body[data-scene-state="ready"] .scene-intro { opacity: 0; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  body:not([data-scene-state]) .scene-preview { animation: scene-push 14s cubic-bezier(.23,1,.32,1) both; }
+  @keyframes scene-push { from { transform: scale(1.06); } to { transform: scale(1); } }
+}
+.scene-intro [role="status"] { position: relative; padding-bottom: 10px; }
+body:not([data-scene-state]) .scene-intro [role="status"]::after {
+  content: ""; position: absolute; left: 0; bottom: 0; width: min(240px, 60vw); height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #BBA783, transparent) 0 0 / 40% 100% no-repeat, #ffffff1f;
+  animation: scene-load 1.4s linear infinite;
+}
+@keyframes scene-load { from { background-position: -40% 0, 0 0; } to { background-position: 140% 0, 0 0; } }
+@media (prefers-reduced-motion: reduce) { body:not([data-scene-state]) .scene-intro [role="status"]::after { animation: none; } }

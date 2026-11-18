@@ -707,6 +707,21 @@ export function buildVehicle(THREE, id, opts = {}) {
   const brakeMat = M.tail.clone();
   for (const t of brakes) t.material = brakeMat;
 
+  // ---------- baked contact shadow: soft darkening where the car meets the ground ----------
+  {
+    const L = xF - xR + 0.7, Wd = W + 0.55;
+    const t = new THREE.CanvasTexture(canvas(256, 128, (g, w, h) => {
+      g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+      const blob = (cx, cy, rx, ry, a) => { const gr = g.createRadialGradient(cx, cy, 0, cx, cy, 1); gr.addColorStop(0, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        g.save(); g.translate(cx, cy); g.scale(rx, ry); g.translate(-cx, -cy); g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, 1, 0, 7); g.fill(); g.restore(); };
+      blob(w / 2, h / 2, w * 0.5, h * 0.48, 0.55);          // body footprint
+      for (const fxp of [0.5 + (fx / L), 0.5 - (fx / L)]) for (const fy of [0.2, 0.8]) blob(w * fxp + (xF + xR) / 2 / L * -w, h * fy, w * 0.09, h * 0.16, 0.9); // tyres
+    }));
+    const contact = new THREE.Mesh(new THREE.PlaneGeometry(L, Wd), new THREE.MeshBasicMaterial({ color: 0x000000, alphaMap: t, transparent: true, depthWrite: false, opacity: 0.78, polygonOffset: true, polygonOffsetFactor: -4 }));
+    contact.rotation.x = -Math.PI / 2; contact.position.set((xF + xR) / 2, 0.012, 0); contact.renderOrder = 2;
+    car.add(contact);
+  }
+
   // ---------- merge static siblings that share a material (far fewer draw calls) ----------
   function mergeStatic(node) {
     for (const child of [...node.children]) if (!child.isMesh && child.children.length) mergeStatic(child);

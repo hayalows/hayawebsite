@@ -33,7 +33,10 @@ const canvas = $('#view');
 const qualityValue = params.get('quality') || store.get('pkm.drive.quality', 'auto');
 const quality = ['auto', 'high', 'low'].includes(qualityValue) ? qualityValue : 'auto';
 const compact = matchMedia('(max-width: 900px)');
-const lowGuess = (navigator.hardwareConcurrency || 8) <= 4 || compact.matches;
+// pick a quality tier from the actual graphics chip, not just the CPU count
+const gpuName = (() => { try { const gl = document.createElement('canvas').getContext('webgl'); const ext = gl && gl.getExtension('WEBGL_debug_renderer_info'); return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : ''; } catch { return ''; } })();
+const weakGpu = /SwiftShader|llvmpipe|Mali-[GT][0-9]{1,2}\b|Adreno \(TM\) [1-5][0-9]{2}\b|PowerVR|Intel\(R\) (HD|UHD) Graphics( [1-6][0-9]{2})?\b/i.test(gpuName);
+const lowGuess = weakGpu || (navigator.hardwareConcurrency || 8) <= 4 || compact.matches;
 const high = quality === 'high';
 const effQ = () => high || (quality === 'auto' && !lowGuess && !economy) ? 'high' : 'low';
 let economy = false;
