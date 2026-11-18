@@ -1,3 +1,5 @@
+> Status, November 2026: the home page redesign removed the project folders, the mobile gooey navigation and the AccordionOS project stories. The notices below stay for Portfolio Field Notes and for the history of this repository.
+
 # Rare UI adaptations
 
 The project-folder silhouette, three-card motion and mobile gooey navigation are adapted from

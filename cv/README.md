@@ -116,83 +116,41 @@ Private dashboard: `/analytics/`.
 
 The tracker respects Global Privacy Control and Do Not Track, does not use advertising cookies, and records an engagement event when the visitor leaves the page.
 
-## Selected project cards
+## Home page (November 2026 redesign)
 
-The main portfolio uses a visible image-led card grid with a short project summary, a clear role statement and direct links to the live work and case notes. StigmaClear leads the section as a founder project; its card identifies the AI-assisted website build and links to the detailed scope and evidence notes. The Spotify panel remains a separate personal feature and its data/API flow is unchanged by the visual card refresh.
+The home page (`index.html`, `styles.css`, `script.js`) presents Papa Kojo as a
+"design conductor": he designs the product and directs AI to build it.
 
-## Explore navigation and contact
+- A short "Akwaaba" plant loader runs once per browser session and never with
+  reduced motion. The page is usable if the loader script fails.
+- Navigation is a fixed side rail on wide screens and a bottom dock on smaller
+  screens. The bead and the dock pill glide with the scroll position, so the
+  navigation never jumps between sections.
+- `spotify-ui.js`, `/api/listening` and `lib/spotify.js` are unchanged. The music
+  section only restyles the panel; every `data-listening-*` hook is kept.
+- Section ids `#work`, `#lab`, `#about`, `#experience`, `#skills`, `#education`,
+  `#personal` and `#contact` are stable because WebMCP results and analytics
+  point at them.
+- Tool tiles use simple original glyphs, not brand logos.
 
-The portfolio has one native disclosure controller for desktop and mobile
-Explore menus. UseLayouts Smooth Dropdown and Bottom Menu inspired the compact
-panel and tray motion; Get In Touch inspired the portrait contact link, and
-StatusButton informed clipboard feedback. Adaptations use the existing vanilla
-stack with no new runtime dependency or Spotify requests. The MIT copyright and
-permission notice are retained in `THIRD-PARTY-NOTICES.md`.
+## Case studies
 
-Mobile keeps Home, Work, Experience and Contact directly visible. Explore links
-to the Playground, one-page CV, Skills, Education and Personal. The desktop
-sidebar retains its section links and adds the same Explore destinations.
-Native `details`/`summary` and real links work without JavaScript; the mobile
-fallback keeps the menu in document flow and hides the unavailable copy button. Enhancement
-adds Escape/outside dismissal, focus handling and section tracking. The dock
-wraps when enlarged text needs more room; the panel scrolls within the viewport.
-Animations respect reduced motion.
+`work/<slug>/index.html` holds one case study each for RouteLab, StigmaClear,
+OffScript and English Chat Finder. They share `work/case.css` and
+`work/case.js`. Each page has one small demo:
 
-The contact link keeps the email address visible while its portrait/greeting
-respond to hover and keyboard focus. Clipboard feedback reflects the actual
-write result: pending suppresses duplicate writes, success announces Copied,
-and denial offers manual selection or the mail link plus retry. It does not
-silently launch email after a failed copy.
+- RouteLab: a pretend walk run through the same GPS acceptance rules RouteLab uses.
+- StigmaClear: the five moves and "say this, not that" cards, using text from stigmaclear.com.
+- OffScript: a photo booth with six Edition 001 props (`assets/work/props/`).
+- English Chat Finder: a pretend scan with a small pool of checkers.
 
-Run from the repository root:
+Screenshots live in `assets/work/`. `/projects/` and `/work/` redirect to `/#work`.
 
-```sh
-EXPLORE_EVIDENCE_DIR=/tmp/pkm-explore node cv/tests/explore-flow.e2e.cjs
-```
+## CV
 
-Requires Playwright and `/usr/bin/chromium`. The harness serves the real static
-site, uses disposable browser contexts and leaves scenario reports/screenshots.
-Listening/analytics and outbound requests are fixtures; clipboard success,
-pending and rejection are injected through the browser API. WebMCP uses the
-same AbortSignal registration fixture as the existing browser checks. No email
-is sent. These checks do not establish production CDN behaviour or formal
-assistive-technology compliance.
-
-## Mobile Gooey Nav
-
-`mobile-gooey.js` adapts Rare UI’s Gooey Nav for the existing five mobile
-destinations. Selected tiles separate from joined inactive groups; decorative
-SVG necks pinch and break during a bounded 320 ms transition. Section tracking
-and the native Explore disclosure continue to own navigation. Open Explore
-temporarily takes visual priority, while the actual current-section link keeps
-its accessible state.
-
-The adaptation uses the portfolio’s pale-blue accent, retains 48 px target
-heights, and adds no dependency or API calls. Rapid selections replace the
-current animation rather than accumulating work. Reduced motion applies the
-final state immediately. At enlarged text sizes, wrapped rows use separate
-rounded tiles without SVG bridges. The desktop sidebar stays unchanged.
-If the optional script cannot load, the existing links and Explore still work.
-Rare UI attribution remains on the privacy page and the source licence is in
-`THIRD-PARTY-NOTICES.md`. The Explore browser harness also verifies active tile
-separation, rapid selection, reduced motion and wrapped rows.
-
-## AccordionOS project stories
-
-`projects/` adapts UseLayouts AccordionOS into three manual native disclosure
-panels per project: Problem, Approach and Evidence. The original facts and live
-links remain, with the existing public screenshot and a selected-stage caption.
-There is no autoplay, polling or new API dependency. Previous/next buttons stay
-within each story; arrow keys, Home and End move between focused summaries,
-and Escape closes the open part. Without JavaScript every explanation starts
-expanded. Missing screenshots show a readable fallback. Mobile layouts and
-reduced motion are supported; the MIT notice is in `THIRD-PARTY-NOTICES.md`.
-
-Run the browser scenarios and collect screenshots/report with:
-
-```sh
-ACCORDION_EVIDENCE_DIR=/tmp/pkm-accordion node cv/tests/accordion-flow.e2e.cjs
-```
+`resume/` is a one-page A4 CV. `resume/papa-kojo-mensah-cv.pdf` is the
+downloadable copy; regenerate it from the page with Chrome's print-to-PDF
+(A4, no margins, background graphics on) whenever the CV text changes.
 
 ## Graphic design archive
 

@@ -37,6 +37,31 @@
       "source": "/accra3d/index",
       "destination": "/accra3d/",
       "permanent": true
+    },
+    {
+      "source": "/projects",
+      "destination": "/#work",
+      "permanent": true
+    },
+    {
+      "source": "/projects/",
+      "destination": "/#work",
+      "permanent": true
+    },
+    {
+      "source": "/projects/index.html",
+      "destination": "/#work",
+      "permanent": true
+    },
+    {
+      "source": "/work",
+      "destination": "/#work",
+      "permanent": false
+    },
+    {
+      "source": "/work/",
+      "destination": "/#work",
+      "permanent": false
     }
   ],
   "$schema": "https://openapi.vercel.sh/vercel.json",

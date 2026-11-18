@@ -73,8 +73,8 @@ async function png(page,file){
   const ctx=await context(), page=await ctx.newPage();page.setDefaultTimeout(5000);const errors=[];page.on('pageerror',e=>errors.push(e.message));const requests=[];page.on('request',req=>requests.push(req.url()));
   await check('Portfolio invitation is discoverable and loads playground only on navigation',async()=>{
     await page.goto(origin);assert.equal(requests.some(url=>url.includes('/playground/')),false);
-    assert.equal(await page.locator('.hero-actions a[href="resume/"]').count(),1);
-    assert.equal(await page.locator('.hero-actions a[href="mailto:mpapakojo@gmail.com"]').count(),1);
+    assert.equal(await page.locator('.hero__actions a[href="/resume/"]').count(),1);
+    assert.equal(await page.locator('.contact a[href="mailto:mpapakojo@gmail.com"]').count(),1);
     await page.locator('.playground-invitation').click();await page.waitForURL('**/playground/');
     await page.waitForFunction(()=>!document.querySelector('.room-object').disabled);
     assert.equal(await page.locator('.room-object').count(),4);
@@ -114,7 +114,7 @@ async function png(page,file){
     await page.locator('[data-filter="duration"]').click();assert.equal(await page.locator('[data-session]').count(),2);
     await page.locator('[data-filter="duration"]').click();await page.locator('#lab-dialog').screenshot({path:path.join(evidence,'lab-filtered.png')});
     await page.locator('[data-session="ayo"]').click();assert.equal(await page.locator('#lab-result').isVisible(),true);
-    assert.equal(await page.locator('#lab-result a').getAttribute('href'),'../projects/#english-chat');
+    assert.equal(await page.locator('#lab-result a').getAttribute('href'),'../work/english-chat-finder/');
     await page.locator('#lab-dialog').screenshot({path:path.join(evidence,'lab-complete.png')});
   });
   await check('Win opens one postcard dialog with safe personalisation and a decodable earned PNG',async()=>{

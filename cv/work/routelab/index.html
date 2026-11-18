@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en-GH">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="RouteLab is a map that remembers where you go. A case study by Papa Kojo Mensah on designing a GPS app and directing AI to build it.">
+    <meta name="author" content="Papa Kojo Mensah">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="theme-color" content="#080808">
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Papa Kojo Mensah">
+    <meta property="og:title" content="RouteLab · Papa Kojo Mensah">
+    <meta property="og:description" content="RouteLab is a map that remembers where you go. A case study by Papa Kojo Mensah on designing a GPS app and directing AI to build it.">
+    <meta property="og:url" content="https://pkm.hayalows.com/work/routelab/">
+    <meta property="og:image" content="https://pkm.hayalows.com/assets/work/routelab-desktop.webp">
+    <meta name="twitter:card" content="summary_large_image">
+    <title>RouteLab · Papa Kojo Mensah</title>
+    <link rel="canonical" href="https://pkm.hayalows.com/work/routelab/">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
+    <script>document.documentElement.classList.add('js')</script>
+    <link rel="stylesheet" href="/styles.css?v=conductor-1">
+    <link rel="stylesheet" href="/work/case.css?v=conductor-1">
+    <script src="/work/case.js?v=conductor-1" defer></script>
+    <script src="/analytics-tracker.js?v=3" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="case-bar">
+      <a href="/#work"><img src="/assets/papa-kojo-portrait.webp" alt="" width="28" height="28"><span>Papa Kojo</span></a>
+      <a href="https://maps.hayalows.com/" target="_blank" rel="noopener">Open RouteLab <span aria-hidden="true">↗</span></a>
+      <span class="case-progress" aria-hidden="true"></span>
+    </header>
+    <main class="case" id="main" tabindex="-1" style="--tint:#3f5cc8" data-section="case-routelab">
+      <section class="case-hero">
+        <p class="case-hero__meta">2026 · My own project</p>
+        <h1>RouteLab</h1>
+        <p class="case-hero__lede">A map that remembers where I go.</p>
+        <a class="btn btn--light" href="https://maps.hayalows.com/" target="_blank" rel="noopener">Open RouteLab <span aria-hidden="true">↗</span></a>
+      </section>
+        <div class="case-stage">
+          <figure class="device device--desk"><img src="/assets/work/routelab-desktop.webp" alt="RouteLab on a laptop. The Track screen sits over a map of Kumasi." width="1440" height="900" fetchpriority="high"></figure>
+          <figure class="device device--phone"><img src="/assets/work/routelab-phone.webp" alt="RouteLab on a phone, with “Where to?” over the map." width="390" height="844"></figure>
+        </div>      <dl class="case-facts reveal"><div><dt>My part</dt><dd>Idea, design, rules and testing. AI wrote most of the code while I directed it.</dd></div><div><dt>Made with</dt><dd>Next.js, MapLibre maps, Valhalla routing and Supabase accounts.</dd></div><div><dt>Where it is now</dt><dd>Live at maps.hayalows.com, and still growing.</dd></div></dl>
+      <section class="case-section reveal">
+        <h2>Why I made it</h2>
+        <div class="case-section__body"><p>I wanted to see my own days. Where do I go? How far do I walk? How much of my time goes to the road?</p><p>I also wanted a hard test. Maps, GPS and accounts are not simple. If I could direct AI to build this well, I could build a lot more.</p></div>
+      </section>
+      <section class="case-section reveal">
+        <h2>What it does</h2>
+        <div class="case-section__body"><ul><li>Plan a trip on foot or by car. Add up to eight stops and let it find a good order.</li><li>Record a walk, a run or a drive, then save it.</li><li>Look back at your history and see where your time went.</li></ul></div>
+      </section>
+      <section class="demo reveal" data-demo="gps">
+        <div class="demo__head">
+          <div><h2>Phones are not always honest.</h2><p>GPS can jump across town, go blurry, or wobble while you stand still. RouteLab checks every point before it counts.</p></div>
+          <div class="seg" role="group" aria-label="Show the walk"><button type="button" data-gps-mode="raw" aria-pressed="true">Raw phone GPS</button><button type="button" data-gps-mode="clean" aria-pressed="false">After the checks</button></div>
+        </div>
+        <div class="gps">
+          <div class="gps__map">
+            <svg viewBox="0 0 400 300" role="img" aria-label="A pretend walk drawn on a simple map">
+              <rect class="block" width="400" height="300"/>
+              <path class="park" d="M250 20h120v80H250z"/><path class="park" d="M30 200h90v70H30z"/>
+              <path class="road" stroke-width="10" d="M-10 230 C80 210 150 190 220 140 S330 60 410 40"/>
+              <path class="road" stroke-width="6" d="M120 -10 C130 80 140 160 170 310"/>
+              <path class="road" stroke-width="5" d="M-10 90 C100 100 220 110 410 150"/>
+              <path class="road" stroke-width="4" d="M300 -10 L280 310"/>
+              <path class="gps__path" d=""/>
+              <g class="gps__dots"></g>
+            </svg>
+          </div>
+          <div class="gps__stats" aria-live="polite">
+            <div class="gps__big"><small data-gps-label>Distance from raw phone GPS</small><strong data-gps-distance>0 km</strong></div>
+            <ul class="gps__reasons">
+              <li><span><i></i>Jumps too fast to be real</span><b data-gps-jump>0</b></li>
+              <li><span><i></i>Blurry points</span><b data-gps-blurry>0</b></li>
+              <li><span><i></i>Wobbles while standing still</span><b data-gps-wobble>0</b></li>
+            </ul>
+          </div>
+        </div>
+        <p class="demo__note">A pretend 20-minute walk in Kumasi. The checks are the same ones RouteLab uses.</p>
+      </section>
+      <div class="case-shots case-shots--mix reveal"><figure class="phone"><img src="/assets/work/routelab-phone-route.webp" alt="Setting up a walking route in RouteLab" width="390" height="844" loading="lazy" decoding="async"><figcaption>Plan a route</figcaption></figure><figure class="phone"><img src="/assets/work/routelab-phone.webp" alt="The RouteLab map with search" width="390" height="844" loading="lazy" decoding="async"><figcaption>Search the map</figcaption></figure><figure class="wide"><img src="/assets/work/routelab-desktop.webp" alt="RouteLab Track screen on desktop" width="1440" height="900" loading="lazy" decoding="async"><figcaption>Record a trip</figcaption></figure></div>
+      <section class="case-section reveal">
+        <h2>How it works</h2>
+        <div class="case-section__body"><p>Every GPS point must answer four questions. Is it fresh? Is it sharp enough? Did I really move? Could a person move that fast?</p><p>Only the points that pass get saved. Distance follows the curve of the Earth, using the Haversine formula.</p></div>
+      </section>
+      <section class="case-section reveal">
+        <h2>What it cannot do yet</h2>
+        <div class="case-section__body"><p>It only records while the app is open. Phones pause apps in the background, and I would rather say so than pretend.</p><p>It also has no live traffic. Maybe one day.</p></div>
+      </section>
+      <section class="case-section reveal">
+        <h2>My part, in plain words</h2>
+        <div class="case-section__body"><p>I wrote the plan, chose how the map should look and feel, and set the rules for good GPS. AI wrote most of the TypeScript.</p><p>When it got something wrong, I caught it and sent it back. That loop, over and over, is the real work.</p></div>
+      </section>
+
+      <a class="case-next" href="/work/stigmaclear/">
+        <small>Next story</small>
+        <strong>StigmaClear</strong>
+        <span>Helping Ghana talk about mental health →</span>
+      </a>
+      <footer class="case-foot">
+        <span>© 2026 Papa Kojo Mensah. Made in Kumasi.</span>
+        <span><a href="/#work">All work</a><a href="/resume/">CV</a><a href="mailto:mpapakojo@gmail.com">Email me</a></span>
+      </footer>
+    </main>
+  </body>
+</html>
