@@ -12,6 +12,33 @@
       "destination": "/design/sketchbook/index.html"
     }
   ],
+  "redirects": [
+    {
+      "source": "/Accra3D",
+      "destination": "/accra3d/",
+      "permanent": true
+    },
+    {
+      "source": "/Accra3D/",
+      "destination": "/accra3d/",
+      "permanent": true
+    },
+    {
+      "source": "/accra3D",
+      "destination": "/accra3d/",
+      "permanent": true
+    },
+    {
+      "source": "/Accra3d",
+      "destination": "/accra3d/",
+      "permanent": true
+    },
+    {
+      "source": "/accra3d/index",
+      "destination": "/accra3d/",
+      "permanent": true
+    }
+  ],
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
