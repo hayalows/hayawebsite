@@ -127,6 +127,16 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
 @media (pointer:coarse){.pkm-hud{top:auto!important;bottom:calc(100px + env(safe-area-inset-bottom))!important;transform:translateX(-50%) scale(.85)!important}}
 @media (max-height:500px) and (orientation:landscape){.card{width:320px}.card .trim,.card .tag{display:none}.panel{max-height:58dvh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.studio-tools{display:contents}
+@media(min-width:901px){
+  body[data-mode="showroom"] #stage{right:328px}
+  .studio-tools{position:fixed;z-index:5;top:76px;bottom:14px;right:14px;width:300px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;scrollbar-width:thin;border-radius:var(--radius)}
+  .studio-tools>.card,.studio-tools>.panel{position:static;width:100%;flex:none}
+  .studio-tools>.card{padding:18px}
+  .studio-tools .card h1{font-size:2.75rem}
+  .studio-tools .panel__body{overflow:visible}
+  body[data-mode="drive"] .studio-tools{display:none}
+}
 </style>
 </head>
 <body data-mode="showroom">
@@ -158,6 +168,7 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
   </nav>
 </header>
 
+<div class="studio-tools">
 <section class="card glass" aria-labelledby="vname">
   <div class="kick" id="kicker">PKM Motors · 2027</div>
   <h1 id="vname">Volta</h1>
@@ -204,6 +215,7 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
     <div class="grp"><button class="btn pill" id="secretsBtn" aria-expanded="false" aria-controls="secrets">Secrets found <span id="secretCount">0/8</span></button></div>
   </div>
 </aside>
+</div>
 
 <section class="secrets glass" id="secrets" aria-labelledby="secretsTitle" hidden>
   <div class="secrets__heading"><h2 id="secretsTitle">Secrets</h2><button class="btn" id="closeSecrets">Close</button></div>
