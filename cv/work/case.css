@@ -136,3 +136,9 @@
 .scan__results h3{font-size:1.05rem;letter-spacing:-.01em}
 .slot{display:flex;justify-content:space-between;gap:1rem;padding:.8rem 1rem;border-radius:12px;background:#0f2a28;color:#dff6f3;animation:enter .5s var(--ease) both}
 .slot span{color:#9fd8d0}
+
+/* Keep the desktop and phone screenshots separate. Both remain readable and in flow. */
+.case-stage{display:grid;grid-template-columns:minmax(0,1fr) clamp(150px,21%,208px);align-items:center;gap:clamp(1rem,2.6vw,2.25rem);width:min(1020px,100%);margin:3.5rem auto 2rem;padding:0}
+.case-stage .device--desk{position:relative;inset:auto;top:auto;right:auto;width:100%;margin:0}
+.case-stage .device--phone{position:relative;inset:auto;left:auto;right:auto;bottom:auto;width:100%;max-width:208px;justify-self:center;aspect-ratio:390/820;border-width:5px;border-radius:26px}
+@media(max-width:640px){.case-stage{grid-template-columns:minmax(0,1fr);justify-items:center;gap:1.5rem;margin:2rem auto 2.5rem}.case-stage .device--phone{width:min(44%,170px);max-width:170px}}
