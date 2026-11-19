@@ -15,17 +15,29 @@
 <link rel="icon" href="/favicon.ico">
 <link rel="preload" href="/assets/fonts/inter-latin-wght.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" as="image" href="/assets/posters/drive-studio-1600.webp" imagesrcset="/assets/posters/drive-studio-900.webp 900w, /assets/posters/drive-studio-1600.webp 1600w" imagesizes="100vw" fetchpriority="high">
-<link rel="modulepreload" href="/assets/scene-shell.js?v=12">
-<link rel="modulepreload" href="/l200/studio.js?v=10">
-<link rel="modulepreload" href="/l200/pkm-drive.js?v=10">
+<link rel="modulepreload" href="/assets/scene-shell.js?v=13">
+<link rel="modulepreload" href="/l200/studio.js?v=11">
+<link rel="modulepreload" href="/l200/pkm-drive.js?v=11">
 <script>
+// Pick the renderer before any script loads, so the right engine downloads in parallel.
+// Same rule as src/engine-choice.js: modern for capable computers, Accra's lighter engine for phones and weak chips.
 {
-  let saved;
+  let saved, gpu = '';
   try { saved = JSON.parse(localStorage.getItem('pkm.drive.quality')); } catch {}
-  const high = (new URLSearchParams(location.search).get('quality') || saved) === 'high';
+  const quality = new URLSearchParams(location.search).get('quality') || saved || 'auto';
+  if (quality === 'auto') try { // only probe the chip when it decides something
+    const g = document.createElement('canvas').getContext('webgl'), e = g && g.getExtension('WEBGL_debug_renderer_info');
+    gpu = e ? String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)) : '';
+    g && g.getExtension('WEBGL_lose_context') && g.getExtension('WEBGL_lose_context').loseContext();
+  } catch {}
+  const weak = /SwiftShader|llvmpipe|Mali-[GT]?[0-9]{1,3}\b|Adreno \(TM\) [1-5][0-9]{2}\b|PowerVR|Intel.*(HD|UHD) Graphics/i.test(gpu)
+    || (navigator.hardwareConcurrency || 8) <= 4
+    || (matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600);
+  const engine = quality === 'high' ? 'modern' : quality === 'low' ? 'legacy' : weak ? 'legacy' : 'modern';
+  window.__pkmEngine = engine;
   const preload = document.createElement('link');
-  preload.rel = 'modulepreload';
-  preload.href = high ? '/l200/studio-high.js?v=1' : '/accra3d/three-r128.min.js';
+  preload.rel = 'modulepreload'; // Accra imports the same file as a module, so the cache entry is shared
+  preload.href = engine === 'modern' ? '/l200/studio-high.js?v=2' : '/accra3d/three-r128.min.js';
   document.head.appendChild(preload);
 }
 </script>
@@ -227,7 +239,7 @@ body:not([data-mode="drive"]) .pkm-touch{display:none!important}
 <p class="foot showroom-only">Original vehicles designed for this study. Engine sounds are synthesised live.<br>Part of the <a href="/#lab">Lab</a> on <a href="/">pkm.hayalows.com</a> · Also try <a href="/accra3d/">Accra 3D</a></p>
 
 </div>
-<script type="module" src="/assets/scene-shell.js?v=12"></script>
+<script type="module" src="/assets/scene-shell.js?v=13"></script>
 <script src="/analytics-tracker.js?v=3" defer></script>
 </body>
 </html>

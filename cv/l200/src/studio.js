@@ -1,6 +1,8 @@
 import { buildShowroom, buildCourse } from './world.js';
+import { adaptLegacyThree } from './legacy.js';
+import { chooseEngine } from './engine-choice.js';
 
-import { buildVehicle, SPECS, VehicleAudio, DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from '/l200/pkm-drive.js?v=10';
+import { buildVehicle, SPECS, VehicleAudio, DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from '/l200/pkm-drive.js?v=11';
 
 export async function startStudio(shell) {
 const $ = (s, r = document) => r.querySelector(s);
@@ -14,25 +16,23 @@ const canvas = $('#view');
 const qualityValue = params.get('quality') || store.get('pkm.drive.quality', 'auto');
 const quality = ['auto', 'high', 'low'].includes(qualityValue) ? qualityValue : 'auto';
 const compact = matchMedia('(max-width: 900px)');
-const high = quality === 'high';
+// Capable computers get the modern renderer with glow and a reflective floor. Phones and weak
+// graphics chips get Accra's lighter engine (often already cached), taught modern colour rules.
+const engine = window.__pkmEngine || chooseEngine(quality);
+const high = engine === 'modern';
 async function loadGraphics() {
-  if (high) return (await import('/l200/studio-high.js?v=1')).graphics;
+  if (high) return (await import('/l200/studio-high.js?v=2')).graphics;
   await import('/accra3d/three-r128.min.js');
-  return window.THREE;
+  return adaptLegacyThree(window.THREE);
 }
 const THREE = await loadGraphics();
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 if (!high) {
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.physicallyCorrectLights = true;
 }
-const gl = renderer.getContext?.();
-const ext = gl?.getExtension('WEBGL_debug_renderer_info');
-const gpuName = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
-const weakGpu = /SwiftShader|llvmpipe|Mali-[GT][0-9]{1,2}\b|Adreno \(TM\) [1-5][0-9]{2}\b|PowerVR|Intel.*UHD/i.test(gpuName);
-const lowGuess = weakGpu || (navigator.hardwareConcurrency || 8) <= 4 || compact.matches;
-const effQ = () => high || (quality === 'auto' && !lowGuess && !economy) ? 'high' : 'low';
 let economy = false;
+const effQ = () => high && !economy ? 'high' : 'low';
 shell.watchCanvas(canvas);
 renderer.setPixelRatio(Math.min(devicePixelRatio, effQ() === 'low' ? 1 : 1.5));
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
@@ -47,12 +47,13 @@ let composer, bloom;
 if (high) {
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(new THREE.RenderPass(scene, camera));
-  bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.4, 1.0); composer.addPass(bloom);
+  // A high threshold keeps the glow on true light sources (lamps, LEDs, the sign), not on paint highlights.
+  bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.3, 0.5, 3.2); composer.addPass(bloom);
   composer.addPass(new THREE.OutputPass());
 }
 
 // ---------------------------------------------------------------- world
-const showroom = buildShowroom({ THREE, quality: effQ(), reflections: high });
+const showroom = buildShowroom({ THREE, quality: effQ(), reflections: high, reducedMotion: shell.reducedMotion.matches });
 scene.add(showroom.group);
 const audio = new VehicleAudio(); audio.setMuted(store.get('pkm.drive.muted', false));
 
@@ -82,6 +83,7 @@ function parkShowroom() {
   }
   const o = cars[otherId()]; // the other car waits beside the turntable; click it to swap
   if (o) { showroom.group.add(o.root); o.root.position.set(-9.2, 0, 1.5); o.root.rotation.set(0, 0.6, 0); }
+  syncEnvIntensity();
 }
 
 // ---------------------------------------------------------------- drive
@@ -129,7 +131,7 @@ const driveBar = createDriveBar($('#stage'), drive, {
   exitLabel: 'Showroom', onExit: () => veil(() => setMode('showroom')),
   resetLabel: 'Reset car and cones', onReset: () => { drive.recover(); resetCones(); },
 });
-if (params.has('debug')) window.__pkm = { camera, controls, drive, car: () => car() };
+if (params.has('debug')) window.__pkm = { camera, controls, drive, renderer, scene, showroom, car: () => car(), get course() { return course; } };
 
 // ---------------------------------------------------------------- environment / moods
 const envCache = {};
@@ -143,14 +145,29 @@ function applyEnv() {
   scene.environment = envCache[key];
   scene.environmentIntensity = mode === 'drive' ? (mood === 'night' ? 0.12 : 0.45) : mood === 'night' ? 0.55 : 1;
   if (mode === 'drive') {
-    scene.background = null; scene.fog = new THREE.FogExp2(mood === 'night' ? '#05070c' : mood === 'sunset' ? '#c98f6a' : '#9fb6c8', mood === 'night' ? 0.004 : 0.0011);
+    scene.background = null; scene.fog = new THREE.FogExp2(mood === 'night' ? '#05070c' : mood === 'sunset' ? '#cf9a74' : '#b4c3cb', mood === 'night' ? 0.004 : mood === 'sunset' ? 0.0026 : 0.0022); // aerial haze gives the field depth
     renderer.toneMappingExposure = mood === 'night' ? 0.9 : mood === 'sunset' ? 0.7 : 0.55;
   } else { scene.background = new THREE.Color(mood === 'night' ? '#050505' : '#0a0a0a'); scene.fog = null; renderer.toneMappingExposure = 1; }
+  syncEnvIntensity();
   if (bloom) {
-    bloom.strength = mood === 'night' ? 0.6 : 0.35;
-    bloom.enabled = mode === 'showroom' || mood === 'night';
+    bloom.strength = mood === 'night' ? 0.55 : 0.3;
+    bloom.enabled = mood === 'night'; // by day it only smeared paint highlights; at night it gives lamps and the sign their glow
   }
   env.night = mood === 'night';
+}
+// r128 has no scene.environmentIntensity, so scale each material's own reflection strength instead.
+// r128's environment lighting differs from modern three's for the same scene: about 2.2x brighter
+// in the showroom, weaker under the open sky. Measured on walls, oak, road and paint, then matched.
+const LEGACY_ENV = { showroom: 0.45, drive: 1.6 };
+function syncEnvIntensity() {
+  if (high) return;
+  const k = (scene.environmentIntensity ?? 1) * LEGACY_ENV[mode];
+  scene.traverse((o) => {
+    for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) {
+      if (!('envMapIntensity' in m)) continue;
+      m.userData.baseEnv ??= m.envMapIntensity; m.envMapIntensity = m.userData.baseEnv * k;
+    }
+  });
 }
 function setMood(m) {
   mood = m; showroom.setMood(m); course?.setMood(m); applyEnv();
@@ -249,6 +266,7 @@ function selectCar(id) {
   drive.setVehicle(car());
   if (mood === 'night') car().state.head = true;
   parkShowroom(); flyTo('hero'); renderVehicleInfo(); syncToggles();
+  showroom.startReveal(performance.now()); // an unveiling: the room dips and the lights come up on the new car
 }
 $$('[data-car]').forEach((b) => b.addEventListener('click', () => selectCar(b.dataset.car)));
 $('#swatches').addEventListener('click', (e) => {
@@ -331,7 +349,7 @@ function setMode(m, focus = true) {
   if (m === 'drive') {
     stopInterior(false); flight = null; setPanel(false); setSecrets(false);
     showroom.group.visible = false; course.group.visible = true;
-    course.setMood(mood); scene.add(car().root);
+    course.setMood(mood); scene.add(car().root); syncEnvIntensity();
     const radius = car().spec.width * 0.48;
     env.collide = makeCollider({ bounds: course.bounds, circles: course.circles, carR: radius, carHalf: car().dims.length / 2 - radius });
     controls.enabled = false; drive.setEnabled(true); drive.cycleCamera('chase');
@@ -492,9 +510,10 @@ function loop(now) {
       if (t >= 1) flight = null;
     }
     controls.update();
+    const animating = showroom.animate(now);
     const moving = Object.values(v.panels).some((panel) => Math.abs(panel.userData.open - panel.userData.target) > 0.002);
     const lights = v.state;
-    if (!needsFrame && now > dirtyUntil && !turning && !flight && !moving && !drive.dyn.engine && !lights.left && !lights.right && !lights.hazard && disco <= 0) return;
+    if (!needsFrame && !animating && now > dirtyUntil && !turning && !flight && !moving && !drive.dyn.engine && !lights.left && !lights.right && !lights.hazard && disco <= 0) return;
     v.update(dt, { engine: drive.dyn.engine, night: mood === 'night' });
     if (drive.dyn.engine) {
       const d = drive.dyn; d.rpm += (v.spec.idle - d.rpm) * Math.min(1, dt * 3); d.throttle *= 0.9;
@@ -546,6 +565,7 @@ render(0);
 if (!shell.running) return;
 syncToggles();
 shell.ready();
+showroom.firstSweep(performance.now() + 1200); // the room opens fully lit, then light passes over your name
 // Build the other car and the course when the visitor chooses them.
 
 if (!store.get('pkm.drive.tip', false)) {

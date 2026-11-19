@@ -2885,7 +2885,7 @@ const detailReady = (async () => {
   applyTime(TIME.elevation, true);
   cityReady = true;
   // Warm the driving code while the visitor looks around, so Drive opens without a wait.
-  if (!navigator.connection?.saveData) setTimeout(() => { import('./drive-mode.js?v=11').catch(() => {}); }, 1200);
+  if (!navigator.connection?.saveData) setTimeout(() => { import('./drive-mode.js?v=12').catch(() => {}); }, 1200);
   sceneDirty = true;
 })();
 detailReady.catch(() => { $('driveStatus').textContent = 'Some city details couldn’t load.'; });
@@ -2899,7 +2899,7 @@ async function openDrive(auto = false) {
   button.textContent = 'Opening…';
   loadingDrive = true;
   try {
-    const { mountDrive } = await import('./drive-mode.js?v=11');
+    const { mountDrive } = await import('./drive-mode.js?v=12');
     await detailReady;
     if (!shell.running) return;
     driveMode ??= mountDrive({

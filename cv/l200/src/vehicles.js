@@ -63,6 +63,26 @@ export function buildVehicle(THREE, id, opts = {}) {
 
   // ---------- materials ----------
   const paint = new THREE.MeshPhysicalMaterial({ color: col(S.paints[0].hex), metalness: S.paints[0].metal, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.25 });
+  // Metallic flake: tiny mirror-like flakes in the base coat tilt the normal cell by cell, so the paint
+  // sparkles under light. The clear coat keeps its own unperturbed normal, as on a real car.
+  // The effect fades out where flakes would be smaller than a pixel, so it never shimmers.
+  const flake = { value: S.paints[0].metal > 0.5 ? 0.32 : 0.1 };
+  paint.extensions = { derivatives: true };
+  paint.customProgramCacheKey = () => 'pkm-flake';
+  paint.onBeforeCompile = (shader) => {
+    shader.uniforms.uFlake = flake;
+    shader.vertexShader = shader.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vFlakePos;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvFlakePos = position;');
+    shader.fragmentShader = shader.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vFlakePos;\nuniform float uFlake;')
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+      {
+        vec3 fp = vFlakePos * 380.0;
+        vec3 p3 = fract(floor(fp) * 0.1031); p3 += dot(p3, p3.zyx + 31.32);
+        vec3 rnd = fract((p3.xxy + p3.yzz) * p3.zyx) * 2.0 - 1.0;
+        float fade = 1.0 - smoothstep(0.4, 1.0, length(fwidth(fp)));
+        normal = normalize(normal + rnd * uFlake * fade);
+      }`);
+  };
   const M = {
     paint,
     black: new THREE.MeshStandardMaterial({ color: col('#121314'), roughness: 0.55, metalness: 0.1 }),
@@ -74,12 +94,12 @@ export function buildVehicle(THREE, id, opts = {}) {
     lens: new THREE.MeshPhysicalMaterial({ color: col('#e8eef2'), roughness: 0.02, metalness: 0, transparent: true, opacity: 0.35, clearcoat: 1 }),
     head: new THREE.MeshStandardMaterial({ color: col('#f4f7fb'), emissive: col('#ffffff'), emissiveIntensity: 0.6, roughness: 0.25, metalness: 0.4 }),
     drl: new THREE.MeshStandardMaterial({ color: col('#ffffff'), emissive: col('#eef4ff'), emissiveIntensity: 2.2, roughness: 0.3 }),
-    tail: new THREE.MeshStandardMaterial({ color: col('#5a0b0b'), emissive: col('#ff1a10'), emissiveIntensity: 0.55, roughness: 0.2, metalness: 0.2 }),
+    tail: new THREE.MeshStandardMaterial({ color: col('#5a0b0b'), emissive: col('#ff1a10'), emissiveIntensity: 0.55, roughness: 0.18, metalness: 0.2 }),
     amber: new THREE.MeshStandardMaterial({ color: col('#6b3d07'), emissive: col('#ff8a00'), emissiveIntensity: 0, roughness: 0.25 }),
     reverse: new THREE.MeshStandardMaterial({ color: col('#bfc4c8'), emissive: col('#ffffff'), emissiveIntensity: 0, roughness: 0.2 }),
     tyre: null, rim: null,
-    interior: new THREE.MeshStandardMaterial({ color: col(isV8 ? '#3a2a20' : '#232425'), roughness: 0.78 }),
-    leather: new THREE.MeshStandardMaterial({ color: col(isV8 ? '#8b6a4f' : '#36383a'), roughness: 0.6 }),
+    interior: new THREE.MeshStandardMaterial({ color: col(isV8 ? '#3a2a20' : '#232425'), roughness: 0.78, envMapIntensity: 0.55 }), // soft-touch trim scatters, it does not mirror the room
+    leather: new THREE.MeshStandardMaterial({ color: col(isV8 ? '#8b6a4f' : '#36383a'), roughness: 0.6, envMapIntensity: 0.7 }),
     aperture: new THREE.MeshStandardMaterial({ color: col('#141414'), roughness: 0.9 }),
     under: new THREE.MeshStandardMaterial({ color: col('#0b0b0b'), roughness: 0.95 }),
     disc: new THREE.MeshStandardMaterial({ color: col('#6d6f70'), roughness: 0.45, metalness: 0.9 }),
@@ -109,6 +129,16 @@ export function buildVehicle(THREE, id, opts = {}) {
   const treadTex = new THREE.CanvasTexture(tread); treadTex.wrapS = THREE.RepeatWrapping;
   const sideMap = srgb(new THREE.CanvasTexture(sideTex)); sideMap.wrapS = THREE.RepeatWrapping;
   M.tyre = new THREE.MeshStandardMaterial({ color: col('#d0ceca'), roughness: 0.86, bumpMap: treadTex, bumpScale: 0.0035, map: sideMap });
+  // Tail lamps: bright light guides and LED cells behind a smoked lens, instead of a flat red block.
+  const tailTex = srgb(new THREE.CanvasTexture(canvas(128, 256, (g, w, h) => {
+    g.fillStyle = '#300605'; g.fillRect(0, 0, w, h);
+    for (let y = 12; y < h; y += 36) {
+      const gr = g.createLinearGradient(0, y, 0, y + 12); gr.addColorStop(0, '#ff5a40'); gr.addColorStop(0.5, '#ffd6c8'); gr.addColorStop(1, '#ff3420');
+      g.fillStyle = gr; g.fillRect(10, y, w - 20, 11);
+    }
+    g.fillStyle = 'rgba(0,0,0,.4)'; for (let x = 0; x < w; x += 16) g.fillRect(x, 0, 2, h);
+  })));
+  Object.assign(M.tail, { map: tailTex, emissiveMap: tailTex }); M.tail.color = col('#c8c8c8');
   M.rim = new THREE.MeshPhysicalMaterial({ color: col(isV8 ? '#d9dcdf' : '#3a3d40'), metalness: 1, roughness: isV8 ? 0.12 : 0.35, clearcoat: 0.6 });
 
   // emblem
@@ -857,6 +887,7 @@ export function buildVehicle(THREE, id, opts = {}) {
   function setPaint(hex, metal) {
     paint.color.copy(col(hex));
     paint.metalness = metal ?? paint.metalness;
+    flake.value = paint.metalness > 0.5 ? 0.32 : 0.1;
     paint.roughness = metal > 0.5 ? 0.30 : 0.37;
     paint.clearcoatRoughness = metal > 0.5 ? 0.095 : 0.12;
   }

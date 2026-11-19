@@ -80,7 +80,7 @@ export class DriveController {
     this.effectsTime = 0;
     this.camPos = new THREE.Vector3(); this.camLook = new THREE.Vector3(); this.fov = camera.fov; this.shake = 0;
     this.orbitYaw = 0; this.orbitPitch = 0; this.dragging = false; this.cine = null;
-    this._tmp = new THREE.Vector3(); this._tmp2 = new THREE.Vector3(); this._q = new THREE.Quaternion();
+    this._tmp = new THREE.Vector3(); this._tmp2 = new THREE.Vector3(); this._q = new THREE.Quaternion(); this._tmp3 = new THREE.Vector3(); this._skidColor = new THREE.Color();
     this.cameraWant = new THREE.Vector3(); this.cameraTarget = new THREE.Vector3(); this.cameraHeading = new THREE.Vector3();
     this.cabinDirection = new THREE.Vector3(); this.cabinRotation = new THREE.Quaternion();
     this.renderTyres = {};
@@ -304,11 +304,15 @@ export class DriveController {
     for (let i = 0; i < N; i++) this.pPos[i * 3 + 1] = -100;
     this.pIdx = 0;
     // skid marks
-    const M = 320;
-    const sg = new THREE.PlaneGeometry(0.26, 0.5); sg.rotateX(-Math.PI / 2);
-    this.skid = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ color: 0x0a0a0a, transparent: true, opacity: 0.55, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), M);
+    // Continuous rubber strips: each piece joins a rear tyre's last mark to where it is now.
+    // Darker where the tyre slid harder. One draw call for all 900 pieces.
+    const M = 900;
+    const sg = new THREE.PlaneGeometry(0.24, 1); sg.rotateX(-Math.PI / 2);
+    this.skid = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), M);
     this.skid.frustumCulled = false; this.skidI = 0; const hide = new THREE.Matrix4().makeTranslation(0, -100, 0);
-    for (let i = 0; i < M; i++) this.skid.setMatrixAt(i, hide);
+    const grey = new THREE.Color(0x101010);
+    for (let i = 0; i < M; i++) { this.skid.setMatrixAt(i, hide); this.skid.setColorAt(i, grey); }
+    this.lastMark = [null, null];
     this.scene.add(this.skid);
   }
   _emit(p, color, amount) {
@@ -365,20 +369,35 @@ export class DriveController {
     const speed = Math.hypot(d.vx, d.vy), offroad = d.surface !== 'asphalt' && d.surface !== 'floor';
     this.effectsTime += dt;
     const dust = (offroad && speed > 3) || d.slip > 0.7 || d.wheelSpin > 0.4;
-    const marks = !offroad && (d.slip > 0.75 || d.wheelSpin > 0.5) && speed > 2;
+    const hardStop = this.input.brake > 0.85 && speed > 9 && d.ax < -6;
+    const marks = !offroad && speed > 2 && (d.slip > 0.45 || d.wheelSpin > 0.4 || hardStop);
+    const markDark = Math.min(1, Math.max(d.slip - 0.3, d.wheelSpin, hardStop ? 0.35 : 0));
     if (this.effectsTime >= 1 / 30) {
       this.effectsTime %= 1 / 30;
-      if (marks || dust) for (const w of v.wheels) {
+      let rear = 0;
+      for (const w of v.wheels) {
         if (w.front) continue;
+        const slot = rear++;
+        if (!marks && !dust) { this.lastMark[slot] = null; continue; }
         const p = w.pivot.getWorldPosition(this._tmp2);
         if (dust) this._emit(p, offroad ? (this.env.dustColor || 0xb08a62) : 0xd8d8d8, offroad ? Math.ceil(speed / 9) : 1);
-        if (marks) {
-          p.y = (this.env.groundY?.(p.x, p.z) ?? 0) + 0.012;
-          const m = this.markMatrix.compose(p, this._q.setFromAxisAngle(this.cameraHeading.set(0, 1, 0), d.yaw), this.markScale);
-          this.skid.setMatrixAt(this.skidI = (this.skidI + 1) % this.skid.count, m);
+        if (!marks) { this.lastMark[slot] = null; continue; }
+        const y = (this.env.groundY?.(p.x, p.z) ?? 0) + 0.012, last = this.lastMark[slot];
+        if (last) {
+          const dx = p.x - last.x, dz = p.z - last.z, len = Math.hypot(dx, dz);
+          if (len > 0.04 && len < 4) {
+            this._tmp3.set((p.x + last.x) / 2, y, (p.z + last.z) / 2);
+            this.markScale.set(1, 1, len + 0.06);
+            const m = this.markMatrix.compose(this._tmp3, this._q.setFromAxisAngle(this.cameraHeading.set(0, 1, 0), Math.atan2(dx, dz)), this.markScale);
+            this.skidI = (this.skidI + 1) % this.skid.count;
+            this.skid.setMatrixAt(this.skidI, m);
+            this.skid.setColorAt(this.skidI, this._skidColor.setRGB(0.12 - markDark * 0.1, 0.12 - markDark * 0.1, 0.12 - markDark * 0.1));
+            this._skidDirty = true;
+          }
         }
+        this.lastMark[slot] = { x: p.x, z: p.z };
       }
-      if (marks) this.skid.instanceMatrix.needsUpdate = true;
+      if (this._skidDirty) { this.skid.instanceMatrix.needsUpdate = true; if (this.skid.instanceColor) this.skid.instanceColor.needsUpdate = true; this._skidDirty = false; }
     }
     this._fx(dt);
     this._camera(dt);
@@ -419,6 +438,7 @@ export class DriveController {
     const pos = v.root.position, speed = Math.hypot(d.vx, d.vy);
     if (!this.dragging) { this._lookT = (this._lookT || 0) + dt; if (this._lookT > 1.2) { this.orbitYaw = damp(this.orbitYaw, 0, 2.5, dt); this.orbitPitch = damp(this.orbitPitch, 0, 2.5, dt); } }
     const want = this.cameraWant, look = this.cameraTarget;
+    if (!this._camInit || (this.camMode !== 'chase' && this.camMode !== 'far')) this._chaseYaw = undefined; // re-seed after any cut
     let fov = 55, stiff = 6, near = 0.1;
     const yaw = v.root.rotation.y + this.orbitYaw;
     const back = this.cameraHeading.set(Math.sin(yaw), 0, Math.cos(yaw));
@@ -430,9 +450,16 @@ export class DriveController {
         // drift: camera swings with the velocity vector, not the nose
         const velYaw = speed > 4 ? Math.atan2(d.vx * Math.sin(d.yaw) + d.vy * Math.cos(d.yaw), d.vx * Math.cos(d.yaw) - d.vy * Math.sin(d.yaw)) : d.yaw;
         const yawMix = d.vx > 2 ? velYaw + (yaw - d.yaw) : yaw;
-        want.set(pos.x - Math.sin(yawMix) * dist, pos.y + h, pos.z - Math.cos(yawMix) * dist);
-        look.copy(pos).addScaledVector(fwd, 2.5 + speed * 0.06); look.y += 1.05;
-        fov = 52 + Math.min(16, speed * 0.38); stiff = 4.5; break;
+        // Racing-game follow: the camera stays locked to the car and only its angle, height and
+        // distance ease. Lagging the position instead made it cut corners and swing at speed.
+        if (this._chaseYaw === undefined) { this._chaseYaw = yawMix; this._chaseDist = dist; this._chaseY = pos.y + h; }
+        const turnRate = 3.4 + Math.min(4, speed * 0.12); // steadier as speed rises
+        this._chaseYaw += Math.atan2(Math.sin(yawMix - this._chaseYaw), Math.cos(yawMix - this._chaseYaw)) * (1 - Math.exp(-turnRate * dt));
+        this._chaseDist = damp(this._chaseDist, dist, 2.2, dt);
+        this._chaseY = damp(this._chaseY, pos.y + h, 6, dt); // kerbs and bumps do not jolt the view
+        want.set(pos.x - Math.sin(this._chaseYaw) * this._chaseDist, this._chaseY, pos.z - Math.cos(this._chaseYaw) * this._chaseDist);
+        look.copy(pos).addScaledVector(fwd, 2.5 + speed * 0.06); look.y = this._chaseY - h + 1.05;
+        fov = 52 + Math.min(16, speed * 0.38); stiff = 40; break;
       }
       case 'cabin': {
         const calm = this.reducedMotion.matches;
