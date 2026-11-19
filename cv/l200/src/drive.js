@@ -426,7 +426,7 @@ export class DriveController {
     switch (this.camMode) {
       case 'chase': case 'far': {
         const far = this.camMode === 'far';
-        const dist = (far ? len * 1.9 : len * 1.25) + speed * 0.05, h = (far ? 3.4 : 2.05) + this.orbitPitch * 4;
+        const dist = (far ? len * 1.9 : len * 1.36) + speed * 0.05, h = (far ? 3.7 : v.dims.height + 0.85) + this.orbitPitch * 4;
         // drift: camera swings with the velocity vector, not the nose
         const velYaw = speed > 4 ? Math.atan2(d.vx * Math.sin(d.yaw) + d.vy * Math.cos(d.yaw), d.vx * Math.cos(d.yaw) - d.vy * Math.sin(d.yaw)) : d.yaw;
         const yawMix = d.vx > 2 ? velYaw + (yaw - d.yaw) : yaw;

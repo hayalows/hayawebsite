@@ -1,6 +1,6 @@
 import { buildShowroom, buildCourse } from './world.js';
 
-import { buildVehicle, SPECS, VehicleAudio, DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from '/l200/pkm-drive.js?v=9';
+import { buildVehicle, SPECS, VehicleAudio, DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from '/l200/pkm-drive.js?v=10';
 
 export async function startStudio(shell) {
 const $ = (s, r = document) => r.querySelector(s);
@@ -137,7 +137,7 @@ function applyEnv() {
   const key = mode + ':' + mood;
   if (!envCache[key]) {
     const lighting = mode === 'drive' ? course.envScene(mood) : showroom.envScene(mood);
-    envCache[key] = pmrem.fromScene(lighting, 0.03, 0.1, 100, { size: 128 }).texture;
+    envCache[key] = pmrem.fromScene(lighting, 0.03, 0.1, mode === 'drive' ? 2500 : 100, { size: 128 }).texture;
     lighting.traverse((node) => { node.geometry?.dispose(); node.material?.dispose(); });
   }
   scene.environment = envCache[key];
@@ -160,7 +160,7 @@ function setMood(m) {
 
 // ---------------------------------------------------------------- showroom camera presets
 const presets = {
-  hero: [[7.4, 1.85, 8.2], [-0.9, 0.8, 0.4]], front: [[0.4, 1.3, 8.2], [0, 0.9, 0]], rear: [[-1.2, 1.9, -8.2], [0, 0.9, 0]],
+  hero: [[5.6, 2.1, 8.9], [0, 0.8, 0]], front: [[0.4, 1.3, 8.2], [0, 0.9, 0]], rear: [[-1.2, 1.9, -8.2], [0, 0.9, 0]],
   side: [[8.6, 1.2, 0.3], [0, 0.9, 0]], top: [[0.4, 10.5, 1.2], [0, 0, 0]], wheel: [[3.2, 0.55, 3.6], [1.2, 0.4, 1.5]], interior: null,
 };
 let flight = null, interiorOn = false;
@@ -193,7 +193,7 @@ function flyTo(name) {
   const yaw = showroom.table.rotation.y, rot = (v) => new THREE.Vector3(v[0], v[1], v[2]).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
   const position = rot(p), target = rot(t);
   if (compact.matches) {
-    if (name === 'hero') target.y -= 0.33;
+    if (name === 'hero') target.y -= 0.58;
     const fit = THREE.MathUtils.clamp(0.9 / camera.aspect, 1, 1.72);
     position.sub(target).multiplyScalar(fit).add(target);
   }
@@ -531,7 +531,7 @@ resize();
 const [position, target] = presets.hero;
 camera.position.set(...position); controls.target.set(...target);
 if (compact.matches) {
-  controls.target.y -= 0.33;
+  controls.target.y -= 0.58;
   camera.position.sub(controls.target).multiplyScalar(THREE.MathUtils.clamp(0.9 / camera.aspect, 1, 1.72)).add(controls.target);
 }
 controls.update();

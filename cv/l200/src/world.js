@@ -59,8 +59,8 @@ export function buildShowroom({ THREE, quality, reflections }) {
   });
   const signM = new THREE.MeshStandardMaterial({ color: '#000', emissive: '#F2E6CF', emissiveMap: signTex, emissiveIntensity: 2.4, transparent: true, alphaMap: signTex, roughness: 1 });
   signTex.colorSpace = THREE.NoColorSpace;
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 3.36), signM); sign.position.set(0, 5.5, -13.55); sign.userData.click = 'sign'; g.add(sign); clickables.push(sign);
-  const halo = new THREE.Mesh(new THREE.PlaneGeometry(11, 4.2), new THREE.MeshBasicMaterial({ color: '#BBA783', transparent: true, opacity: 0.08, depthWrite: false })); halo.position.set(0, 5.5, -13.62); g.add(halo);
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 3.36), signM); sign.position.set(-7.5, 5.5, -13.55); sign.userData.click = 'sign'; g.add(sign); clickables.push(sign);
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(11, 4.2), new THREE.MeshBasicMaterial({ color: '#BBA783', transparent: true, opacity: 0.08, depthWrite: false })); halo.position.set(-7.5, 5.5, -13.62); g.add(halo);
   // ceiling light strips (also what the paint reflects)
   const stripM = new THREE.MeshStandardMaterial({ color: '#fff', emissive: '#fff8ee', emissiveIntensity: 1.4 });
   const strips = [];
@@ -114,7 +114,7 @@ export function buildShowroom({ THREE, quality, reflections }) {
   const rim = new THREE.SpotLight(0xdfe8ff, 70, 30, 0.7, 0.8, 1.5); rim.position.set(-6, 7, -7); lights.add(rim, rim.target);
   const fill = new THREE.SpotLight(0xffe6c8, 35, 30, 0.8, 0.9, 1.5); fill.position.set(7, 4, 8); lights.add(fill, fill.target);
   const hemi = new THREE.HemisphereLight(0xbfc5cc, 0x1a1714, 0.35); lights.add(hemi);
-  const signGlow = new THREE.PointLight(0xffe2b8, 18, 14, 2); signGlow.position.set(0, 5.5, -12.5); lights.add(signGlow);
+  const signGlow = new THREE.PointLight(0xffe2b8, 18, 14, 2); signGlow.position.set(-7.5, 5.5, -12.5); lights.add(signGlow);
 
   // environment for reflections: bright strips in a dark room
   function envScene(mood) {
@@ -124,9 +124,14 @@ export function buildShowroom({ THREE, quality, reflections }) {
     for (const x of [-6, -3, 0, 3, 6]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 18), em(tone, mood === 'night' ? 2 : 8)); m.position.set(x, 9, 0); s.add(m); }
     const big = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), em(mood === 'sunset' ? '#ffb070' : '#eef2f6', mood === 'night' ? 0.6 : 3)); big.position.set(15.6, 4.4, 4.5); big.rotation.y = -Math.PI / 2; s.add(big);
     const big2 = new THREE.Mesh(new THREE.PlaneGeometry(10, 4), em('#d9d2c4', mood === 'night' ? 0.3 : 1.6)); big2.position.set(-14, 3.5, 4); big2.rotation.y = Math.PI / 2; s.add(big2);
-    const sg = new THREE.Mesh(new THREE.PlaneGeometry(9, 3), em('#F2E6CF', 2.5)); sg.position.set(0, 5.5, -13.5); s.add(sg);
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(9, 3), em('#F2E6CF', 2.5)); sg.position.set(-7.5, 5.5, -13.5); s.add(sg);
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), em('#2a2a2a', 1)); fl.rotation.x = -Math.PI / 2; s.add(fl);
     return s;
+  }
+  if (!THREE.ColorManagement) {
+    const materials = new Set();
+    g.traverse(node => { if (node.material) materials.add(node.material); });
+    for (const m of materials) m.color?.convertSRGBToLinear();
   }
   function setMood(mood) {
     const night = mood === 'night', sunset = mood === 'sunset';
@@ -136,6 +141,7 @@ export function buildShowroom({ THREE, quality, reflections }) {
     stripM.emissiveIntensity = night ? 0.4 : 1.4; stripM.emissive.set(sunset ? '#ffd9ae' : night ? '#bcd0ff' : '#fff8ee');
     signM.emissiveIntensity = night ? 4 : 2.4; led.material.emissiveIntensity = night ? 2.5 : 1.6;
     wallM.color.set(night ? '#171a20' : sunset ? '#544338' : '#484543');
+    if (!THREE.ColorManagement) wallM.color.convertSRGBToLinear();
   }
   return { group: g, clickables, table, sign, signM, led, leaves, plant, envScene, setMood, mirror, lights: { key } };
 }
@@ -250,7 +256,7 @@ export function buildCourse({ THREE, quality }) {
   const trunkG = new THREE.CylinderGeometry(0.18, 0.28, 1, 7); trunkG.translate(0, 0.5, 0);
   const crownG = new THREE.IcosahedronGeometry(1, 1);
   const trunks = new THREE.InstancedMesh(trunkG, new THREE.MeshStandardMaterial({ color: '#5a4430', roughness: 1 }), 260);
-  const crowns = new THREE.InstancedMesh(crownG, new THREE.MeshStandardMaterial({ color: '#3f6b2c', roughness: 0.9, flatShading: true }), 260);
+  const crowns = new THREE.InstancedMesh(crownG, new THREE.MeshStandardMaterial({ color: '#77815d', roughness: 1 }), 260 * 4);
   trunks.castShadow = crowns.castShadow = true;
   let ti = 0; const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), c = new THREE.Color();
   while (ti < 260) {
@@ -260,11 +266,30 @@ export function buildCourse({ THREE, quality }) {
     if (nearest(dirtSamples, x, z).d < 8) continue;
     const h = 4 + R() * 6, s = 2 + R() * 2.4;
     m4.compose(new THREE.Vector3(x, 0, z), q.identity(), new THREE.Vector3(1, h, 1)); trunks.setMatrixAt(ti, m4);
-    m4.compose(new THREE.Vector3(x, h + s * 0.4, z), q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), R() * 6), new THREE.Vector3(s, s * 0.75, s)); crowns.setMatrixAt(ti, m4);
-    crowns.setColorAt(ti, c.setHSL(0.27 + R() * 0.06, 0.4 + R() * 0.2, 0.22 + R() * 0.1));
+    const phase = R() * Math.PI * 2;
+    for (let lobe = 0; lobe < 4; lobe++) {
+      const angle = phase + lobe * Math.PI * 2 / 3;
+      const offset = lobe === 3 ? 0 : s * 0.53;
+      const p = new THREE.Vector3(x + Math.cos(angle) * offset, h + s * (lobe === 3 ? 0.64 : 0.26), z + Math.sin(angle) * offset);
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+      m4.compose(p, q, new THREE.Vector3(s * 0.77, s * (0.43 + R() * 0.2), s * 0.71));
+      crowns.setMatrixAt(ti * 4 + lobe, m4);
+      crowns.setColorAt(ti * 4 + lobe, c.setHSL(0.23 + R() * 0.055, 0.31, 0.20 + R() * 0.10));
+    }
     circles.push({ x, z, r: 0.45 }); ti++;
   }
   g.add(trunks, crowns);
+  // A continuous ridge closes the horizon beyond the driveable ground.
+  const ridge = [], indices = [];
+  for (let i = 0; i <= 128; i++) {
+    const a = i * Math.PI / 64, x = Math.cos(a) * 490, z = Math.sin(a) * 490;
+    const h = 19 + 10 * Math.sin(3 * a) + 6 * Math.cos(7 * a) + 3 * Math.sin(13 * a);
+    ridge.push(x, -4, z, x, h, z);
+    if (i) { const n = i * 2; indices.push(n - 2, n - 1, n, n, n - 1, n + 1); }
+  }
+  const land = new THREE.BufferGeometry();
+  land.setAttribute('position', new THREE.Float32BufferAttribute(ridge, 3)); land.setIndex(indices);
+  g.add(new THREE.Mesh(land, new THREE.MeshBasicMaterial({ color: '#4b5c51', side: THREE.DoubleSide })));
 
   // start gantry, flag and billboards
   const start = samples[0], next = samples[3], dir = new THREE.Vector3().subVectors(next, start).normalize();

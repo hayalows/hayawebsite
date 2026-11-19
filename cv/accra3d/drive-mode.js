@@ -1,4 +1,4 @@
-import * as drive from '/l200/pkm-drive.js?v=9';
+import * as drive from '/l200/pkm-drive.js?v=10';
 import { createRoadSurface, trafficContact } from './motion.js?v=2';
 
 export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, traffic, params, stopTour }) {

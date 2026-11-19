@@ -41,10 +41,10 @@ retry.href = location.href;
 try {
   await afterPaint();
   if (intro.dataset.scene === 'accra') {
-    const { startAccra } = await import('/accra3d/scene.js?v=10');
+    const { startAccra } = await import('/accra3d/scene.js?v=11');
     if (shell.running) await startAccra(shell);
   } else {
-    const { startStudio } = await import('/l200/studio.js?v=8');
+    const { startStudio } = await import('/l200/studio.js?v=9');
     if (shell.running) await startStudio(shell);
   }
 } catch (error) {

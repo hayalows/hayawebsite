@@ -482,6 +482,13 @@ export function buildVehicle(THREE, id, opts = {}) {
     const h = roof - 0.07 - 0.58;
     const lg = rbox(0.07, h, W - 0.16, 0.04, paint, pivot); lg.position.set(-0.13, -h / 2, 0); lg.rotation.z = -0.06;
     const rg = rbox(0.02, h * 0.36, W - 0.46, 0.04, M.glass, pivot); rg.position.set(-0.17, -h * 0.25, 0); rg.rotation.z = -0.06;
+    const spoiler = rbox(0.23, 0.055, W - 0.22, 0.02, paint, pivot); spoiler.position.set(-0.16, 0.005, 0);
+    boxAt(0.016, 0.018, 0.46, -0.28, -0.012, 0, M.tail, pivot);
+    const wiper = boxAt(0.025, 0.026, 0.55, -0.205, -h * 0.397, 0.09, M.black, pivot); wiper.rotation.x = 0.08;
+    for (let i = 0; i < 5; i++) {
+      const y = -h * (0.14 + i * 0.047);
+      boxAt(0.004, 0.003, W - 0.59, -0.19 + 0.06 * (y + h * 0.25), y, 0, M.trim, pivot);
+    }
     const word = wordPlate('REGENT', 0.7, 0.09); word.position.set(-0.175, -h * 0.62, 0); word.rotation.y = -Math.PI / 2; pivot.add(word);
     const em = add(new THREE.CircleGeometry(0.065, 32), M.emblem, pivot); em.position.set(-0.176, -h * 0.52, 0); em.rotation.y = -Math.PI / 2;
     pivot.userData = { axis: 'z', open: 0, target: 0, max: -1.2 };
