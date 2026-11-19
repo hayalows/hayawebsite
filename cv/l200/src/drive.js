@@ -435,8 +435,14 @@ export class DriveController {
         fov = 52 + Math.min(16, speed * 0.38); stiff = 4.5; break;
       }
       case 'cabin': {
-        v.body.localToWorld(want.copy(v.driverEye));
         const calm = this.reducedMotion.matches;
+        want.copy(v.driverEye);
+        if (this.env.anchoredCockpit && !calm) {
+          // Seat-relative movement stays within a few centimetres even at motorway speeds.
+          want.x -= clamp(d.ax * 0.004, -0.035, 0.035);
+          want.z += clamp(d.ay * 0.003, -0.025, 0.025);
+        }
+        v.body.localToWorld(want);
         const glance = clamp(this.orbitYaw - 0.1, -1.22, 1.22) + (calm ? 0 : d.steer * 0.14);
         const tilt = -0.18 - this.orbitPitch * 0.7;
         v.body.getWorldQuaternion(this.cabinRotation);
@@ -468,7 +474,11 @@ export class DriveController {
     }
     if (!this._camInit) { this.camPos.copy(want); this.camLook.copy(look); this.fov = fov; this._camInit = true; } // a cut, not a zoom
     const k = 1 - Math.exp(-stiff * dt);
-    this.camPos.lerp(want, k); this.camLook.lerp(look, Math.min(1, k * 1.6));
+    if (this.camMode === 'cabin' && this.env.anchoredCockpit) {
+      this.camPos.copy(want); this.camLook.copy(look);
+    } else {
+      this.camPos.lerp(want, k); this.camLook.lerp(look, Math.min(1, k * 1.6));
+    }
     if (this.env.groundY && this.camMode !== 'cabin') this.camPos.y = Math.max(this.camPos.y, this.env.groundY(this.camPos.x, this.camPos.z) + 0.35);
     cam.position.copy(this.camPos);
     if (this.env.cameraCollision && (this.camMode === 'chase' || this.camMode === 'far')) {

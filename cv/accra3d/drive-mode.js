@@ -1,4 +1,4 @@
-import * as drive from '/l200/pkm-drive.js?v=7';
+import * as drive from '/l200/pkm-drive.js?v=8';
 import { createRoadSurface, trafficContact } from './motion.js?v=2';
 
 export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roadXAt, JUB, TMP, jw, colliders, gates, traffic, params, stopTour }) {
@@ -41,11 +41,13 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
   const contact = createRoadSurface(ROAD, roadXAt, JUB.terrace);
   const neighbours = [];
   const env = {
+    adaptiveBrakes: true,
+    anchoredCockpit: true,
     tyreContact: contact,
     groundY: (x, z) => contact(x, z).height,
     respawn(d) {
       const z = Math.max(-860, Math.min(860, d.z));
-      return { x: roadXAt(z) - 5.5, z, yaw: 0 };
+      return roadSpawn(z);
     },
     cameraCollision: drive.makeCollider({ bounds, boxes, circles, carR: 0.22, carHalf: 0 }),
     dustColor: 0xb4643c,
@@ -94,8 +96,28 @@ export function mountDrive({ THREE, scene, camera, renderer, controls, ROAD, roa
       },
     });
   }
+  function roadSpawn(startZ) {
+    let best, largestGap = -1;
+    for (const offset of [0, -14, 14, -28, 28, -42, 42]) {
+      const z = Math.max(-860, Math.min(860, startZ + offset));
+      const yaw = Math.atan2(roadXAt(z + 1) - roadXAt(z - 1), 2);
+      for (const lane of [-3.75, -7.25]) {
+        const x = roadXAt(z) + lane / Math.cos(yaw);
+        let gap = Infinity;
+        if (traffic.enabled) for (const car of traffic.vehicles) {
+          const dx = car.display.x - x, dz = car.display.z - z;
+          if (Math.abs(dx * Math.cos(yaw) - dz * Math.sin(yaw)) < 2.5) {
+            gap = Math.min(gap, Math.abs(dx * Math.sin(yaw) + dz * Math.cos(yaw)));
+          }
+        }
+        if (gap > 23) return { x, z, yaw };
+        if (gap > largestGap) { largestGap = gap; best = { x, z, yaw }; }
+      }
+    }
+    return best;
+  }
   const spots = {
-    road: () => ({ x: roadXAt(-440) - 5.5, z: -440, yaw: 0 }),
+    road: () => roadSpawn(-440),
     jubilee: () => { const point = jw(0, 118); return { x: point.x, z: point.z, yaw: Math.PI / 2 }; },
     temple: () => ({ x: 44, z: TMP.pos.z, yaw: Math.PI / 2 }),
   };

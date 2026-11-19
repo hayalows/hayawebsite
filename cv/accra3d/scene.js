@@ -2204,9 +2204,26 @@ function vehicleGeo(kind) {
   const shape = (pts) => { const s = new THREE.Shape(); pts.forEach(([x, y], i) => (i ? s.lineTo(x, y) : s.moveTo(x, y))); s.closePath(); return s; };
   const body = new THREE.ExtrudeGeometry(shape(P.body), { depth: P.w, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.06, bevelSegments: 2 });
   body.translate(0, 0, -P.w / 2);
-  const glass = new THREE.ExtrudeGeometry(shape(P.glass), { depth: P.w + 0.04, bevelEnabled: false });
-  glass.translate(0, 0, -P.w / 2 - 0.02);
-  const parts = [tint(body, 0xffffff), tint(glass, 0x14181b)];
+  const glass = new THREE.ExtrudeGeometry(shape(P.glass), { depth: P.w + 0.14, bevelEnabled: false });
+  glass.translate(0, 0, -P.w / 2 - 0.07);
+  const parts = [tint(glass, 0x354551)];
+  // Inset windscreen laid along the actual bonnet-to-roof slope.
+  const [bottom, top] = kind === 'bus' ? P.body.slice(2, 4) : P.body.slice(4, 6);
+  const dx = top[0] - bottom[0], dy = top[1] - bottom[1];
+  const length = Math.hypot(dx, dy);
+  const windscreen = new THREE.BoxGeometry(length * 0.86, 0.025, P.w * 0.9);
+  windscreen.rotateZ(Math.atan2(dy, dx));
+  windscreen.translate((bottom[0] + top[0]) / 2 + 0.085 * dy / length,
+    (bottom[1] + top[1]) / 2 - 0.085 * dx / length, 0);
+  parts.push(tint(windscreen, 0x405662));
+  for (const side of [-1, 1]) {
+    const edge = side * (P.w / 2 + 0.08);
+    const sill = P.glass[0][1], top = P.glass[1][1];
+    for (const x of kind === 'bus' ? [-1.8, -0.8, 0.2, 1.2] : kind === 'suv' ? [-1.4, -0.35] : [-0.38]) {
+      parts.push(tint(box(0.085, top - sill, 0.045, x, sill, edge), 0x1b2024));
+    }
+    parts.push(tint(box(0.22, 0.14, 0.22, P.glass[0][0] - 0.17, sill, edge + side * 0.08), 0x262a30));
+  }
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
     const t = new THREE.CylinderGeometry(P.wheel, P.wheel, 0.26, 16); t.rotateX(Math.PI / 2);
     t.translate(sx * P.wx, P.wheel, sz * (P.w / 2 - 0.02)); parts.push(tint(t, 0x111111));
@@ -2223,7 +2240,7 @@ function vehicleGeo(kind) {
     parts.push(tint(box(5.2, 0.18, P.w + 0.14, 0, 1.0, 0), 0xf2c200));
   }
   const g = merge(parts);
-  return { geo: g, len: P.body[1][0] - P.body[0][0], front: fx, radius: P.w * 0.48 };
+  return { geo: tint(body, 0xffffff), trim: g, len: P.body[1][0] - P.body[0][0], front: fx, radius: P.w * 0.48 };
 }
 
 BUILD.push(['Starting the traffic', function buildTraffic() {
@@ -2255,13 +2272,17 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
       lane.list.push(v); TRAFFIC.vehicles.push(v);
     }
   });
-  const meshes = {};
+  const meshes = {}, trims = {};
+  const trimMat = std({ vertexColors: true, metalness: 0.28, roughness: 0.38 });
   for (const k of Object.keys(kinds)) {
     const im = new THREE.InstancedMesh(kinds[k].geo, paintMat, Math.max(1, count[k]));
     im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
     im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     for (let i = 0; i < count[k]; i++) im.setColorAt(i, col(0xffffff));
-    scene.add(im); meshes[k] = im;
+    const trim = new THREE.InstancedMesh(kinds[k].trim, trimMat, im.count);
+    trim.instanceMatrix = im.instanceMatrix;
+    trim.frustumCulled = false; trim.receiveShadow = true;
+    scene.add(im, trim); meshes[k] = im; trims[k] = trim;
   }
   TRAFFIC.vehicles.forEach((v) => meshes[v.kind].setColorAt(v.idx, col(v.color)));
   Object.values(meshes).forEach((m) => { if (m.instanceColor) m.instanceColor.needsUpdate = true; });
@@ -2272,19 +2293,25 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
   TMP.parked.forEach((c) => (rand() < 0.4 ? parked.suv : parked.sedan).push({ p: new THREE.Vector3(c.x, 0.04, c.z), r: c.r, c: pick(palette) }));
   addInstances(kinds.suv.geo, paintMat, parked.suv);
   addInstances(kinds.sedan.geo, paintMat, parked.sedan);
+  for (const k of ['suv', 'sedan']) {
+    addInstances(kinds[k].trim, trimMat, parked[k].map(item => ({ ...item, c: 0xffffff })));
+  }
 
   /* ---- head / tail light glows (after dark) ---- */
   const NV = TRAFFIC.vehicles.length;
   const headGeo = new THREE.BufferGeometry(), tailGeo = new THREE.BufferGeometry();
   headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NV * 6), 3));
   tailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NV * 6), 3));
+  const tailIntensity = new THREE.Float32BufferAttribute(new Float32Array(NV * 6), 3);
+  tailGeo.setAttribute('color', tailIntensity);
+  let runningLights = 0;
   const headMat = new THREE.PointsMaterial({ map: TEX.glow, color: 0xfff1d0, size: 3.2, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
-  const tailMat = new THREE.PointsMaterial({ map: TEX.glow, color: 0xff2a10, size: 1.6, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+  const tailMat = new THREE.PointsMaterial({ map: TEX.glow, color: 0xff3826, vertexColors: true, size: 1.3, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending });
   const headPts = new THREE.Points(headGeo, headMat), tailPts = new THREE.Points(tailGeo, tailMat);
   headPts.frustumCulled = tailPts.frustumCulled = false;
   scene.add(headPts, tailPts);
-  TRAFFIC.meshes = Object.values(meshes); TRAFFIC.lights = [headPts, tailPts];
-  UPDATE_NIGHT.push((n) => { headMat.opacity = n * 0.95; tailMat.opacity = n * 0.85; });
+  TRAFFIC.meshes = [...Object.values(meshes), ...Object.values(trims)]; TRAFFIC.lights = [headPts, tailPts];
+  UPDATE_NIGHT.push((n) => { headMat.opacity = n * 0.95; runningLights = n * 0.42; });
 
   /* ---- signal cycle: NS green 22 s · amber 3 s · all-red 3 s · EW green 16 s · amber 3 s · all-red 3 s ---- */
   const CYCLE = [['ns', 'g', 22], ['ns', 'a', 3], ['all', 'r', 3], ['ew', 'g', 16], ['ew', 'a', 3], ['all', 'r', 3]];
@@ -2293,12 +2320,21 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
   const setLamp = (grp, s) => { const S = SIGNALS[grp]; S.r.emissiveIntensity = s === 'r' ? 3 : 0.04; S.a.emissiveIntensity = s === 'a' ? 3 : 0.04; S.g.emissiveIntensity = s === 'g' ? 3 : 0.04; };
 
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), up = new THREE.Vector3(0, 1, 0);
-  const ahead = new THREE.Vector3();
+  // Sample each lane once. Cars then share positions and continuous tangents at every fixed step.
+  for (const lane of TRAFFIC.lanes) {
+    const segments = lane.group === 'ew' ? 1 : Math.ceil(lane.len / 4);
+    lane.samples = Array.from({ length: segments + 1 }, (_, i) => lane.pos(lane.len * i / segments));
+    lane.headings = lane.samples.map((_, i, points) => {
+      const a = points[Math.max(0, i - 1)], b = points[Math.min(segments, i + 1)];
+      return Math.atan2((a.z - b.z) * lane.dir, (b.x - a.x) * lane.dir);
+    });
+  }
   function trafficPose(v, lane) {
-    const a = lane.pos(clamp(v.s - 1.5, 0, lane.len));
-    ahead.copy(lane.pos(clamp(v.s + 1.5, 0, lane.len)));
-    v.yaw = Math.atan2((a.z - ahead.z) * lane.dir, (ahead.x - a.x) * lane.dir);
-    v.pos.copy(lane.pos(v.s)).setY(0.03);
+    const u = clamp(v.s / lane.len, 0, 1) * (lane.samples.length - 1);
+    const i = Math.min(Math.floor(u), lane.samples.length - 2), fraction = u - i;
+    const delta = lane.headings[i + 1] - lane.headings[i];
+    v.yaw = lane.headings[i] + fraction * Math.atan2(Math.sin(delta), Math.cos(delta));
+    v.pos.lerpVectors(lane.samples[i], lane.samples[i + 1], fraction).setY(0.03);
   }
   for (const v of TRAFFIC.vehicles) {
     trafficPose(v, v.lane);
@@ -2343,7 +2379,10 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
             if (canStop) target = Math.min(target, Math.max(0, (toStop - 0.5) / 1.6));
           }
           const dv = target - v.v;
-          v.v = Math.max(0, v.v + clamp(dv, -7 * step, 2.6 * step));
+          const acceleration = clamp(dv / step, -7, v.kind === 'bus' ? 1.55 : 2.6);
+          v.acceleration = clamp(acceleration, (v.acceleration || 0) - 12 * step, (v.acceleration || 0) + 8 * step);
+          v.v = Math.max(0, v.v + v.acceleration * step);
+          v.braking = v.acceleration < -0.45 || (v.v < 0.4 && target < 0.4);
           v.s += v.v * step * lane.dir;
           if (v.s > lane.len) v.s -= lane.len; if (v.s < 0) v.s += lane.len;
         }
@@ -2369,10 +2408,13 @@ BUILD.push(['Starting the traffic', function buildTraffic() {
       // local +x is forward → world (c, 0, −s); local z → world (s, 0, c)
       for (let k = 0; k < 2; k++) {
         const lz = k ? hw : -hw;
+        const intensity = v.braking ? 1 : runningLights;
+        tailIntensity.setXYZ(i * 2 + k, intensity, intensity, intensity);
         hp[i * 6 + k * 3] = v.display.x + c * (K.front + 0.3) + s * lz; hp[i * 6 + k * 3 + 1] = 0.75; hp[i * 6 + k * 3 + 2] = v.display.z - s * (K.front + 0.3) + c * lz;
         tp[i * 6 + k * 3] = v.display.x - c * (K.len / 2 + 0.1) + s * lz; tp[i * 6 + k * 3 + 1] = 0.85; tp[i * 6 + k * 3 + 2] = v.display.z + s * (K.len / 2 + 0.1) + c * lz;
       }
     });
+    tailIntensity.needsUpdate = true;
     headGeo.attributes.position.needsUpdate = true; tailGeo.attributes.position.needsUpdate = true;
     Object.values(meshes).forEach((m) => { m.instanceMatrix.needsUpdate = true; });
   });
@@ -2843,7 +2885,7 @@ const detailReady = (async () => {
   applyTime(TIME.elevation, true);
   cityReady = true;
   // Warm the driving code while the visitor looks around, so Drive opens without a wait.
-  if (!navigator.connection?.saveData) setTimeout(() => { import('./drive-mode.js?v=8').catch(() => {}); }, 1200);
+  if (!navigator.connection?.saveData) setTimeout(() => { import('./drive-mode.js?v=9').catch(() => {}); }, 1200);
   sceneDirty = true;
 })();
 detailReady.catch(() => { $('driveStatus').textContent = 'Some city details couldn’t load.'; });
@@ -2857,7 +2899,7 @@ async function openDrive(auto = false) {
   button.textContent = 'Opening…';
   loadingDrive = true;
   try {
-    const { mountDrive } = await import('./drive-mode.js?v=8');
+    const { mountDrive } = await import('./drive-mode.js?v=9');
     await detailReady;
     if (!shell.running) return;
     driveMode ??= mountDrive({

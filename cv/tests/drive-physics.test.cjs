@@ -88,3 +88,22 @@ test('the handbrake still lets the rear step out', async () => {
   }
   assert.ok(worst > 0.3, `slip only ${(worst * 57.3).toFixed(0)} degrees`);
 });
+
+test('city brakes use available grip on straights and retain cornering stability', async () => {
+  const [{ createDynamics, stepDynamics }, { SPECS }] = await modules;
+  for (const spec of Object.values(SPECS)) {
+    for (const steer of [0, 1]) {
+      const car = createDynamics(spec);
+      car.engine = true; car.vx = 25; car.gear = 4;
+      let slip = 0;
+      const env = { adaptiveBrakes: true, tyreContact: () => ({ name: 'asphalt', mu: 1.02, rough: 0.035, height: 0.03 }) };
+      for (let i = 0; i < 8 / step; i++) {
+        stepDynamics(car, { ...neutral, brake: 1, steer }, env, step);
+        if (car.vx > 5) slip = Math.max(slip, Math.abs(Math.atan2(car.vy, car.vx)));
+      }
+      assert.equal(car.vx, 0);
+      if (!steer) assert.ok(car.distance < 36 && car.distance > 29, String(car.distance));
+      assert.ok(slip < 0.3, String(slip));
+    }
+  }
+});

@@ -120,9 +120,16 @@ export function stepDynamics(s, input, env, dt) {
   const demand = Flong;
   // ABS and brake-force distribution keep a share of each axle's grip for steering while braking.
   const braking = brakeHold && demand * (s.vx || 1) < 0 && !input.handbrake;
-  const limitFront = capacityFront * (braking ? 0.9 : 1), limitRear = capacityRear * (braking ? 0.62 : 1);
-  const forceFront = clamp(demand * frontShare, -limitFront, limitFront);
-  const forceRear = clamp(demand * (1 - frontShare), -limitRear, limitRear);
+  // On the city roads, progressively release the cornering reserve as the car straightens.
+  const corner = env.adaptiveBrakes ? clamp(Math.max(Math.abs(s.ay) / (g * 0.5),
+    Math.abs(s.steer) * s.vx * s.vx / (g * S.wheelbase)), 0, 1) : 1;
+  const limitFront = capacityFront * (braking ? 0.98 - 0.08 * corner : 1);
+  const limitRear = capacityRear * (braking ? 0.98 - 0.36 * corner : 1);
+  const share = braking && env.adaptiveBrakes
+    ? frontShare * corner + capacityFront / (capacityFront + capacityRear) * (1 - corner)
+    : frontShare;
+  const forceFront = clamp(demand * share, -limitFront, limitFront);
+  const forceRear = clamp(demand * (1 - share), -limitRear, limitRear);
   Flong = forceFront + forceRear;
   const spinDemand = Math.abs(Fx) - (capacityFront + capacityRear);
   s.wheelSpin = damp(s.wheelSpin, clamp(spinDemand / (s.m * g), 0, 1) * 5, 8, dt);
