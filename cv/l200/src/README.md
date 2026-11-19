@@ -16,8 +16,11 @@
 
 ```sh
 npm i --no-save three@0.187.0 esbuild@0.25.12
-npx esbuild src/studio.js --bundle --format=esm --minify --outfile=studio.js
+npx esbuild src/studio.js --bundle --format=esm --minify '--external:/l200/*' '--external:/accra3d/*' --outfile=studio.js
+npx esbuild src/studio-high.js --bundle --format=esm --minify --outfile=studio-high.js
 npx esbuild src/accra.js --bundle --format=esm --minify --outfile=pkm-drive.js
 ```
 
-Run both commands from `cv/l200/` after editing the source. The built `studio.js` and `pkm-drive.js` are committed, because the site has no build step.
+Run the commands from `cv/l200/` after editing the source. The generated bundles are committed, because the site has no build step.
+
+Auto and Low use the same Three.js engine and vehicle bundle as Accra. High loads the modern renderer with bloom and a planar reflector.

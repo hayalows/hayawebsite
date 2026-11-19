@@ -1,0 +1,60 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+
+export const graphics = {
+  OrbitControls, Sky, Reflector, EffectComposer, RenderPass, UnrealBloomPass, OutputPass,
+  ACESFilmicToneMapping: THREE.ACESFilmicToneMapping,
+  AdditiveBlending: THREE.AdditiveBlending,
+  BoxGeometry: THREE.BoxGeometry,
+  BufferAttribute: THREE.BufferAttribute,
+  BufferGeometry: THREE.BufferGeometry,
+  CanvasTexture: THREE.CanvasTexture,
+  CatmullRomCurve3: THREE.CatmullRomCurve3,
+  CircleGeometry: THREE.CircleGeometry,
+  Color: THREE.Color,
+  ColorManagement: THREE.ColorManagement,
+  ConeGeometry: THREE.ConeGeometry,
+  CylinderGeometry: THREE.CylinderGeometry,
+  DirectionalLight: THREE.DirectionalLight,
+  DoubleSide: THREE.DoubleSide,
+  ExtrudeGeometry: THREE.ExtrudeGeometry,
+  Float32BufferAttribute: THREE.Float32BufferAttribute,
+  FogExp2: THREE.FogExp2,
+  Group: THREE.Group,
+  HemisphereLight: THREE.HemisphereLight,
+  IcosahedronGeometry: THREE.IcosahedronGeometry,
+  InstancedMesh: THREE.InstancedMesh,
+  LatheGeometry: THREE.LatheGeometry,
+  MathUtils: THREE.MathUtils,
+  Matrix4: THREE.Matrix4,
+  Mesh: THREE.Mesh,
+  MeshBasicMaterial: THREE.MeshBasicMaterial,
+  MeshPhysicalMaterial: THREE.MeshPhysicalMaterial,
+  MeshStandardMaterial: THREE.MeshStandardMaterial,
+  NoColorSpace: THREE.NoColorSpace,
+  PCFShadowMap: THREE.PCFShadowMap,
+  PMREMGenerator: THREE.PMREMGenerator,
+  PerspectiveCamera: THREE.PerspectiveCamera,
+  PlaneGeometry: THREE.PlaneGeometry,
+  PointLight: THREE.PointLight,
+  Points: THREE.Points,
+  PointsMaterial: THREE.PointsMaterial,
+  Quaternion: THREE.Quaternion,
+  Raycaster: THREE.Raycaster,
+  RepeatWrapping: THREE.RepeatWrapping,
+  SRGBColorSpace: THREE.SRGBColorSpace,
+  Scene: THREE.Scene,
+  Shape: THREE.Shape,
+  SphereGeometry: THREE.SphereGeometry,
+  SpotLight: THREE.SpotLight,
+  TorusGeometry: THREE.TorusGeometry,
+  Vector2: THREE.Vector2,
+  Vector3: THREE.Vector3,
+  WebGLRenderer: THREE.WebGLRenderer,
+};

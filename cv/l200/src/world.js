@@ -1,11 +1,6 @@
-// Drive Studio worlds: the PKM showroom and the Kumasi proving ground.
-import * as THREE from 'three';
-import { Reflector } from 'three/addons/objects/Reflector.js';
-import { Sky } from 'three/addons/objects/Sky.js';
-
-const tex = (w, h, draw, srgb = true) => {
+const texture = (THREE, w, h, draw, srgb = true) => {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
-  const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+  const t = new THREE.CanvasTexture(c); if (srgb) { if ('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace; else t.encoding = THREE.sRGBEncoding; } t.anisotropy = 8; return t;
 };
 const rng = (seed) => () => ((seed = Math.imul(seed ^ (seed >>> 15), 2246822519) + 0x9e3779b9 | 0) >>> 0) / 4294967296;
 
@@ -24,15 +19,16 @@ function grain(x, w, h, amount, tint = [1, 1, 1], seed = 1) {
 export const FONT = '"Inter", ui-sans-serif, system-ui, sans-serif';
 
 // ------------------------------------------------------------------ showroom
-export function buildShowroom({ quality, reflections }) {
+export function buildShowroom({ THREE, quality, reflections }) {
+  const tex = texture.bind(null, THREE), Reflector = THREE.Reflector;
   const g = new THREE.Group(); g.name = 'showroom';
   const clickables = [];
   const R = rng(7);
   // polished epoxy floor with subtle tile joints
-  const floorTex = tex(1024, 1024, (x, w, h) => {
-    x.fillStyle = '#1e1e1e'; x.fillRect(0, 0, w, h);
+  const floorTex = tex(512, 512, (x, w, h) => {
+    x.fillStyle = '#756c61'; x.fillRect(0, 0, w, h);
     grain(x, w, h, 14, [1, 1, 1], 7);
-    x.strokeStyle = '#1b1b1b'; x.lineWidth = 3; for (let i = 0; i <= 4; i++) { x.beginPath(); x.moveTo(i * w / 4, 0); x.lineTo(i * w / 4, h); x.stroke(); x.beginPath(); x.moveTo(0, i * h / 4); x.lineTo(w, i * h / 4); x.stroke(); }
+    x.strokeStyle = '#57514b'; x.lineWidth = 3; for (let i = 0; i <= 4; i++) { x.beginPath(); x.moveTo(i * w / 4, 0); x.lineTo(i * w / 4, h); x.stroke(); x.beginPath(); x.moveTo(0, i * h / 4); x.lineTo(w, i * h / 4); x.stroke(); }
   });
   floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping; floorTex.repeat.set(10, 10);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshPhysicalMaterial({ map: floorTex, roughness: 0.48, metalness: 0, clearcoat: 0.22, clearcoatRoughness: 0.45 }));
@@ -59,7 +55,7 @@ export function buildShowroom({ quality, reflections }) {
     x.clearRect(0, 0, w, h); x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
     x.font = `800 360px ${FONT}`; if ('letterSpacing' in x) x.letterSpacing = '-18px';
     x.fillText('PKM', w / 2, h * 0.42);
-    x.font = `600 58px ${FONT}`; if ('letterSpacing' in x) x.letterSpacing = '26px'; x.fillText('DRIVE  STUDIO  ·  KUMASI', w / 2, h * 0.86);
+    x.font = `500 44px ${FONT}`; if ('letterSpacing' in x) x.letterSpacing = '6px'; x.fillText('PAPA KOJO MENSAH   /   KUMASI', w / 2, h * 0.86);
   });
   const signM = new THREE.MeshStandardMaterial({ color: '#000', emissive: '#F2E6CF', emissiveMap: signTex, emissiveIntensity: 2.4, transparent: true, alphaMap: signTex, roughness: 1 });
   signTex.colorSpace = THREE.NoColorSpace;
@@ -70,9 +66,14 @@ export function buildShowroom({ quality, reflections }) {
   const strips = [];
   for (const x of [-6, -3, 0, 3, 6]) { const s = box(0.18, 0.05, 18, x, 9.3, 0, stripM); strips.push(s); }
   const ring = new THREE.Mesh(new THREE.TorusGeometry(4.6, 0.06, 8, 96), stripM); ring.rotation.x = Math.PI / 2; ring.position.y = 9.2; g.add(ring);
+  // Visible diffusion panels correspond to the broad cards in the reflection environment.
+  for (const side of [-1, 1]) {
+    box(0.12, 3.7, 9.6, side * 15.68, 4.4, 4.5, stripM);
+    for (const z of [0, 2.25, 4.5, 6.75, 9]) box(0.18, 3.8, 0.065, side * 15.58, 4.4, z, wallM);
+  }
   // turntable
   const table = new THREE.Group(); g.add(table);
-  const disc = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.25, 0.1, 96), new THREE.MeshPhysicalMaterial({ color: '#151515', roughness: 0.35, metalness: 0.3, clearcoat: 0.6 }));
+  const disc = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.25, 0.1, 96), new THREE.MeshPhysicalMaterial({ color: '#36383a', roughness: 0.39, metalness: 0.3, clearcoat: 0.6 }));
   disc.position.y = 0.05; disc.receiveShadow = true; table.add(disc);
   const led = new THREE.Mesh(new THREE.TorusGeometry(4.26, 0.018, 6, 160), new THREE.MeshStandardMaterial({ color: '#BBA783', emissive: '#BBA783', emissiveIntensity: 1.6 }));
   led.rotation.x = Math.PI / 2; led.position.y = 0.06; table.add(led);
@@ -121,7 +122,7 @@ export function buildShowroom({ quality, reflections }) {
     const em = (c, i) => new THREE.MeshBasicMaterial({ color: new THREE.Color(c).multiplyScalar(i) });
     const tone = mood === 'sunset' ? '#ffcf9e' : mood === 'night' ? '#9fb6ff' : '#ffffff';
     for (const x of [-6, -3, 0, 3, 6]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.1, 18), em(tone, mood === 'night' ? 2 : 8)); m.position.set(x, 9, 0); s.add(m); }
-    const big = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), em(mood === 'sunset' ? '#ffb070' : '#eef2f6', mood === 'night' ? 0.6 : 3)); big.position.set(14, 4, 0); big.rotation.y = -Math.PI / 2; s.add(big);
+    const big = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), em(mood === 'sunset' ? '#ffb070' : '#eef2f6', mood === 'night' ? 0.6 : 3)); big.position.set(15.6, 4.4, 4.5); big.rotation.y = -Math.PI / 2; s.add(big);
     const big2 = new THREE.Mesh(new THREE.PlaneGeometry(10, 4), em('#d9d2c4', mood === 'night' ? 0.3 : 1.6)); big2.position.set(-14, 3.5, 4); big2.rotation.y = Math.PI / 2; s.add(big2);
     const sg = new THREE.Mesh(new THREE.PlaneGeometry(9, 3), em('#F2E6CF', 2.5)); sg.position.set(0, 5.5, -13.5); s.add(sg);
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), em('#2a2a2a', 1)); fl.rotation.x = -Math.PI / 2; s.add(fl);
@@ -131,16 +132,17 @@ export function buildShowroom({ quality, reflections }) {
     const night = mood === 'night', sunset = mood === 'sunset';
     key.color.set(sunset ? '#ffc890' : night ? '#cdd6f5' : '#ffffff'); key.intensity = night ? 14 : sunset ? 36 : 40;
     rim.color.set(sunset ? '#ff9a5a' : night ? '#8ea4e8' : '#dfe8ff'); rim.intensity = night ? 60 : 70;
-    fill.intensity = night ? 8 : 35; hemi.intensity = night ? 0.08 : 0.35;
+    fill.intensity = night ? 8 : 35; hemi.intensity = night ? 0.22 : 0.85;
     stripM.emissiveIntensity = night ? 0.4 : 1.4; stripM.emissive.set(sunset ? '#ffd9ae' : night ? '#bcd0ff' : '#fff8ee');
     signM.emissiveIntensity = night ? 4 : 2.4; led.material.emissiveIntensity = night ? 2.5 : 1.6;
-    wallM.color.set(sunset ? '#1a1612' : '#141414');
+    wallM.color.set(night ? '#171a20' : sunset ? '#544338' : '#484543');
   }
   return { group: g, clickables, table, sign, signM, led, leaves, plant, envScene, setMood, mirror, lights: { key } };
 }
 
 // ------------------------------------------------------------------ proving ground
-export function buildCourse({ quality }) {
+export function buildCourse({ THREE, quality }) {
+  const tex = texture.bind(null, THREE), Sky = THREE.Sky;
   const g = new THREE.Group(); g.name = 'course'; g.visible = false;
   const clickables = [], circles = [], R = rng(42);
   // track centreline (closed loop, ~1.1 km)
@@ -152,6 +154,11 @@ export function buildCourse({ quality }) {
   const asphalt = tex(512, 512, (x, w, h) => {
     x.fillStyle = '#3b3c3d'; x.fillRect(0, 0, w, h);
     grain(x, w, h, 46, [1, 1, 1.03], 11);
+    for (const centre of [0.19, 0.35, 0.65, 0.81]) {
+      const wear = x.createLinearGradient((centre - 0.055) * w, 0, (centre + 0.055) * w, 0);
+      wear.addColorStop(0, 'transparent'); wear.addColorStop(0.5, 'rgba(15,16,19,.22)'); wear.addColorStop(1, 'transparent');
+      x.fillStyle = wear; x.fillRect((centre - 0.055) * w, 0, 0.11 * w, h);
+    }
     x.fillStyle = '#e9e6dc'; x.fillRect(10, 0, 14, h); x.fillRect(w - 24, 0, 14, h);
     x.fillStyle = '#e9c45a'; for (let y = 0; y < h; y += 128) x.fillRect(w / 2 - 5, y, 10, 64);
   });
@@ -174,7 +181,7 @@ export function buildCourse({ quality }) {
   const kerbTex = tex(64, 64, (x, w, h) => { x.fillStyle = '#c8302a'; x.fillRect(0, 0, w, h / 2); x.fillStyle = '#f2f0ea'; x.fillRect(0, h / 2, w, h / 2); });
   kerbTex.wrapS = kerbTex.wrapT = THREE.RepeatWrapping;
   const kerbM = new THREE.MeshStandardMaterial({ map: kerbTex, roughness: 0.6, side: THREE.DoubleSide });
-  ribbon(0, kerbM, 0.035, 2.2, W / 2, W / 2 + 0.9); ribbon(0, kerbM, 0.035, 2.2, -W / 2 - 0.9, -W / 2);
+  ribbon(0, kerbM, 0.055, 2.2, W / 2, W / 2 + 0.9); ribbon(0, kerbM, 0.055, 2.2, -W / 2 - 0.9, -W / 2);
 
   // grass with the PKM letters mowed into the infield
   const grassTex = tex(512, 512, (x, w, h) => {
@@ -222,6 +229,23 @@ export function buildCourse({ quality }) {
   const coarse = samples.filter((_, i) => i % 6 === 0);
   const trackDist = (x, z) => { const c = nearest(coarse, x, z); let best = 1e9, bi = 0; for (let k = -8; k <= 8; k++) { const i = ((c.i * 6 + k) % N + N) % N, p = samples[i], d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < best) { best = d; bi = i; } } return { d: Math.sqrt(best), i: bi }; };
 
+  const cellSize = 10, cells = new Map();
+  const cellKey = (i, j) => i * 1024 + j;
+  function indexRoad(points, width, type) {
+    for (let i = 1; i < points.length; i++) {
+      const a = points[i - 1], b = points[i], dx = b.x - a.x, dz = b.z - a.z;
+      const segment = { x: a.x, z: a.z, dx, dz, inv: 1 / Math.max(1e-9, dx * dx + dz * dz), type };
+      for (let col = Math.floor((Math.min(a.x, b.x) - width) / cellSize); col <= Math.floor((Math.max(a.x, b.x) + width) / cellSize); col++) {
+        for (let row = Math.floor((Math.min(a.z, b.z) - width) / cellSize); row <= Math.floor((Math.max(a.z, b.z) + width) / cellSize); row++) {
+          const key = cellKey(col, row);
+          if (!cells.has(key)) cells.set(key, []);
+          cells.get(key).push(segment);
+        }
+      }
+    }
+  }
+  indexRoad(samples, W / 2 + 0.9, 'road');
+  indexRoad(dirtSamples, 3.4, 'dirt');
   // trees (instanced), kept clear of the track
   const trunkG = new THREE.CylinderGeometry(0.18, 0.28, 1, 7); trunkG.translate(0, 0.5, 0);
   const crownG = new THREE.IcosahedronGeometry(1, 1);
@@ -301,6 +325,25 @@ export function buildCourse({ quality }) {
   const lampLights = [];
   for (let k = 0; k < 3; k++) { const L = new THREE.PointLight(0xffd9a0, 0, 26, 1.6); L.position.copy(lampHeads[k * 3].position).setY(7.6); g.add(L); lampLights.push(L); }
 
+  // Distance boards sit on the outside of the approach and face the oncoming driver.
+  const boardPost = new THREE.BoxGeometry(0.08, 1.15, 0.08);
+  for (const apex of [0.24, 0.65]) {
+    for (const metres of [75, 50, 25]) {
+      const u = (1 + apex - metres / curve.getLength()) % 1;
+      const point = curve.getPointAt(u), tangent = curve.getTangentAt(u);
+      const left = new THREE.Vector3(-tangent.z, 0, tangent.x);
+      const centre = point.clone().addScaledVector(left, -W / 2 - 2.2);
+      const post = new THREE.Mesh(boardPost, steel); post.position.copy(centre).setY(0.575); g.add(post);
+      const face = tex(128, 64, (ctx, w, h) => {
+        ctx.fillStyle = '#ece7d8'; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#202420'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = 'bold 48px sans-serif'; ctx.fillText(String(metres), w / 2, h / 2);
+      });
+      const board = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.55, 0.04), new THREE.MeshStandardMaterial({ map: face, roughness: 0.72 }));
+      board.position.copy(centre).setY(1.2); board.rotation.y = Math.atan2(-tangent.x, -tangent.z); g.add(board);
+    }
+  }
+
   // sky + sun
   const sky = new Sky(); sky.scale.setScalar(4500); g.add(sky);
   const sun = new THREE.DirectionalLight(0xffffff, 2.6); sun.castShadow = true;
@@ -332,7 +375,7 @@ export function buildCourse({ quality }) {
     const p = flagGeo.attributes.position; for (let i = 0; i < p.count; i++) { const x = p.getX(i) + 1.5; p.setZ(i, Math.sin(x * 2.2 - t * 6) * 0.12 * x / 3); } p.needsUpdate = true; flagGeo.computeVertexNormals();
     for (const c of cones) {
       if (car) { const dx = c.mesh.position.x - car.x, dz = c.mesh.position.z - car.z, d = Math.hypot(dx, dz), sp = Math.hypot(car.vx, car.vy);
-        if (d < 1.5 && sp > 1 && !c.knocked) { c.knocked = true; c.v.set(dx / d * sp * 0.7 + Math.sin(car.yaw) * sp * 0.5, 2 + sp * 0.15, dz / d * sp * 0.7 + Math.cos(car.yaw) * sp * 0.5); c.spin.set(R() * 8, R() * 8, R() * 8); c.onHit && c.onHit(); } }
+        if (d < 1.5 && sp > 1 && !c.knocked) { c.knocked = true; c.v.set(dx / Math.max(0.01, d) * sp * 0.7 + Math.sin(car.yaw) * sp * 0.5, 2 + sp * 0.15, dz / Math.max(0.01, d) * sp * 0.7 + Math.cos(car.yaw) * sp * 0.5); c.spin.set(R() * 8, R() * 8, R() * 8); c.onHit && c.onHit(); } }
       if (c.knocked) {
         c.v.y -= 9.8 * dt; c.mesh.position.addScaledVector(c.v, dt);
         c.mesh.rotation.x += c.spin.x * dt; c.mesh.rotation.z += c.spin.z * dt;
@@ -342,13 +385,24 @@ export function buildCourse({ quality }) {
   }
   function resetCones() { for (const c of cones) { c.knocked = false; c.mesh.position.copy(c.home); c.mesh.rotation.set(0, 0, 0); } }
 
-  const grip = (x, z) => {
-    const td = trackDist(x, z).d;
-    if (td < W / 2) return { mu: 1.05, rough: 0.02, name: 'asphalt' };
-    if (td < W / 2 + 0.9) return { mu: 0.95, rough: 0.35, name: 'kerb' };
-    if (nearest(dirtSamples, x, z).d < 3.4) return { mu: 0.68, rough: 0.5, name: 'dirt' };
-    return { mu: 0.6, rough: 0.6, name: 'grass' };
-  };
+  const asphaltContact = { height: 0.02, mu: 1.05, rough: 0.02, name: 'asphalt' };
+  const kerbContact = { height: 0.055, mu: 0.95, rough: 0.35, name: 'kerb' };
+  const dirtContact = { height: 0.012, mu: 0.68, rough: 0.5, name: 'dirt' };
+  const grassContact = { height: 0, mu: 0.6, rough: 0.6, name: 'grass' };
+  function grip(x, z) {
+    const nearby = cells.get(cellKey(Math.floor(x / cellSize), Math.floor(z / cellSize)));
+    let surface = grassContact;
+    if (nearby) for (const s of nearby) {
+      const dx = x - s.x, dz = z - s.z;
+      const t = Math.max(0, Math.min(1, (dx * s.dx + dz * s.dz) * s.inv));
+      const d2 = (dx - t * s.dx) ** 2 + (dz - t * s.dz) ** 2;
+      if (s.type === 'road') {
+        if (d2 < (W / 2) ** 2) return asphaltContact;
+        if (d2 < (W / 2 + 0.9) ** 2) surface = kerbContact;
+      } else if (surface === grassContact && d2 < 3.4 ** 2) surface = dirtContact;
+    }
+    return surface;
+  }
   return {
     group: g, clickables, circles, curve, samples, start: { x: start.x, z: start.z, yaw: yaw0 }, grip, trackDist, pkmZone,
     setMood, follow, envScene, animate, resetCones, cones, bounds: { minX: -200, maxX: 200, minZ: -200, maxZ: 200 },

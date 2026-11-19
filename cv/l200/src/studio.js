@@ -1,26 +1,6 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { buildVehicle, SPECS } from './vehicles.js';
-import { VehicleAudio } from './audio.js';
-import { DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from './drive.js';
 import { buildShowroom, buildCourse } from './world.js';
 
-const vehicleThree = {
-  DoubleSide: THREE.DoubleSide,
-  BoxGeometry: THREE.BoxGeometry, BufferAttribute: THREE.BufferAttribute, BufferGeometry: THREE.BufferGeometry,
-  CanvasTexture: THREE.CanvasTexture, CircleGeometry: THREE.CircleGeometry, Color: THREE.Color,
-  ColorManagement: THREE.ColorManagement, CylinderGeometry: THREE.CylinderGeometry, ExtrudeGeometry: THREE.ExtrudeGeometry,
-  Float32BufferAttribute: THREE.Float32BufferAttribute, Group: THREE.Group, InstancedMesh: THREE.InstancedMesh,
-  LatheGeometry: THREE.LatheGeometry, Matrix4: THREE.Matrix4, Mesh: THREE.Mesh, MeshBasicMaterial: THREE.MeshBasicMaterial,
-  MeshPhysicalMaterial: THREE.MeshPhysicalMaterial, MeshStandardMaterial: THREE.MeshStandardMaterial, PlaneGeometry: THREE.PlaneGeometry,
-  PointLight: THREE.PointLight, Points: THREE.Points, PointsMaterial: THREE.PointsMaterial, Quaternion: THREE.Quaternion,
-  RepeatWrapping: THREE.RepeatWrapping, SRGBColorSpace: THREE.SRGBColorSpace, Shape: THREE.Shape, SphereGeometry: THREE.SphereGeometry,
-  SpotLight: THREE.SpotLight, TorusGeometry: THREE.TorusGeometry, Vector2: THREE.Vector2, Vector3: THREE.Vector3,
-};
+import { buildVehicle, SPECS, VehicleAudio, DriveController, makeCollider, createHud, createTouch, createDriveBar, veil, paintNavMap, DRIVE_HINT, HUD_CSS } from '/l200/pkm-drive.js?v=9';
 
 export async function startStudio(shell) {
 const $ = (s, r = document) => r.querySelector(s);
@@ -34,41 +14,52 @@ const canvas = $('#view');
 const qualityValue = params.get('quality') || store.get('pkm.drive.quality', 'auto');
 const quality = ['auto', 'high', 'low'].includes(qualityValue) ? qualityValue : 'auto';
 const compact = matchMedia('(max-width: 900px)');
-// pick a quality tier from the actual graphics chip, not just the CPU count
-const gpuName = (() => { try { const gl = document.createElement('canvas').getContext('webgl'); const ext = gl && gl.getExtension('WEBGL_debug_renderer_info'); return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : ''; } catch { return ''; } })();
-const weakGpu = /SwiftShader|llvmpipe|Mali-[GT][0-9]{1,2}\b|Adreno \(TM\) [1-5][0-9]{2}\b|PowerVR|Intel\(R\) (HD|UHD) Graphics( [1-6][0-9]{2})?\b/i.test(gpuName);
-const lowGuess = weakGpu || (navigator.hardwareConcurrency || 8) <= 4 || compact.matches;
 const high = quality === 'high';
+async function loadGraphics() {
+  if (high) return (await import('/l200/studio-high.js?v=1')).graphics;
+  await import('/accra3d/three-r128.min.js');
+  return window.THREE;
+}
+const THREE = await loadGraphics();
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+if (!high) {
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.physicallyCorrectLights = true;
+}
+const gl = renderer.getContext?.();
+const ext = gl?.getExtension('WEBGL_debug_renderer_info');
+const gpuName = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+const weakGpu = /SwiftShader|llvmpipe|Mali-[GT][0-9]{1,2}\b|Adreno \(TM\) [1-5][0-9]{2}\b|PowerVR|Intel.*UHD/i.test(gpuName);
+const lowGuess = weakGpu || (navigator.hardwareConcurrency || 8) <= 4 || compact.matches;
 const effQ = () => high || (quality === 'auto' && !lowGuess && !economy) ? 'high' : 'low';
 let economy = false;
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
 shell.watchCanvas(canvas);
 renderer.setPixelRatio(Math.min(devicePixelRatio, effQ() === 'low' ? 1 : 1.5));
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 6000);
-const controls = new OrbitControls(camera, canvas);
+const controls = new THREE.OrbitControls(camera, canvas);
 Object.assign(controls, { enableDamping: true, dampingFactor: 0.07, minDistance: 4, maxDistance: 18, maxPolarAngle: Math.PI * 0.495, autoRotateSpeed: 0.6, enablePan: false });
 const pmrem = new THREE.PMREMGenerator(renderer);
 
 let composer, bloom;
 if (high) {
-  composer = new EffectComposer(renderer);
-  composer.addPass(new RenderPass(scene, camera));
-  bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.4, 1.0); composer.addPass(bloom);
-  composer.addPass(new OutputPass());
+  composer = new THREE.EffectComposer(renderer);
+  composer.addPass(new THREE.RenderPass(scene, camera));
+  bloom = new THREE.UnrealBloomPass(new THREE.Vector2(256, 256), 0.35, 0.4, 1.0); composer.addPass(bloom);
+  composer.addPass(new THREE.OutputPass());
 }
 
 // ---------------------------------------------------------------- world
-const showroom = buildShowroom({ quality: effQ(), reflections: high });
+const showroom = buildShowroom({ THREE, quality: effQ(), reflections: high });
 scene.add(showroom.group);
 const audio = new VehicleAudio(); audio.setMuted(store.get('pkm.drive.muted', false));
 
 const cars = {};
 function getVehicle(id) {
   if (cars[id]) return cars[id];
-  const v = buildVehicle(vehicleThree, id);
+  const v = buildVehicle(THREE, id, { physicalLights: true });
   const saved = store.get('pkm.drive.paint.' + id, 0);
   v.paintIndex = Number.isInteger(saved) && v.spec.paints[saved] ? saved : 0;
   const p = v.spec.paints[v.paintIndex]; v.setPaint(p.hex, p.metal);
@@ -82,7 +73,7 @@ const car = () => getVehicle(carId);
 
 const otherId = () => (carId === 'volta' ? 'regent' : 'volta');
 function parkShowroom() {
-  for (const v of Object.values(cars)) v.root.removeFromParent();
+  for (const v of Object.values(cars)) v.root.parent?.remove(v.root);
   const v = car();
   showroom.table.add(v.root); v.root.position.set(0, 0.1, 0); v.root.rotation.set(0, 0, 0);
   for (const p of Object.values(cars)) {
@@ -98,17 +89,21 @@ let course;
 let knocked = 0;
 function loadCourse() {
   if (course) return;
-  course = buildCourse({ quality: effQ() });
+  course = buildCourse({ THREE, quality: effQ() });
   scene.add(course.group);
-  env.collide = makeCollider({ bounds: course.bounds, circles: course.circles, carR: 1, carHalf: 1.7 });
+  env.cameraCollision = makeCollider({ bounds: course.bounds, circles: course.circles, carR: 0.22, carHalf: 0 });
   for (const cone of course.cones) cone.onHit = () => {
     knocked++;
     audio.thunk(0.25);
     if (knocked >= course.cones.length) secret('cones', 'Slalom', 'All eight cones down.');
   };
 }
+const floorContact = { height: 0, mu: 1, rough: 0, name: 'floor' };
 const env = {
-  grip: (x, z) => mode === 'drive' ? course.grip(x, z) : { mu: 1, rough: 0, name: 'floor' },
+  anchoredCockpit: true,
+  adaptiveBrakes: true,
+  tyreContact: (x, z) => course?.grip(x, z) ?? floorContact,
+  groundY: (x, z) => course?.grip(x, z).height ?? 0,
   respawn: (d) => { const c = course.trackDist(d.x, d.z), p = course.samples[c.i], q = course.samples[(c.i + 3) % course.samples.length]; return { x: p.x, z: p.z, yaw: Math.atan2(q.x - p.x, q.z - p.z) }; },
   dustColor: 0xa4805a, night: false,
   navMap(g, w, h, d) {
@@ -128,7 +123,7 @@ const env = {
   },
 };
 const hud = createHud($('#stage'));
-const drive = new DriveController({ THREE: vehicleThree, scene, camera, dom: canvas, vehicle: car(), audio, env, onEvent });
+const drive = new DriveController({ THREE, scene, camera, dom: canvas, vehicle: car(), audio, env, onEvent });
 createTouch($('#stage'), drive);
 const driveBar = createDriveBar($('#stage'), drive, {
   exitLabel: 'Showroom', onExit: () => veil(() => setMode('showroom')),
@@ -182,11 +177,18 @@ function moveCamera(to, target, interior = false) {
     return;
   }
   // The lens widens as the camera settles into the seat, the way your eyes take in a cabin.
-  flight = { from: camera.position.clone(), to, tf: controls.target.clone(), tt: target, t0: performance.now(), interior, fov0: camera.fov, fov1: interior ? 62 : 36 };
+  const orbit = !interior && camera.position.distanceTo(controls.target) > 2;
+  const startOffset = camera.position.clone().sub(controls.target), endOffset = to.clone().sub(target);
+  const startAngle = Math.atan2(startOffset.x, startOffset.z);
+  const delta = Math.atan2(endOffset.x, endOffset.z) - startAngle;
+  flight = { orbit, startAngle, turn: Math.atan2(Math.sin(delta), Math.cos(delta)),
+    startRadius: Math.hypot(startOffset.x, startOffset.z), endRadius: Math.hypot(endOffset.x, endOffset.z),
+    from: camera.position.clone(), to, tf: controls.target.clone(), tt: target, t0: performance.now(), interior, fov0: camera.fov, fov1: interior ? 62 : 36 };
 }
 function flyTo(name) {
   stopInterior(false);
   if (name === 'interior') return startInterior();
+  controls.minDistance = name === 'wheel' ? 1.1 : 4;
   const [p, t] = presets[name];
   const yaw = showroom.table.rotation.y, rot = (v) => new THREE.Vector3(v[0], v[1], v[2]).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
   const position = rot(p), target = rot(t);
@@ -330,6 +332,8 @@ function setMode(m, focus = true) {
     stopInterior(false); flight = null; setPanel(false); setSecrets(false);
     showroom.group.visible = false; course.group.visible = true;
     course.setMood(mood); scene.add(car().root);
+    const radius = car().spec.width * 0.48;
+    env.collide = makeCollider({ bounds: course.bounds, circles: course.circles, carR: radius, carHalf: car().dims.length / 2 - radius });
     controls.enabled = false; drive.setEnabled(true); drive.cycleCamera('chase');
     for (const k of Object.keys(car().panels)) car().togglePanel(k, false);
     drive.place(course.start.x, course.start.z, course.start.yaw);
@@ -342,7 +346,10 @@ function setMode(m, focus = true) {
     drive.setEnabled(false); hud.el.hidden = true; driveBar.show(false);
     showroom.group.visible = true; course.group.visible = false;
     controls.enabled = true; camera.near = 0.1; camera.fov = 36; camera.updateProjectionMatrix();
-    audio.cabin = 0; parkShowroom(); flyTo('hero');
+    audio.cabin = 0; car().setCabinView(false); parkShowroom();
+    controls.minDistance = 4; controls.maxDistance = 18;
+    camera.position.set(...presets.hero[0]); controls.target.set(...presets.hero[1]); controls.update();
+    flyTo('hero');
     canvas.setAttribute('aria-label', '3D showroom. Drag to orbit and use the controls to inspect the car.');
     if (focus) $('#driveBtn').focus({ preventScroll: true });
   }
@@ -461,15 +468,21 @@ function loop(now) {
   requestAnimationFrame(loop);
   const raw = lastFrame === undefined ? 0 : (now - lastFrame) / 1000;
   lastFrame = now;
-  if (document.hidden || raw > 0.5) return;
+  if (document.hidden) return;
   const dt = Math.min(raw, 0.1);
   if (mode === 'showroom') {
     const v = car();
     const turning = spin && !flight && !interiorOn;
     if (turning) showroom.table.rotation.y += dt * 0.12;
     if (flight) {
-      const t = Math.min(1, (now - flight.t0) / 1000), k = 1 - Math.pow(1 - t, 3);
+      const t = Math.min(1, (now - flight.t0) / 1000), k = t * t * t * (10 + t * (-15 + 6 * t));
       camera.position.lerpVectors(flight.from, flight.to, k); controls.target.lerpVectors(flight.tf, flight.tt, k);
+      if (flight.orbit) {
+        const radius = flight.startRadius + (flight.endRadius - flight.startRadius) * k;
+        const angle = flight.startAngle + flight.turn * k;
+        camera.position.x = controls.target.x + Math.sin(angle) * radius;
+        camera.position.z = controls.target.z + Math.cos(angle) * radius;
+      }
       if (flight.fov0 !== flight.fov1) { camera.fov = flight.fov0 + (flight.fov1 - flight.fov0) * k; camera.updateProjectionMatrix(); }
       if (flight.interior && t > 0.62 && camera.near !== 0.02) setInteriorRange();
       if (t >= 1) flight = null;
@@ -529,17 +542,10 @@ render(0);
 if (!shell.running) return;
 syncToggles();
 shell.ready();
-// after the first frame: build the second car beside the turntable, then warm up the test track
-const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2500 }) : setTimeout(fn, 600));
-idle(() => {
-  if (!shell.running) return;
-  const o = getVehicle(otherId()); o.root.traverse((n) => { if (n.isMesh) n.userData.car = o.spec.id; });
-  if (mode === 'showroom') parkShowroom();
-  invalidate();
-  idle(() => { if (shell.running && !course && !compact.matches) loadCourse(), course.group.visible = false; });
-});
+// Build the other car and the course when the visitor chooses them.
+
 if (!store.get('pkm.drive.tip', false)) {
-  setTimeout(() => toast('Tip', 'Click a door, the bonnet or the PKM sign. The car beside the turntable swaps in when you click it.'), 1200);
+  setTimeout(() => toast('Tip', 'Click a door, the bonnet or the PKM sign.'), 1200);
   store.set('pkm.drive.tip', true);
 }
 if (params.get('mode') === 'drive') {

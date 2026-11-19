@@ -53,7 +53,7 @@ const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a)
 export function buildVehicle(THREE, id, opts = {}) {
   const S = SPECS[id];
   const modern = !!THREE.ColorManagement;
-  const LS = modern ? 1 : 0.06; // legacy (r128) light units
+  const LS = modern || opts.physicalLights ? 1 : 0.06; // legacy (r128) light units
   const col = (h) => { const c = new THREE.Color(h); if (!modern) c.convertSRGBToLinear(); return c; };
   const srgb = (t) => { if ('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace; else t.encoding = THREE.sRGBEncoding; return t; };
   const canvas = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; };
@@ -70,7 +70,7 @@ export function buildVehicle(THREE, id, opts = {}) {
     trim: new THREE.MeshStandardMaterial({ color: col('#1b1c1d'), roughness: 0.85, metalness: 0 }),
     chrome: new THREE.MeshStandardMaterial({ color: col('#dfe3e6'), roughness: 0.06, metalness: 1, envMapIntensity: 1.6 }),
     satin: new THREE.MeshStandardMaterial({ color: col('#9ea3a6'), roughness: 0.32, metalness: 1 }),
-    glass: new THREE.MeshPhysicalMaterial({ color: col('#05080a'), roughness: 0.02, metalness: 0.3, transparent: true, opacity: 0.86, envMapIntensity: 1.7, clearcoat: 1, clearcoatRoughness: 0 }),
+    glass: new THREE.MeshPhysicalMaterial({ color: col('#223237'), roughness: 0.055, metalness: 0.06, transparent: true, depthWrite: false, opacity: isV8 ? 0.61 : 0.48, envMapIntensity: 1.7, clearcoat: 1, clearcoatRoughness: 0 }),
     lens: new THREE.MeshPhysicalMaterial({ color: col('#e8eef2'), roughness: 0.02, metalness: 0, transparent: true, opacity: 0.35, clearcoat: 1 }),
     head: new THREE.MeshStandardMaterial({ color: col('#f4f7fb'), emissive: col('#ffffff'), emissiveIntensity: 0.6, roughness: 0.25, metalness: 0.4 }),
     drl: new THREE.MeshStandardMaterial({ color: col('#ffffff'), emissive: col('#eef4ff'), emissiveIntensity: 2.2, roughness: 0.3 }),
@@ -108,7 +108,7 @@ export function buildVehicle(THREE, id, opts = {}) {
   });
   const treadTex = new THREE.CanvasTexture(tread); treadTex.wrapS = THREE.RepeatWrapping;
   const sideMap = srgb(new THREE.CanvasTexture(sideTex)); sideMap.wrapS = THREE.RepeatWrapping;
-  M.tyre = new THREE.MeshStandardMaterial({ color: col('#1c1c1c'), roughness: 0.9, bumpMap: treadTex, bumpScale: 2.5, map: sideMap });
+  M.tyre = new THREE.MeshStandardMaterial({ color: col('#d0ceca'), roughness: 0.86, bumpMap: treadTex, bumpScale: 0.0035, map: sideMap });
   M.rim = new THREE.MeshPhysicalMaterial({ color: col(isV8 ? '#d9dcdf' : '#3a3d40'), metalness: 1, roughness: isV8 ? 0.12 : 0.35, clearcoat: 0.6 });
 
   // emblem
@@ -134,7 +134,7 @@ export function buildVehicle(THREE, id, opts = {}) {
     s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
     s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
     const b = Math.min(r, d / 2 - 1e-3) * 0.9;
-    const g = new THREE.ExtrudeGeometry(s, { depth: Math.max(1e-3, d - 2 * b), bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelOffset: -b, bevelSegments: 3, curveSegments: 6 });
+    const g = new THREE.ExtrudeGeometry(s, { depth: Math.max(1e-3, d - 2 * b), bevelEnabled: true, bevelThickness: b, bevelSize: b, bevelOffset: -b, bevelSegments: 2, curveSegments: 5 });
     g.translate(0, 0, -(d - 2 * b) / 2);
     return add(g, mat, parent);
   };
@@ -143,21 +143,22 @@ export function buildVehicle(THREE, id, opts = {}) {
   function weld(g0) {
     const g = g0.index ? g0.toNonIndexed() : g0;
     const pos = g.attributes.position, n = pos.count;
-    const fn = new Float32Array(n), groups = new Map(), keys = new Array(n);
+    const groups = new Map(), keys = new Array(n);
     const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
-    const faceN = [];
+    const faceN = [], directions = [];
     for (let f = 0; f < n / 3; f++) {
       a.fromBufferAttribute(pos, f * 3); b.fromBufferAttribute(pos, f * 3 + 1); c.fromBufferAttribute(pos, f * 3 + 2);
-      faceN.push(new THREE.Vector3().subVectors(c, b).cross(new THREE.Vector3().subVectors(a, b)));
+      const normal = c.sub(b).cross(a.sub(b)).clone();
+      faceN.push(normal); directions.push(normal.clone().normalize());
     }
     for (let i = 0; i < n; i++) {
       const k = Math.round(pos.getX(i) * 2e3) + '_' + Math.round(pos.getY(i) * 2e3) + '_' + Math.round(pos.getZ(i) * 2e3);
       keys[i] = k; let arr = groups.get(k); if (!arr) groups.set(k, arr = []); arr.push(i);
     }
-    const nrm = new Float32Array(n * 3), cos = Math.cos(0.62), t = new THREE.Vector3(), u = new THREE.Vector3();
+    const nrm = new Float32Array(n * 3), cos = Math.cos(0.62), t = new THREE.Vector3();
     for (let i = 0; i < n; i++) {
-      const fi = faceN[(i / 3) | 0]; u.copy(fi).normalize(); t.set(0, 0, 0);
-      for (const j of groups.get(keys[i])) { const fj = faceN[(j / 3) | 0]; if (u.dot(c.copy(fj).normalize()) > cos) t.add(fj); }
+      const u = directions[(i / 3) | 0]; t.set(0, 0, 0);
+      for (const j of groups.get(keys[i])) { const fj = faceN[(j / 3) | 0]; if (u.dot(directions[(j / 3) | 0]) > cos) t.add(fj); }
       t.normalize(); nrm[i * 3] = t.x; nrm[i * 3 + 1] = t.y; nrm[i * 3 + 2] = t.z;
     }
     g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
@@ -228,8 +229,8 @@ export function buildVehicle(THREE, id, opts = {}) {
   function extrudeProfile(shape0, width, glass, segs = 28) {
     const bev = glass ? 0.05 : 0.075;
     const shape = resample(shape0, segs);
-    const g0 = new THREE.ExtrudeGeometry(shape, { depth: width - 2 * bev, steps: 1, bevelEnabled: true, bevelThickness: bev, bevelSize: bev * 0.85, bevelOffset: -bev * 0.85, bevelSegments: 5, curveSegments: segs });
-    const g = refine(g0, 0.2, 6);
+    const g0 = new THREE.ExtrudeGeometry(shape, { depth: width - 2 * bev, steps: 1, bevelEnabled: true, bevelThickness: bev, bevelSize: bev * 0.85, bevelOffset: -bev * 0.85, bevelSegments: 4, curveSegments: segs });
+    const g = refine(g0, 0.23, 5);
     const p = g.attributes.position, half = width / 2, k = width / W;
     const cap = new Int8Array(p.count);
     for (let i = 0; i < p.count; i++) {
@@ -242,7 +243,7 @@ export function buildVehicle(THREE, id, opts = {}) {
       const x = p.getX(i), y = p.getY(i);
       const dx = (halfW(x + e, y, glass) - halfW(x - e, y, glass)) / (2 * e) * k;
       const dy = (halfW(x, y + e, glass) - halfW(x, y - e, glass)) / (2 * e) * k;
-      v.set(-dx * cap[i], -dy * cap[i], 1 * cap[i]).normalize(); nn.setXYZ(i, v.x, v.y, v.z);
+      v.set(-dx, -dy, cap[i]).normalize(); nn.setXYZ(i, v.x, v.y, v.z);
     }
     return out;
   }
@@ -410,13 +411,26 @@ export function buildVehicle(THREE, id, opts = {}) {
     sh.lineTo(b - 0.005, y1); sh.lineTo(a + 0.005, y1); sh.lineTo(a + 0.01, bottom(a + 0.01));
     const g = new THREE.ExtrudeGeometry(sh, { depth: 0.022, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.01, bevelOffset: -0.01, bevelSegments: 2 });
     g.translate(0, 0, side > 0 ? -0.012 : -0.01);
-    const outer = add(g, paint, pivot);
+    // A stamped shoulder sweeps along the door. Split the broad face so reflections follow the crease.
+    const skin = refine(g, 0.16, 4);
+    const verts = skin.attributes.position;
+    for (let i = 0; i < verts.count; i++) {
+      const u = Math.min(1, Math.max(0, (verts.getX(i) - a) / (b - a)));
+      const v = (verts.getY(i) - y0) / (y1 - y0);
+      const shoulder = Math.exp(-((v - 0.72 - u * 0.08) ** 2) / 0.012);
+      const crown = Math.sin(Math.PI * u) * Math.sin(Math.PI * Math.max(0, Math.min(1, v)));
+      verts.setZ(i, verts.getZ(i) + side * (0.009 + 0.018 * crown + 0.011 * shoulder));
+    }
+    const outer = add(weld(skin), paint, pivot);
     // inner trim face
     const inner = add(new THREE.BoxGeometry(x1 - x0 - 0.06, y1 - y0 - 0.06, 0.04), M.interior, pivot);
     inner.position.set((a + b) / 2, (y0 + y1) / 2, -side * 0.03);
     // handle
     const hx = hingeFront ? a + 0.22 : b - 0.22;
     const h = add(new THREE.BoxGeometry(0.2, 0.035, 0.03), isV8 ? M.chrome : M.black, pivot); h.position.set(hx, y1 - 0.13, side * 0.022);
+    const pocket = rbox(0.24, 0.062, 0.016, 0.02, M.trim, pivot);
+    pocket.position.set(hx, y1 - 0.13, side * 0.038);
+    h.position.z = side * 0.056;
     // aperture behind the door
     const ap = add(new THREE.PlaneGeometry(x1 - x0 - 0.08, y1 - y0 - 0.04), M.aperture);
     ap.position.set((x0 + x1) / 2, (y0 + y1) / 2, zs - side * 0.006); ap.rotation.y = side > 0 ? 0 : Math.PI;
@@ -529,6 +543,17 @@ export function buildVehicle(THREE, id, opts = {}) {
     const bump = rbox(0.14, 0.24, W - 0.08, 0.05, M.trim, front); bump.position.set(-0.04, 0.48, 0);
     const skid = rbox(0.08, 0.1, 0.9, 0.04, M.satin, front); skid.position.set(-0.02, 0.36, 0); skid.rotation.z = -0.4;
     for (const z of [-0.4, 0.4]) { const hk = add(new THREE.TorusGeometry(0.035, 0.012, 8, 16), M.caliper, front); hk.position.set(0.04, 0.42, z); hk.rotation.y = Math.PI / 2; }
+  }
+  for (const side of [-1, 1]) {
+    const lampY = faceY1 - (isV8 ? 0.06 : 0.07);
+    const lampZ = side * (hw - 0.30);
+    const cover = rbox(0.015, isV8 ? 0.11 : 0.13, isV8 ? 0.34 : 0.40, 0.006, M.lens, front);
+    cover.position.set(0.044, lampY, lampZ);
+    for (let i = 0; i < (isV8 ? 3 : 2); i++) {
+      const ring = add(new THREE.TorusGeometry(0.035, 0.004, 5, 16), M.satin, front);
+      ring.rotation.y = Math.PI / 2;
+      ring.position.set(0.034, lampY - (isV8 ? 0 : 0.01), side * (hw - (isV8 ? 0.4 : 0.36) + i * (isV8 ? 0.09 : 0.12)));
+    }
   }
   // number plates
   // Ghana-style plate: white reflective face, flag strip with GH, black embossed characters
@@ -825,7 +850,8 @@ export function buildVehicle(THREE, id, opts = {}) {
   function setPaint(hex, metal) {
     paint.color.copy(col(hex));
     paint.metalness = metal ?? paint.metalness;
-    paint.roughness = metal > 0.5 ? 0.28 : 0.35;
+    paint.roughness = metal > 0.5 ? 0.30 : 0.37;
+    paint.clearcoatRoughness = metal > 0.5 ? 0.095 : 0.12;
   }
   function togglePanel(name, force) {
     const p = panels[name]; if (!p) return false;
