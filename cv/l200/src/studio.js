@@ -21,7 +21,7 @@ async function loadGraphics() {
   return window.THREE;
 }
 const THREE = await loadGraphics();
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
 if (!high) {
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.physicallyCorrectLights = true;
@@ -440,11 +440,15 @@ function pick(e) {
 }
 
 // ---------------------------------------------------------------- loop
-let dirtyUntil = 0;
-function invalidate() { dirtyUntil = performance.now() + 1600; }
+let dirtyUntil = 0, needsFrame = true, lastWidth = 0, lastHeight = 0, lastRatio = 0;
+function invalidate() { needsFrame = true; dirtyUntil = performance.now() + 1600; }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) invalidate(); });
+window.addEventListener('pageshow', invalidate);
 function resize() {
   const w = canvas.clientWidth, h = canvas.clientHeight;
-  if (!w || !h) return;
+  const ratio = renderer.getPixelRatio();
+  if (!w || !h || (w === lastWidth && h === lastHeight && ratio === lastRatio)) return;
+  lastWidth = w; lastHeight = h; lastRatio = ratio;
   renderer.setSize(w, h, false);
   composer?.setSize(w, h);
   camera.aspect = w / h; camera.updateProjectionMatrix();
@@ -490,7 +494,7 @@ function loop(now) {
     controls.update();
     const moving = Object.values(v.panels).some((panel) => Math.abs(panel.userData.open - panel.userData.target) > 0.002);
     const lights = v.state;
-    if (now > dirtyUntil && !turning && !flight && !moving && !drive.dyn.engine && !lights.left && !lights.right && !lights.hazard && disco <= 0) return;
+    if (!needsFrame && now > dirtyUntil && !turning && !flight && !moving && !drive.dyn.engine && !lights.left && !lights.right && !lights.hazard && disco <= 0) return;
     v.update(dt, { engine: drive.dyn.engine, night: mood === 'night' });
     if (drive.dyn.engine) {
       const d = drive.dyn; d.rpm += (v.spec.idle - d.rpm) * Math.min(1, dt * 3); d.throttle *= 0.9;
@@ -510,7 +514,7 @@ function loop(now) {
     if (Math.abs(d.vx) * 3.6 > 120) secret('ton', 'Ton-up', 'You reached 120 km/h on the test track.');
     const z = course.pkmZone; if (Math.abs(d.x - z.x) < z.hw && Math.abs(d.z - z.z) < z.hh) secret('pkm', 'Field work', 'You found the PKM in the grass. Try the drone camera.');
   }
-  render(dt);
+  render(dt); needsFrame = false;
   frames++; activeMs += raw * 1000;
   if (activeMs < 1400) return;
   const isSlow = frames / activeMs * 1000 < 30;

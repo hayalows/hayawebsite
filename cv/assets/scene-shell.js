@@ -44,7 +44,7 @@ try {
     const { startAccra } = await import('/accra3d/scene.js?v=11');
     if (shell.running) await startAccra(shell);
   } else {
-    const { startStudio } = await import('/l200/studio.js?v=9');
+    const { startStudio } = await import('/l200/studio.js?v=10');
     if (shell.running) await startStudio(shell);
   }
 } catch (error) {
