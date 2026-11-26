@@ -16,3 +16,10 @@ Founder-led studio in Kumasi, Ashanti, Ghana. Papa Kojo Mensah combines brand id
 - Founder portfolio: https://pkm.hayalows.com/
 
 Contact info@hayalows.com or WhatsApp +233 50 620 1345. Project scope, cost in Ghana cedis, payment stages and timing are agreed before work begins. No fixed packages or starting prices are currently published. Enquiry tools prepare drafts only; visitors review and send their own messages. Payment processing takes place on Paystack.
+
+## Related public products and research
+
+- [Ghana Banking Intelligence](https://banks.hayalows.com/): Independent research on reported financial results of Ghanaian banks. Read the [sources and methodology](https://banks.hayalows.com/sources) before using the figures.
+- [RouteLab](https://maps.hayalows.com/): A personal route-planning and movement companion; personal records are not public.
+- [Design Lab](https://ui.hayalows.com/): Public React interface component library, with a [component index](https://ui.hayalows.com/llms.txt).
+- [PKM portfolio](https://pkm.hayalows.com/): Public work and case studies by the founder.
